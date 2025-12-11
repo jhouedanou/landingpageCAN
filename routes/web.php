@@ -16,9 +16,10 @@ Route::get('/conditions', function () {
     return view('terms');
 })->name('terms');
 
-// Authentification Firebase
+// Authentification Twilio
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/auth/firebase-callback', [AuthController::class, 'firebaseCallback'])->name('auth.firebase-callback');
+Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->name('auth.send-otp');
+Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->name('auth.verify-otp');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Pronostics (requiert authentification)

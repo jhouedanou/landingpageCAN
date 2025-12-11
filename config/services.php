@@ -35,10 +35,11 @@ return [
         ],
     ],
 
-    'twilio' => [
-        'sid' => env('TWILIO_SID'),
-        'token' => env('TWILIO_TOKEN'),
-        'verify_sid' => env('TWILIO_VERIFY_SID'),
+    'greenapi' => [
+        'url' => env('GREENAPI_URL'),
+        'media_url' => env('GREENAPI_MEDIA_URL'),
+        'id_instance' => env('GREENAPI_ID_INSTANCE'),
+        'api_token' => env('GREENAPI_API_TOKEN'),
     ],
 
 ];

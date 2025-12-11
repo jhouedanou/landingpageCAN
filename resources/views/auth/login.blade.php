@@ -1,681 +1,400 @@
 <x-layouts.app title="Connexion">
-    <div class="min-h-[80vh] flex items-center justify-center px-4 py-12">
-        <div class="max-w-md w-full">
-            <div class="bg-white rounded-2xl shadow-xl p-8">
-                <!-- Header -->
-                <div class="text-center mb-8">
-                    <div
-                        class="w-20 h-20 bg-gradient-to-br from-soboa-orange to-orange-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <span class="text-4xl">⚽</span>
+    <div class="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-md">
+
+            <!-- Logo et titre -->
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 shadow-lg flex items-center justify-center">
+                    <img src="/images/soboa.png" alt="SOBOA" class="w-16 h-16 object-contain">
+                </div>
+                <h1 class="text-3xl font-black text-soboa-blue">Connexion</h1>
+                <p class="text-gray-600 mt-2">Entrez votre numéro pour jouer</p>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8" x-data="loginForm()">
+
+                <!-- Messages d'erreur -->
+                <div x-show="error" x-cloak
+                    class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span x-text="error" class="font-medium"></span>
                     </div>
-                    <h1 class="text-3xl font-black text-soboa-blue">Bienvenue</h1>
-                    <p class="text-gray-600 mt-2">Connectez-vous pour faire vos pronostics CAN 2025</p>
                 </div>
 
-                @if(session('error'))
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
-                        <span class="font-medium">{{ session('error') }}</span>
-                    </div>
-                @endif
-
-                @if(session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6" role="alert">
-                        <span class="font-medium">{{ session('success') }}</span>
-                    </div>
-                @endif
-
-                <div id="alert-container"></div>
-
-                <!-- Step 1: Phone Number with Country Selector -->
-                <div id="step-phone">
-                    <form id="phone-form" class="space-y-6">
-                        <div>
-                            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Votre nom complet
-                            </label>
-                            <input type="text" id="name" name="name" placeholder="Jean Kouassi"
-                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-soboa-orange focus:border-soboa-orange transition-colors font-medium"
+                <!-- Étape 1: Nom et téléphone -->
+                <div x-show="step === 1">
+                    <form @submit.prevent="sendOtp">
+                        <!-- Nom complet -->
+                        <div class="mb-5">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Votre nom complet</label>
+                            <input type="text" x-model="name" placeholder="Jean Dupont"
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                 required>
                         </div>
 
-                        <div>
-                            <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Numéro de téléphone
-                            </label>
-
-                            <!-- Country Selector -->
-                            <div class="flex gap-2 mb-2">
-                                <select id="country-code"
-                                    class="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-soboa-orange focus:border-soboa-orange bg-white font-semibold">
-                                    <option value="+225">🇨🇮 Côte d'Ivoire (+225)</option>
-                                    <option value="+221">🇸🇳 Sénégal (+221)</option>
+                        <!-- Téléphone -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone</label>
+                            <div class="flex gap-2">
+                                <!-- Sélecteur de pays -->
+                                <select x-model="countryCode"
+                                    class="px-3 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-sm bg-gray-50">
+                                    <option value="+225">🇨🇮 +225</option>
+                                    <option value="+221">🇸🇳 +221</option>
                                 </select>
+                                <input type="tel" x-model="phone" placeholder="07 XX XX XX XX"
+                                    class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
+                                    required>
                             </div>
-
-                            <input type="tel" id="phone" name="phone" placeholder="07 XX XX XX XX"
-                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-soboa-orange focus:border-soboa-orange transition-colors font-medium"
-                                required>
-                            <p class="text-xs text-gray-500 mt-2">Un code de vérification vous sera envoyé par SMS</p>
+                            <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                <svg class="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                </svg>
+                                <span>Un code vous sera envoyé sur <strong>WhatsApp</strong></span>
+                            </p>
                         </div>
 
-                        <!-- reCAPTCHA container -->
-                        <div id="recaptcha-container"></div>
-
-                        <button type="submit" id="send-otp-btn"
-                            class="w-full bg-soboa-blue hover:bg-soboa-blue-dark text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                            <span id="send-btn-text">Recevoir le code</span>
+                        <!-- Bouton -->
+                        <button type="submit" :disabled="loading"
+                            class="w-full bg-soboa-orange hover:bg-soboa-orange-dark disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                            <span x-show="!loading">Recevoir le code</span>
+                            <span x-show="loading" class="flex items-center gap-2">
+                                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Envoi en cours...
+                            </span>
                         </button>
                     </form>
                 </div>
 
-                <!-- Step 2: OTP Verification -->
-                <div id="step-otp" style="display: none;">
-                    <div class="text-center mb-6">
-                        <div
-                            class="w-16 h-16 bg-soboa-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                                </path>
-                            </svg>
+                <!-- Étape 2: Vérification du code -->
+                <div x-show="step === 2" x-cloak>
+                    <form @submit.prevent="verifyOtp">
+                        <div class="text-center mb-6">
+                            <div
+                                class="w-16 h-16 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                </svg>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-800">Code envoyé sur WhatsApp !</h2>
+                            <p class="text-gray-600 mt-1">
+                                Vérifiez vos messages WhatsApp au <span class="font-bold text-green-600"
+                                    x-text="fullPhone"></span>
+                            </p>
                         </div>
-                        <p class="text-gray-600">Entrez le code reçu par SMS</p>
-                        <p class="text-sm text-soboa-orange font-bold mt-1" id="phone-display"></p>
-                    </div>
 
-                    <form id="otp-form" class="space-y-6">
-                        <div>
-                            <input type="text" id="otp-code" placeholder="000000" maxlength="6" pattern="[0-9]{6}"
-                                inputmode="numeric"
-                                class="w-full px-4 py-4 text-center text-3xl font-black tracking-[0.5em] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-soboa-orange focus:border-soboa-orange"
+                        <!-- Champ code -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Code de vérification</label>
+                            <input type="text" x-model="code" placeholder="000000" maxlength="6"
+                                class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-0 text-2xl text-center tracking-[0.5em] font-bold"
                                 required>
                         </div>
 
-                        <button type="submit" id="verify-btn"
-                            class="w-full bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span id="verify-btn-text">Vérifier</span>
+                        <!-- Boutons -->
+                        <button type="submit" :disabled="loading || code.length !== 6"
+                            class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 mb-4">
+                            <span x-show="!loading">Vérifier le code</span>
+                            <span x-show="loading" class="flex items-center gap-2">
+                                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Vérification...
+                            </span>
                         </button>
+
+                        <!-- Renvoyer le code -->
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 mb-2">Vous n'avez pas reçu le code ?</p>
+                            <button type="button" @click="resendOtp" :disabled="resendCooldown > 0"
+                                class="text-soboa-orange hover:underline font-bold disabled:text-gray-400">
+                                <span x-show="resendCooldown === 0">Renvoyer le code</span>
+                                <span x-show="resendCooldown > 0">Réessayer dans <span
+                                        x-text="resendCooldown"></span>s</span>
+                            </button>
+                        </div>
+
+                        <!-- Changer de numéro -->
+                        <div class="text-center mt-4 pt-4 border-t">
+                            <button type="button" @click="step = 1; code = ''; error = ''"
+                                class="text-sm text-gray-500 hover:text-gray-700">
+                                ← Modifier le numéro
+                            </button>
+                        </div>
                     </form>
-
-                    <!-- Resend SMS Section -->
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-500 mb-2">Vous n'avez pas reçu le code ?</p>
-                        <button type="button" id="resend-btn" disabled
-                            class="text-soboa-blue hover:text-soboa-orange font-semibold text-sm transition-colors disabled:text-gray-400 disabled:cursor-not-allowed">
-                            <span id="resend-btn-text">Renvoyer le code dans <span id="countdown">60</span>s</span>
-                        </button>
-                    </div>
-
-                    <div class="mt-4 text-center">
-                        <button type="button" id="back-btn"
-                            class="text-soboa-blue hover:underline text-sm font-semibold">
-                            ← Modifier le numéro
-                        </button>
-                    </div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-                    <p class="text-sm text-gray-600">
-                        En vous connectant, vous acceptez nos
-                        <a href="/conditions" class="text-soboa-orange hover:underline font-semibold">conditions d'utilisation</a>
-                    </p>
-                    <p class="text-xs text-gray-400 mt-2">
-                        🔞 Ce jeu est réservé aux personnes de 18 ans et plus
-                    </p>
-                </div>
+                <!-- Conditions -->
+                <p class="text-xs text-gray-500 text-center mt-6">
+                    En vous connectant, vous acceptez nos
+                    <a href="/conditions" class="text-soboa-blue hover:underline">conditions d'utilisation</a>
+                </p>
             </div>
 
-            <!-- Points Info -->
-            <div class="mt-6 bg-soboa-blue rounded-xl p-4 text-white text-center">
-                <p class="font-bold">🎮 Gagnez des points à chaque match!</p>
-                <p class="text-sm text-white/80 mt-1">+1 pronostic • +3 bon vainqueur • +3 score exact</p>
+            <!-- Infos supplémentaires -->
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    🔞 Ce jeu est réservé aux personnes de 18 ans et plus
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                    🎮 Gagnez des points à chaque match!<br>
+                    <span class="text-soboa-orange font-bold">+1</span> pronostic •
+                    <span class="text-soboa-orange font-bold">+4</span> bon vainqueur •
+                    <span class="text-soboa-orange font-bold">+7</span> score exact
+                </p>
             </div>
-            
-            <!-- Debug Panel (visible en mode développement) -->
-            @if(config('app.debug'))
-            <div class="mt-6" x-data="{ open: false }">
-                <button @click="open = !open" class="w-full text-left bg-gray-800 text-white px-4 py-2 rounded-t-xl flex justify-between items-center text-sm">
-                    <span>🔧 Debug Panel (Firebase Logs)</span>
-                    <span x-text="open ? '▼' : '▶'"></span>
-                </button>
-                <div x-show="open" class="bg-gray-900 rounded-b-xl p-4 max-h-60 overflow-y-auto">
-                    <div id="debug-panel-content" class="font-mono text-xs space-y-1">
-                        <div class="text-gray-500">En attente des logs...</div>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-gray-700 flex gap-2">
-                        <button onclick="document.getElementById('debug-panel-content').innerHTML = '<div class=\'text-gray-500\'>Logs effacés</div>'" 
-                                class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">
-                            Effacer logs
-                        </button>
-                        <button onclick="copyLogs()" 
-                                class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">
-                            Copier logs
-                        </button>
-                    </div>
-                </div>
-            </div>
-            @endif
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
     <script>
-        // ============================================
-        // DEBUG MODE - Afficher les logs dans la console
-        // ============================================
-        const DEBUG = true;
-        
-        function log(type, message, data = null) {
-            const timestamp = new Date().toLocaleTimeString();
-            const prefix = `[${timestamp}] [Firebase Auth]`;
-            
-            if (DEBUG) {
-                if (type === 'error') {
-                    console.error(`${prefix} ❌ ${message}`, data || '');
-                } else if (type === 'success') {
-                    console.log(`${prefix} ✅ ${message}`, data || '');
-                } else if (type === 'info') {
-                    console.info(`${prefix} ℹ️ ${message}`, data || '');
-                } else {
-                    console.log(`${prefix} ${message}`, data || '');
-                }
-            }
-            
-            // Ajouter au panneau de debug visible
-            addToDebugPanel(type, message, data);
-        }
-        
-        function addToDebugPanel(type, message, data) {
-            const panel = document.getElementById('debug-panel-content');
-            if (!panel) return;
-            
-            const colors = {
-                'error': 'text-red-600',
-                'success': 'text-green-600',
-                'info': 'text-blue-600',
-                'default': 'text-gray-600'
-            };
-            
-            const color = colors[type] || colors.default;
-            const time = new Date().toLocaleTimeString();
-            const dataStr = data ? `<br><small class="text-gray-400">${JSON.stringify(data, null, 2)}</small>` : '';
-            
-            panel.innerHTML = `<div class="${color} text-xs mb-1"><span class="text-gray-400">[${time}]</span> ${message}${dataStr}</div>` + panel.innerHTML;
-        }
+        function loginForm() {
+            return {
+                step: 1,
+                name: '',
+                phone: '',
+                countryCode: '+225',
+                code: '',
+                loading: false,
+                error: '',
+                resendCooldown: 0,
 
-        // ============================================
-        // NUMÉROS DE TEST FIREBASE
-        // Ajoutez ici les mêmes numéros que dans Firebase Console
-        // ============================================
-        const TEST_PHONE_NUMBERS = {
-            '+2250700000000': '123456',
-            '+2250748348221': '123456',  // Numéro de test
-            '+2250747970627': '123456',  // Jean Luc Houédanou
-            '+221770000000': '123456',   // Sénégal test
-        };
-        
-        function isTestPhoneNumber(phone) {
-            return TEST_PHONE_NUMBERS.hasOwnProperty(phone);
-        }
-        
-        function getTestCode(phone) {
-            return TEST_PHONE_NUMBERS[phone] || null;
-        }
+                get fullPhone() {
+                    return this.countryCode + this.formatPhoneNumber(this.phone);
+                },
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "{{ config('services.firebase.api_key') }}",
-            authDomain: "{{ config('services.firebase.project_id') }}.firebaseapp.com",
-            projectId: "{{ config('services.firebase.project_id') }}",
-        };
+                formatPhoneNumber(phone) {
+                    // Supprimer tout sauf les chiffres
+                    let digits = phone.replace(/\D/g, '');
 
-        log('info', 'Configuration Firebase', { 
-            projectId: firebaseConfig.projectId,
-            authDomain: firebaseConfig.authDomain 
-        });
-
-        // Initialize Firebase
-        try {
-            firebase.initializeApp(firebaseConfig);
-            log('success', 'Firebase initialisé avec succès');
-        } catch (e) {
-            log('error', 'Erreur initialisation Firebase', e.message);
-        }
-        
-        let confirmationResult = null;
-        let recaptchaVerifier = null;
-        let userName = '';
-        let userPhone = '';
-        let countdownInterval = null;
-
-        // Countdown timer for resend button - DEFINED FIRST
-        function startResendCountdown() {
-            const resendBtn = document.getElementById('resend-btn');
-            const resendBtnText = document.getElementById('resend-btn-text');
-            const countdownSpan = document.getElementById('countdown');
-            let seconds = 60;
-            
-            resendBtn.disabled = true;
-            resendBtnText.innerHTML = 'Renvoyer le code dans <span id="countdown">60</span>s';
-            
-            // Clear any existing interval
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-            
-            countdownInterval = setInterval(() => {
-                seconds--;
-                const newCountdownSpan = document.getElementById('countdown');
-                if (newCountdownSpan) {
-                    newCountdownSpan.textContent = seconds;
-                }
-                
-                if (seconds <= 0) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                    resendBtn.disabled = false;
-                    resendBtnText.innerHTML = '🔄 Renvoyer le code';
-                }
-            }, 1000);
-        }
-
-        // Initialize reCAPTCHA
-        function initRecaptcha() {
-            log('info', 'Initialisation reCAPTCHA...');
-            try {
-                recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                    'size': 'invisible',
-                    'callback': (response) => {
-                        log('success', 'reCAPTCHA résolu', { tokenLength: response?.length });
-                    },
-                    'expired-callback': () => {
-                        log('error', 'reCAPTCHA expiré - rechargez la page');
+                    // Côte d'Ivoire (+225): 10 chiffres avec le 0 initial
+                    // Format: 0X XX XX XX XX
+                    if (this.countryCode === '+225') {
+                        if (!digits.startsWith('0') && digits.length === 9) {
+                            digits = '0' + digits;
+                        }
                     }
-                });
-                log('success', 'reCAPTCHA initialisé');
-            } catch (e) {
-                log('error', 'Erreur initialisation reCAPTCHA', e.message);
-            }
-        }
+                    // Sénégal (+221): 9 chiffres sans 0 initial
+                    // Format: 7X XXX XX XX
+                    else if (this.countryCode === '+221') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Mali (+223): 8 chiffres sans 0 initial
+                    else if (this.countryCode === '+223') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Burkina Faso (+226): 8 chiffres sans 0 initial
+                    else if (this.countryCode === '+226') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Togo (+228): 8 chiffres sans 0 initial
+                    else if (this.countryCode === '+228') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Bénin (+229): 8 chiffres sans 0 initial (depuis 2024: 10 chiffres)
+                    else if (this.countryCode === '+229') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Ghana (+233): 9 chiffres sans 0 initial
+                    else if (this.countryCode === '+233') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Nigeria (+234): 10 chiffres sans 0 initial
+                    else if (this.countryCode === '+234') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Cameroun (+237): 9 chiffres sans 0 initial
+                    else if (this.countryCode === '+237') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Maroc (+212): 9 chiffres sans 0 initial
+                    else if (this.countryCode === '+212') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // France (+33): 9 chiffres sans 0 initial
+                    else if (this.countryCode === '+33') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+                    // Par défaut: supprimer le 0 initial
+                    else {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
 
-        // Show alert
-        function showAlert(message, type = 'error') {
-            const container = document.getElementById('alert-container');
-            const bgColor = type === 'error'
-               ? 'bg-red-100 border-red-400 text-red-700'
-               : 'bg-green-100 border-green-400 text-green-700';
-            container.innerHTML = `<div class="${bgColor} px-4 py-3 rounded-lg mb-6 border" role="alert"><span class="font-medium">${message}</span></div>`;
-            setTimeout(() => container.innerHTML = '', 5000);
-        }
-        
-        // Afficher la bannière avec le code de test
-        function showTestCodeBanner(code) {
-            const container = document.getElementById('alert-container');
-            container.innerHTML = `
-                <div class="bg-yellow-100 border-2 border-yellow-400 text-yellow-800 px-4 py-4 rounded-lg mb-6" role="alert">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-2xl">🧪</span>
-                        <span class="font-bold text-lg">MODE TEST</span>
-                    </div>
-                    <p class="text-sm mb-2">Numéro de test détecté. Votre code de vérification est :</p>
-                    <div class="bg-white rounded-lg px-4 py-3 text-center">
-                        <span class="text-3xl font-black tracking-widest text-yellow-700">${code}</span>
-                    </div>
-                    <p class="text-xs mt-2 text-yellow-600">⚠️ En production, le code sera envoyé par SMS</p>
-                </div>
-            `;
-        }
+                    return digits;
+                },
 
-        // Format phone number with selected country code
-        function formatPhone(phone) {
-            const countryCode = document.getElementById('country-code').value;
-            // Remove all non-digits
-            phone = phone.replace(/\D/g, '');
-            
-            // Pour la Côte d'Ivoire (+225):
-            // Format depuis 2021: 10 chiffres commençant par 01, 05, 07, 27, etc.
-            // Exemple: 0758585858 -> +2250758585858
-            if (countryCode === '+225') {
-                // Si le numéro ne commence pas par 0, l'ajouter
-                if (!phone.startsWith('0')) {
-                    phone = '0' + phone;
-                }
-            }
-            
-            // Pour le Sénégal (+221):
-            // Format: 9 chiffres sans le 0
-            // Exemple: 0771234567 -> +221771234567
-            if (countryCode === '+221') {
-                if (phone.startsWith('0')) {
-                    phone = phone.substring(1);
-                }
-            }
-            
-            // Return with country code
-            return countryCode + phone;
-        }
+                async sendOtp() {
+                    if (!this.name.trim() || !this.phone.trim()) {
+                        this.error = 'Veuillez remplir tous les champs.';
+                        return;
+                    }
 
-        // Send OTP
-        document.getElementById('phone-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+                    this.loading = true;
+                    this.error = '';
 
-            userName = document.getElementById('name').value.trim();
-            const phoneInput = document.getElementById('phone').value.trim();
+                    console.log('=== ENVOI OTP ===');
+                    console.log('Numéro original:', this.phone);
+                    console.log('Code pays:', this.countryCode);
+                    console.log('Numéro formaté:', this.fullPhone);
 
-            if (!userName) {
-                showAlert('Veuillez entrer votre nom');
-                return;
-            }
-
-            // Remove all non-digits for validation
-            const digitsOnly = phoneInput.replace(/\D/g, '');
-            const countryCode = document.getElementById('country-code').value;
-
-            // Validation selon le pays
-            let minDigits, maxDigits, exampleNum;
-            if (countryCode === '+225') {
-                // Côte d'Ivoire: 10 chiffres avec le 0, ou 9 sans le 0
-                // Le formatPhone() ajoutera le 0 si nécessaire
-                minDigits = 9;
-                maxDigits = 10;
-                exampleNum = '07 58 58 58 58';
-            } else {
-                // Sénégal: 9 chiffres sans le 0, ou 10 avec le 0
-                minDigits = 9;
-                maxDigits = 10;
-                exampleNum = '77 123 45 67';
-            }
-
-            if (digitsOnly.length < minDigits) {
-                showAlert(`Numéro trop court. Entrez au moins ${minDigits} chiffres (ex: ${exampleNum})`);
-                return;
-            }
-            
-            if (digitsOnly.length > maxDigits) {
-                showAlert(`Numéro trop long. Maximum ${maxDigits} chiffres.`);
-                return;
-            }
-
-            userPhone = formatPhone(phoneInput);
-            
-            // Log for debugging
-            log('info', 'Numéro saisi', { input: phoneInput, digitsOnly, length: digitsOnly.length });
-            log('info', 'Numéro formaté', { formatted: userPhone, length: userPhone.length });
-
-            // Validation finale du format E.164
-            // CI: +225 + 10 chiffres = 14 caractères
-            // SN: +221 + 9 chiffres = 13 caractères
-            const expectedLength = countryCode === '+225' ? 14 : 13;
-            if (userPhone.length !== expectedLength) {
-                log('error', 'Longueur invalide', { actual: userPhone.length, expected: expectedLength });
-                showAlert(`Format incorrect. Numéro attendu: ${countryCode} ${exampleNum}`);
-                return;
-            }
-            
-            log('success', 'Validation du numéro OK', { phone: userPhone, format: 'E.164' });
-            
-            // Vérifier si c'est un numéro de test
-            const isTestNumber = isTestPhoneNumber(userPhone);
-            if (isTestNumber) {
-                log('info', '🧪 NUMÉRO DE TEST DÉTECTÉ', { phone: userPhone });
-            }
-
-            const btn = document.getElementById('send-otp-btn');
-            const btnText = document.getElementById('send-btn-text');
-            btn.disabled = true;
-            btnText.textContent = 'Envoi en cours...';
-
-            try {
-                log('info', 'Vérification reCAPTCHA...');
-                if (!recaptchaVerifier) {
-                    initRecaptcha();
-                }
-
-                log('info', 'Appel Firebase signInWithPhoneNumber...', { phone: userPhone });
-                confirmationResult = await firebase.auth().signInWithPhoneNumber(userPhone, recaptchaVerifier);
-                log('success', '✅ SMS envoyé avec succès !', { verificationId: confirmationResult?.verificationId?.substring(0, 20) + '...' });
-
-                // Switch to OTP step
-                document.getElementById('step-phone').style.display = 'none';
-                document.getElementById('step-otp').style.display = 'block';
-                document.getElementById('phone-display').textContent = userPhone;
-                
-                // Si c'est un numéro de test, afficher le code automatiquement
-                if (isTestNumber) {
-                    const testCode = getTestCode(userPhone);
-                    log('success', '🧪 CODE DE TEST', { code: testCode });
-                    showTestCodeBanner(testCode);
-                    // Pré-remplir le code de test
-                    document.getElementById('otp-code').value = testCode;
-                }
-                
-                document.getElementById('otp-code').focus();
-                
-                // Start countdown for resend button
-                startResendCountdown();
-
-            } catch (error) {
-                log('error', 'Erreur Firebase', { 
-                    code: error.code, 
-                    message: error.message,
-                    fullError: error.toString()
-                });
-                
-                let errorMessage = 'Erreur lors de l\'envoi du code.';
-                let debugInfo = '';
-
-                if (error.code === 'auth/invalid-phone-number' || error.message.includes('TOO_SHORT')) {
-                    errorMessage = 'Numéro de téléphone invalide. Vérifiez le format.';
-                    debugInfo = 'Le numéro ne respecte pas le format E.164';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage = 'Trop de tentatives. Réessayez dans quelques minutes.';
-                    debugInfo = 'Rate limiting Firebase activé';
-                } else if (error.code === 'auth/quota-exceeded') {
-                    errorMessage = 'Quota SMS dépassé. Contactez l\'administrateur.';
-                    debugInfo = 'Quota Firebase SMS épuisé';
-                } else if (error.code === 'auth/operation-not-allowed') {
-                    errorMessage = 'SMS non disponible pour cette région.';
-                    debugInfo = 'La région (CI/SN) n\'est pas activée dans Firebase Console > Authentication > Settings > SMS region policy';
-                } else if (error.code === 'auth/captcha-check-failed') {
-                    errorMessage = 'Vérification de sécurité échouée. Rechargez la page.';
-                    debugInfo = 'reCAPTCHA failed - vérifiez que localhost est dans les domaines autorisés';
-                } else if (error.message.includes('reCAPTCHA')) {
-                    errorMessage = 'Erreur de vérification. Rechargez la page.';
-                    debugInfo = 'Problème reCAPTCHA';
-                } else if (error.code === 'auth/missing-phone-number') {
-                    errorMessage = 'Numéro de téléphone manquant.';
-                    debugInfo = 'Le numéro n\'a pas été transmis correctement';
-                } else if (error.code === 'auth/invalid-app-credential') {
-                    errorMessage = 'Configuration Firebase invalide.';
-                    debugInfo = 'Vérifiez API Key et Project ID dans .env';
-                }
-                
-                log('error', `Diagnostic: ${debugInfo}`);
-                showAlert(errorMessage);
-
-                showAlert(errorMessage);
-
-                // Reset reCAPTCHA
-                if (recaptchaVerifier) {
-                    recaptchaVerifier.clear();
-                    recaptchaVerifier = null;
-                }
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Recevoir le code';
-            }
-        });
-
-        // Verify OTP
-        document.getElementById('otp-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const code = document.getElementById('otp-code').value.trim();
-
-            if (code.length !== 6) {
-                showAlert('Le code doit contenir 6 chiffres');
-                return;
-            }
-
-            const btn = document.getElementById('verify-btn');
-            const btnText = document.getElementById('verify-btn-text');
-            btn.disabled = true;
-            btnText.textContent = 'Vérification...';
-
-            try {
-                const result = await confirmationResult.confirm(code);
-                const user = result.user;
-                const idToken = await user.getIdToken();
-
-                // Send to Laravel backend
-                const response = await fetch('/auth/firebase-callback', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        firebase_token: idToken,
-                        phone: userPhone,
-                        name: userName,
-                        firebase_uid: user.uid
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    window.location.href = data.redirect || '/matches';
-                } else {
-                    showAlert(data.message || 'Erreur lors de la connexion');
-                }
-
-            } catch (error) {
-                console.error('Verification Error:', error);
-                let errorMessage = 'Code incorrect ou expiré.';
-
-                if (error.code === 'auth/invalid-verification-code') {
-                    errorMessage = 'Code de vérification incorrect.';
-                } else if (error.code === 'auth/code-expired') {
-                    errorMessage = 'Le code a expiré. Veuillez en demander un nouveau.';
-                }
-
-                showAlert(errorMessage);
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Vérifier';
-            }
-        });
-
-        // Back button
-        document.getElementById('back-btn').addEventListener('click', () => {
-            document.getElementById('step-otp').style.display = 'none';
-            document.getElementById('step-phone').style.display = 'block';
-            document.getElementById('otp-code').value = '';
-            
-            // Stop countdown
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-
-            // Reset reCAPTCHA
-            if (recaptchaVerifier) {
-                recaptchaVerifier.clear();
-                recaptchaVerifier = null;
-            }
-        });
-
-        // Resend SMS button
-        document.getElementById('resend-btn').addEventListener('click', async () => {
-            const resendBtn = document.getElementById('resend-btn');
-            const resendBtnText = document.getElementById('resend-btn-text');
-            
-            resendBtn.disabled = true;
-            resendBtnText.innerHTML = '⏳ Envoi en cours...';
-            
-            try {
-                log('info', 'Renvoi du SMS...');
-                
-                // Supprimer et recréer le container reCAPTCHA
-                const oldContainer = document.getElementById('recaptcha-container');
-                if (oldContainer) {
-                    oldContainer.innerHTML = '';
-                }
-                
-                // Reset reCAPTCHA verifier
-                if (recaptchaVerifier) {
                     try {
-                        recaptchaVerifier.clear();
-                    } catch (e) {
-                        log('info', 'reCAPTCHA déjà nettoyé');
-                    }
-                    recaptchaVerifier = null;
-                }
-                
-                // Créer un nouveau reCAPTCHA
-                recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                    'size': 'invisible',
-                    'callback': (response) => {
-                        log('success', 'reCAPTCHA résolu (resend)');
-                    }
-                });
-                
-                // Wait a bit for reCAPTCHA to initialize
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                log('info', 'Appel Firebase pour renvoi...', { phone: userPhone });
-                confirmationResult = await firebase.auth().signInWithPhoneNumber(userPhone, recaptchaVerifier);
-                log('success', '✅ SMS renvoyé avec succès !');
-                
-                showAlert('✅ Un nouveau code a été envoyé !', 'success');
-                
-                // Restart countdown
-                startResendCountdown();
-                
-            } catch (error) {
-                log('error', 'Erreur renvoi SMS', { code: error.code, message: error.message });
-                let errorMessage = 'Erreur lors du renvoi du code.';
-                
-                if (error.code === 'auth/too-many-requests') {
-                    errorMessage = 'Trop de tentatives. Attendez quelques minutes.';
-                } else if (error.code === 'auth/quota-exceeded') {
-                    errorMessage = 'Limite de SMS atteinte. Réessayez plus tard.';
-                }
-                
-                showAlert(errorMessage);
-                resendBtn.disabled = false;
-                resendBtnText.innerHTML = '🔄 Renvoyer le code';
-            }
-        });
-        
-        // Fonction pour copier les logs
-        function copyLogs() {
-            const panel = document.getElementById('debug-panel-content');
-            if (panel) {
-                const text = panel.innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('Logs copiés dans le presse-papier !');
-                });
-            }
-        }
+                        const response = await fetch('/auth/send-otp', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                name: this.name,
+                                phone: this.fullPhone
+                            })
+                        });
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            log('info', 'Page chargée, initialisation...');
-            initRecaptcha();
-        });
+                        const data = await response.json();
+
+                        console.log('=== RÉPONSE SERVEUR ===');
+                        console.log('Status HTTP:', response.status);
+                        console.log('Data:', data);
+
+                        if (data.success) {
+                            this.step = 2;
+                            this.startResendCooldown();
+                            console.log('WhatsApp OTP envoyé avec succès !');
+                        } else {
+                            this.error = data.message || 'Erreur lors de l\'envoi du code.';
+                            if (data.error) {
+                                console.error('Erreur WhatsApp:', data.error);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Erreur réseau:', err);
+                        this.error = 'Erreur de connexion. Veuillez réessayer.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async verifyOtp() {
+                    if (this.code.length !== 6) {
+                        this.error = 'Le code doit contenir 6 chiffres.';
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const response = await fetch('/auth/verify-otp', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                phone: this.fullPhone,
+                                code: this.code
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Redirection après succès
+                            window.location.href = data.redirect || '/matches';
+                        } else {
+                            this.error = data.message || 'Code incorrect.';
+                        }
+                    } catch (err) {
+                        console.error('Erreur:', err);
+                        this.error = 'Erreur de connexion. Veuillez réessayer.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async resendOtp() {
+                    if (this.resendCooldown > 0) return;
+
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const response = await fetch('/auth/send-otp', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                name: this.name,
+                                phone: this.fullPhone
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            this.startResendCooldown();
+                        } else {
+                            this.error = data.message || 'Erreur lors du renvoi.';
+                        }
+                    } catch (err) {
+                        this.error = 'Erreur de connexion.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                startResendCooldown() {
+                    this.resendCooldown = 60;
+                    const interval = setInterval(() => {
+                        this.resendCooldown--;
+                        if (this.resendCooldown <= 0) {
+                            clearInterval(interval);
+                        }
+                    }, 1000);
+                }
+            };
+        }
     </script>
 </x-layouts.app>
