@@ -93,20 +93,20 @@
                 @if(session('user_id'))
                     <a href="/matches"
                         class="inline-flex items-center justify-center gap-2 bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 text-lg orange-glow">
-                        <span>⚽</span> Faire un pronostic
+                        Faire un pronostic
                     </a>
                     <a href="/dashboard"
                         class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-full border-2 border-white/30 transition-all">
-                        <span>📊</span> Mon tableau de bord
+                        Mon tableau de bord
                     </a>
                 @else
                     <a href="/login"
                         class="inline-flex items-center justify-center gap-2 bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 text-lg orange-glow">
-                        <span>🎮</span> Jouer & Gagner
+                        Jouer & Gagner
                     </a>
                     <a href="/map"
                         class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-full border-2 border-white/30 transition-all">
-                        <span>📍</span> Lieux partenaires
+                        Trouver un lieu
                     </a>
                 @endif
             </div>
@@ -127,7 +127,7 @@
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
                 <div>
                     <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">CAN 2025</span>
-                    <h2 class="text-3xl md:text-4xl font-black text-soboa-blue mt-2">Prochains Matchs</h2>
+                    <h2 class="text-3xl md:text-4xl font-black text-soboa-blue mt-2">Prochains matchs</h2>
                 </div>
                 <a href="/matches"
                     class="text-soboa-orange font-bold hover:underline mt-4 md:mt-0 flex items-center gap-2">
@@ -264,7 +264,7 @@
 
             <!-- Points Breakdown -->
             <div class="mt-16 bg-soboa-blue rounded-2xl p-8 text-white">
-                <h3 class="text-center font-black text-2xl mb-8">Système de Points</h3>
+                <h3 class="text-center font-black text-2xl mb-8">Système de points</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div class="bg-white/10 rounded-xl p-4">
                         <span class="text-3xl font-black text-soboa-orange">+1</span>

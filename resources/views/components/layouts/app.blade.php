@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--
+    Developed with ❤️ by Big Five Abidjan
+    https://bigfive.ci
+-->
 <html lang="fr">
 
 <head>
@@ -175,16 +179,16 @@
             class="md:hidden glass-dark border-t border-white/10">
             <div class="px-4 py-4 space-y-2">
                 <a href="/"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">🏠
+                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
                     Accueil</a>
                 <a href="/matches"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">⚽
+                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
                     Pronostics</a>
                 <a href="/leaderboard"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">🏆
+                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
                     Classement</a>
                 <a href="/map"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">📍
+                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
                     Lieux partenaires</a>
 
                 @if(session('user_id'))
@@ -201,7 +205,7 @@
                     <div class="pt-4">
                         <a href="/login"
                             class="block w-full bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-3 px-4 rounded-lg text-center shadow-lg transition-colors">
-                            🎮 Jouer maintenant
+                            Jouer maintenant
                         </a>
                     </div>
                 @endif
@@ -232,7 +236,7 @@
                         des Nations!</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-soboa-orange mb-4">Liens Rapides</h4>
+                    <h4 class="font-bold text-soboa-orange mb-4">Liens rapides</h4>
                     <ul class="space-y-2 text-white/70 text-sm">
                         <li><a href="/matches" class="hover:text-white transition-colors">Faire un pronostic</a></li>
                         <li><a href="/leaderboard" class="hover:text-white transition-colors">Voir le classement</a>
@@ -241,7 +245,7 @@
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-soboa-orange mb-4">Système de Points</h4>
+                    <h4 class="font-bold text-soboa-orange mb-4">Système de points</h4>
                     <ul class="space-y-2 text-white/70 text-sm">
                         <li>⚽ +1 pt / pronostic</li>
                         <li>🎯 +3 pts / bon vainqueur</li>
