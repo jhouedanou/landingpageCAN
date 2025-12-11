@@ -51,6 +51,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Skip chrome-extension and other non-http(s) URLs
+    const url = new URL(event.request.url);
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
+
     event.respondWith(
         fetch(event.request)
             .then((response) => {
