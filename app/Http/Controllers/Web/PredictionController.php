@@ -24,10 +24,24 @@ class PredictionController extends Controller
         ]);
 
         $match = MatchGame::findOrFail($request->match_id);
+        $userId = session('user_id');
+
+        // Vérifier si l'utilisateur a déjà pronostiqué sur ce match
+        $existingPrediction = Prediction::where('user_id', $userId)
+            ->where('match_id', $request->match_id)
+            ->first();
+
+        if ($existingPrediction) {
+            return back()->with('error', 'Vous avez déjà fait un pronostic sur ce match. Un seul pronostic par match est autorisé.');
+        }
 
         // Vérifier que le match n'a pas encore commencé
         if ($match->status === 'finished') {
             return back()->with('error', 'Ce match est déjà terminé.');
+        }
+
+        if ($match->status === 'live') {
+            return back()->with('error', 'Ce match est en cours. Les pronostics sont fermés.');
         }
 
         // Lock predictions 1 hour before match starts
@@ -35,8 +49,6 @@ class PredictionController extends Controller
         if (now()->gte($lockTime)) {
             return back()->with('error', 'Les pronostics sont fermés 1 heure avant le match.');
         }
-
-        $userId = session('user_id');
 
         // Déterminer le gagnant prédit
         $predictedWinner = 'draw';
@@ -46,18 +58,14 @@ class PredictionController extends Controller
             $predictedWinner = 'team_b';
         }
 
-        // Créer ou mettre à jour le pronostic
-        Prediction::updateOrCreate(
-            [
-                'user_id' => $userId,
-                'match_id' => $request->match_id,
-            ],
-            [
-                'predicted_winner' => $predictedWinner,
-                'score_a' => $request->score_a,
-                'score_b' => $request->score_b,
-            ]
-        );
+        // Créer le pronostic (pas de mise à jour possible)
+        Prediction::create([
+            'user_id' => $userId,
+            'match_id' => $request->match_id,
+            'predicted_winner' => $predictedWinner,
+            'score_a' => $request->score_a,
+            'score_b' => $request->score_b,
+        ]);
 
         return back()->with('success', 'Votre pronostic a été enregistré !');
     }

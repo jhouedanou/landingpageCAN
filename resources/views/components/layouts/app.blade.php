@@ -148,6 +148,9 @@
                 <div class="flex items-center gap-3">
                     @if(session('user_id'))
                         <div class="hidden md:flex items-center gap-3">
+                            <a href="/mes-pronostics" class="px-3 py-1.5 bg-soboa-orange/20 text-soboa-orange hover:bg-soboa-orange hover:text-white rounded-lg font-bold text-sm transition-all">
+                                📋 Mes Pronostics
+                            </a>
                             <a href="/dashboard" class="text-right hover:opacity-80 transition-opacity">
                                 <span
                                     class="text-soboa-orange font-bold text-sm block">{{ session('predictor_name') }}</span>
@@ -202,6 +205,10 @@
 
                 @if(session('user_id'))
                     <div class="pt-4 border-t border-white/10">
+                        <a href="/mes-pronostics"
+                            class="block px-4 py-3 text-soboa-orange hover:bg-white/10 rounded-lg font-semibold transition-colors">
+                            📋 Mes Pronostics
+                        </a>
                         <a href="/dashboard"
                             class="px-4 py-2 flex items-center justify-between hover:bg-white/10 rounded-lg transition-colors">
                             <span class="text-soboa-orange font-bold">{{ session('predictor_name') }}</span>

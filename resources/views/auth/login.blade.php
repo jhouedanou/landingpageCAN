@@ -318,6 +318,24 @@
             container.innerHTML = `<div class="${bgColor} px-4 py-3 rounded-lg mb-6 border" role="alert"><span class="font-medium">${message}</span></div>`;
             setTimeout(() => container.innerHTML = '', 5000);
         }
+        
+        // Afficher la bannière avec le code de test
+        function showTestCodeBanner(code) {
+            const container = document.getElementById('alert-container');
+            container.innerHTML = `
+                <div class="bg-yellow-100 border-2 border-yellow-400 text-yellow-800 px-4 py-4 rounded-lg mb-6" role="alert">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-2xl">🧪</span>
+                        <span class="font-bold text-lg">MODE TEST</span>
+                    </div>
+                    <p class="text-sm mb-2">Numéro de test détecté. Votre code de vérification est :</p>
+                    <div class="bg-white rounded-lg px-4 py-3 text-center">
+                        <span class="text-3xl font-black tracking-widest text-yellow-700">${code}</span>
+                    </div>
+                    <p class="text-xs mt-2 text-yellow-600">⚠️ En production, le code sera envoyé par SMS</p>
+                </div>
+            `;
+        }
 
         // Format phone number with selected country code
         function formatPhone(phone) {
@@ -406,6 +424,12 @@
             }
             
             log('success', 'Validation du numéro OK', { phone: userPhone, format: 'E.164' });
+            
+            // Vérifier si c'est un numéro de test
+            const isTestNumber = isTestPhoneNumber(userPhone);
+            if (isTestNumber) {
+                log('info', '🧪 NUMÉRO DE TEST DÉTECTÉ', { phone: userPhone });
+            }
 
             const btn = document.getElementById('send-otp-btn');
             const btnText = document.getElementById('send-btn-text');
@@ -426,6 +450,16 @@
                 document.getElementById('step-phone').style.display = 'none';
                 document.getElementById('step-otp').style.display = 'block';
                 document.getElementById('phone-display').textContent = userPhone;
+                
+                // Si c'est un numéro de test, afficher le code automatiquement
+                if (isTestNumber) {
+                    const testCode = getTestCode(userPhone);
+                    log('success', '🧪 CODE DE TEST', { code: testCode });
+                    showTestCodeBanner(testCode);
+                    // Pré-remplir le code de test
+                    document.getElementById('otp-code').value = testCode;
+                }
+                
                 document.getElementById('otp-code').focus();
                 
                 // Start countdown for resend button

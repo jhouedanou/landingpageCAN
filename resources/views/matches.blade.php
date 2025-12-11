@@ -105,7 +105,33 @@
                 @if($match->status !== 'finished' && $match->match_date > now())
                 <div class="mt-6 border-t pt-4">
                     @if(session('user_id'))
-                    <!-- Formulaire de pronostic pour utilisateur connecté -->
+                        @php
+                            $userPrediction = $userPredictions[$match->id] ?? null;
+                        @endphp
+                        
+                        @if($userPrediction)
+                        <!-- L'utilisateur a déjà pronostiqué sur ce match -->
+                        <div class="text-center">
+                            <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                                <div class="flex items-center justify-center gap-2 text-green-700 mb-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="font-bold">Pronostic enregistré</span>
+                                </div>
+                                <div class="text-gray-700">
+                                    <span class="font-medium">Votre pronostic :</span>
+                                    <span class="text-xl font-black text-soboa-orange mx-2">
+                                        {{ $userPrediction->score_a }} - {{ $userPrediction->score_b }}
+                                    </span>
+                                </div>
+                                <a href="/mes-pronostics" class="inline-block mt-3 text-sm text-soboa-blue hover:underline">
+                                    Voir tous mes pronostics →
+                                </a>
+                            </div>
+                        </div>
+                        @else
+                        <!-- Formulaire de pronostic pour utilisateur connecté -->
                     <form action="{{ route('predictions.store') }}" method="POST" class="space-y-4">
                         @csrf
                         <input type="hidden" name="match_id" value="{{ $match->id }}">
@@ -148,6 +174,7 @@
                             Valider mon pronostic
                         </button>
                     </form>
+                        @endif
                     @else
                     <!-- Message pour inviter à se connecter -->
                     <div class="text-center">

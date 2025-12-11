@@ -38,7 +38,16 @@ class HomeController extends Controller
             ->get()
             ->groupBy('group_name');
         
-        return view('matches', compact('matches'));
+        // Récupérer les pronostics de l'utilisateur connecté
+        $userPredictions = [];
+        if (session('user_id')) {
+            $predictions = Prediction::where('user_id', session('user_id'))->get();
+            foreach ($predictions as $prediction) {
+                $userPredictions[$prediction->match_id] = $prediction;
+            }
+        }
+        
+        return view('matches', compact('matches', 'userPredictions'));
     }
 
     public function leaderboard()
