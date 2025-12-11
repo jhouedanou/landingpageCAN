@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\MatchGame;
+use App\Models\Team;
 use Illuminate\Database\Seeder;
+use Carbon\Carbon;
 
 class MatchSeeder extends Seeder
 {
@@ -12,194 +14,49 @@ class MatchSeeder extends Seeder
      */
     public function run(): void
     {
-        // Supprimer tous les pronostics et matchs existants
-        \App\Models\Prediction::query()->delete();
-        MatchGame::query()->delete();
-
         $matches = [
-            // GROUPE A - Journée 1
-            [
-                'team_a' => 'Maroc',
-                'team_b' => 'Comores',
-                'match_date' => '2025-12-21 20:00:00',
-                'stadium' => 'Stade Prince Moulay Abdellah, Rabat',
-                'group_name' => 'A',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Mali',
-                'team_b' => 'Zambie',
-                'match_date' => '2025-12-22 15:30:00',
-                'stadium' => 'Stade Moulay Hassan, Rabat',
-                'group_name' => 'A',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE B - Journée 1
-            [
-                'team_a' => 'Égypte',
-                'team_b' => 'Zimbabwe',
-                'match_date' => '2025-12-22 18:00:00',
-                'stadium' => 'Grand Stade d\'Agadir',
-                'group_name' => 'B',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Afrique du Sud',
-                'team_b' => 'Angola',
-                'match_date' => '2025-12-22 20:30:00',
-                'stadium' => 'Grand Stade de Marrakech',
-                'group_name' => 'B',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE C - Journée 1
-            [
-                'team_a' => 'Nigeria',
-                'team_b' => 'Tanzanie',
-                'match_date' => '2025-12-23 13:00:00',
-                'stadium' => 'Complexe Sportif de Fès',
-                'group_name' => 'C',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Tunisie',
-                'team_b' => 'Ouganda',
-                'match_date' => '2025-12-23 15:30:00',
-                'stadium' => 'Stade Annexe Moulay Abdellah, Rabat',
-                'group_name' => 'C',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE D - Journée 1
-            [
-                'team_a' => 'Sénégal',
-                'team_b' => 'Botswana',
-                'match_date' => '2025-12-23 18:00:00',
-                'stadium' => 'Stade Ibn Batouta, Tanger',
-                'group_name' => 'D',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'RD Congo',
-                'team_b' => 'Bénin',
-                'match_date' => '2025-12-23 20:30:00',
-                'stadium' => 'Stade Al Barid, Rabat',
-                'group_name' => 'D',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE E - Journée 1
-            [
-                'team_a' => 'Algérie',
-                'team_b' => 'Soudan',
-                'match_date' => '2025-12-24 13:00:00',
-                'stadium' => 'Stade Moulay Hassan, Rabat',
-                'group_name' => 'E',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Burkina Faso',
-                'team_b' => 'Guinée Équatoriale',
-                'match_date' => '2025-12-24 15:30:00',
-                'stadium' => 'Stade Mohammed V, Casablanca',
-                'group_name' => 'E',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE F - Journée 1
-            [
-                'team_a' => 'Côte d\'Ivoire',
-                'team_b' => 'Mozambique',
-                'match_date' => '2025-12-24 18:00:00',
-                'stadium' => 'Grand Stade de Marrakech',
-                'group_name' => 'F',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Cameroun',
-                'team_b' => 'Gabon',
-                'match_date' => '2025-12-24 20:30:00',
-                'stadium' => 'Grand Stade d\'Agadir',
-                'group_name' => 'F',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE A - Journée 2
-            [
-                'team_a' => 'Maroc',
-                'team_b' => 'Mali',
-                'match_date' => '2025-12-26 13:00:00',
-                'stadium' => 'Stade Prince Moulay Abdellah, Rabat',
-                'group_name' => 'A',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Zambie',
-                'team_b' => 'Comores',
-                'match_date' => '2025-12-26 15:30:00',
-                'stadium' => 'Stade Mohammed V, Casablanca',
-                'group_name' => 'A',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE B - Journée 2
-            [
-                'team_a' => 'Égypte',
-                'team_b' => 'Afrique du Sud',
-                'match_date' => '2025-12-26 18:00:00',
-                'stadium' => 'Grand Stade d\'Agadir',
-                'group_name' => 'B',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Angola',
-                'team_b' => 'Zimbabwe',
-                'match_date' => '2025-12-26 20:30:00',
-                'stadium' => 'Grand Stade de Marrakech',
-                'group_name' => 'B',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-
-            // GROUPE A - Journée 3
-            [
-                'team_a' => 'Zambie',
-                'team_b' => 'Maroc',
-                'match_date' => '2025-12-29 18:30:00',
-                'stadium' => 'Stade Prince Moulay Abdellah, Rabat',
-                'group_name' => 'A',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
-            [
-                'team_a' => 'Comores',
-                'team_b' => 'Mali',
-                'match_date' => '2025-12-29 18:30:00',
-                'stadium' => 'Stade Mohammed V, Casablanca',
-                'group_name' => 'A',
-                'phase' => 'group_stage',
-                'status' => 'scheduled',
-            ],
+            ['home' => 'Maroc', 'away' => 'Comores', 'date' => '2025-12-21 20:00:00', 'grp' => 'A', 'stadium' => 'Stade Mohammed V, Casablanca'],
+            ['home' => 'Mali', 'away' => 'Zambie', 'date' => '2025-12-22 15:00:00', 'grp' => 'A', 'stadium' => 'Stade de Marrakech'],
+            ['home' => 'Afrique du Sud', 'away' => 'Angola', 'date' => '2025-12-22 18:00:00', 'grp' => 'B', 'stadium' => 'Stade de Tanger'],
+            ['home' => 'Sénégal', 'away' => 'Botswana', 'date' => '2025-12-23 16:00:00', 'grp' => 'D', 'stadium' => 'Stade de Rabat'],
+            ['home' => 'Nigeria', 'away' => 'Tanzanie', 'date' => '2025-12-23 18:30:00', 'grp' => 'C', 'stadium' => 'Stade de Fès'],
+            ['home' => 'Côte d\'Ivoire', 'away' => 'Mozambique', 'date' => '2025-12-24 18:30:00', 'grp' => 'F', 'stadium' => 'Stade Mohammed V, Casablanca'],
+            ['home' => 'Cameroun', 'away' => 'Gabon', 'date' => '2025-12-24 21:00:00', 'grp' => 'F', 'stadium' => 'Stade de Marrakech'],
+            ['home' => 'Maroc', 'away' => 'Mali', 'date' => '2025-12-26 21:00:00', 'grp' => 'A', 'stadium' => 'Stade Mohammed V, Casablanca'],
+            ['home' => 'Nigeria', 'away' => 'Tunisie', 'date' => '2025-12-27 21:00:00', 'grp' => 'C', 'stadium' => 'Stade de Tanger'],
+            ['home' => 'Cameroun', 'away' => 'Côte d\'Ivoire', 'date' => '2025-12-28 21:00:00', 'grp' => 'F', 'stadium' => 'Stade Mohammed V, Casablanca'],
+            ['home' => 'Maroc', 'away' => 'Zambie', 'date' => '2025-12-29 20:00:00', 'grp' => 'A', 'stadium' => 'Stade de Rabat'],
+            ['home' => 'Sénégal', 'away' => 'Bénin', 'date' => '2025-12-30 20:00:00', 'grp' => 'D', 'stadium' => 'Stade de Fès'],
+            ['home' => 'Côte d\'Ivoire', 'away' => 'Gabon', 'date' => '2025-12-31 20:00:00', 'grp' => 'F', 'stadium' => 'Stade de Marrakech'],
         ];
 
-        foreach ($matches as $match) {
-            MatchGame::create($match);
+        foreach ($matches as $matchData) {
+            $homeTeam = Team::where('name', $matchData['home'])->first();
+            $awayTeam = Team::where('name', $matchData['away'])->first();
+
+            if (!$homeTeam || !$awayTeam) {
+                $this->command->warn("⚠️ Team not found: {$matchData['home']} vs {$matchData['away']}");
+                continue;
+            }
+
+            MatchGame::updateOrCreate(
+                [
+                    'home_team_id' => $homeTeam->id,
+                    'away_team_id' => $awayTeam->id,
+                    'match_date' => Carbon::parse($matchData['date']),
+                ],
+                [
+                    'team_a' => $homeTeam->name,
+                    'team_b' => $awayTeam->name,
+                    'group_name' => $matchData['grp'],
+                    'stadium' => $matchData['stadium'],
+                    'status' => 'scheduled',
+                    'score_a' => null,
+                    'score_b' => null,
+                ]
+            );
         }
+
+        $this->command->info('✅ 13 CAN 2025 group stage matches seeded successfully!');
     }
 }

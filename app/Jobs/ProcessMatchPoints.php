@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\MatchGame;
+use App\Models\PointLog;
+use App\Models\Prediction;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
+class ProcessMatchPoints implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    protected int $matchId;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(int $matchId)
+    {
+        $this->matchId = $matchId;
+    }
+
+    /**
+     * Execute the job.
+     * 
+     * Scoring Rules:
+     * - Participation: +1 point (awarded on prediction, not here)
+     * - Correct Winner (1/N/2): +3 points
+     * - Exact Score: +3 points extra
+     * - Total max per match: 7 points (1 + 3 + 3)
+     */
+    public function handle(): void
+    {
+        $match = MatchGame::find($this->matchId);
+
+        if (!$match || $match->status !== 'finished') {
+            Log::warning("ProcessMatchPoints: Match {$this->matchId} not found or not finished");
+            return;
+        }
+
+        if ($match->score_a === null || $match->score_b === null) {
+            Log::warning("ProcessMatchPoints: Match {$this->matchId} has no final score");
+            return;
+        }
+
+        // Determine actual match result
+        $actualWinner = $this->determineWinner($match->score_a, $match->score_b);
+
+        // Get all predictions for this match
+        $predictions = Prediction::with('user')
+            ->where('match_id', $this->matchId)
+            ->get();
+
+        Log::info("ProcessMatchPoints: Processing {$predictions->count()} predictions for match {$this->matchId}");
+
+        foreach ($predictions as $prediction) {
+            $totalPoints = 0;
+
+            // Determine predicted result
+            $predictedWinner = $this->determineWinner($prediction->score_a, $prediction->score_b);
+
+            // Rule 2: Correct Winner (+3 points)
+            if ($predictedWinner === $actualWinner) {
+                $totalPoints += 3;
+                
+                PointLog::create([
+                    'user_id' => $prediction->user_id,
+                    'source' => 'prediction_winner',
+                    'points' => 3,
+                ]);
+            }
+
+            // Rule 3: Exact Score (+3 points extra)
+            if ($prediction->score_a == $match->score_a && $prediction->score_b == $match->score_b) {
+                $totalPoints += 3;
+                
+                PointLog::create([
+                    'user_id' => $prediction->user_id,
+                    'source' => 'prediction_exact',
+                    'points' => 3,
+                ]);
+            }
+
+            // Update prediction with points earned
+            $prediction->points_earned = $totalPoints;
+            $prediction->save();
+
+            // Update user's total points
+            if ($totalPoints > 0 && $prediction->user) {
+                $prediction->user->increment('points_total', $totalPoints);
+            }
+
+            Log::info("ProcessMatchPoints: User {$prediction->user_id} earned {$totalPoints} points for match {$this->matchId}");
+        }
+
+        // Clear leaderboard cache since points changed
+        Cache::forget('leaderboard_top_5');
+
+        Log::info("ProcessMatchPoints: Completed processing match {$this->matchId}");
+    }
+
+    /**
+     * Determine winner from scores.
+     * 
+     * @return string 'home' | 'away' | 'draw'
+     */
+    private function determineWinner(int $homeScore, int $awayScore): string
+    {
+        if ($homeScore > $awayScore) {
+            return 'home';
+        } elseif ($awayScore > $homeScore) {
+            return 'away';
+        }
+        return 'draw';
+    }
+}
