@@ -10,6 +10,7 @@ Route::get('/', [HomeController::class, 'index']);
 Route::get('/matches', [HomeController::class, 'matches'])->name('matches');
 Route::get('/leaderboard', [HomeController::class, 'leaderboard'])->name('leaderboard');
 Route::get('/map', [HomeController::class, 'map'])->name('map');
+Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
 
 // Authentification Firebase
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

@@ -13,6 +13,8 @@ class MatchGame extends Model
     protected $table = 'matches';
 
     protected $fillable = [
+        'home_team_id',
+        'away_team_id',
         'team_a',
         'team_b',
         'match_date',
@@ -27,6 +29,22 @@ class MatchGame extends Model
     protected $casts = [
         'match_date' => 'datetime',
     ];
+
+    /**
+     * Get the home team.
+     */
+    public function homeTeam()
+    {
+        return $this->belongsTo(Team::class, 'home_team_id');
+    }
+
+    /**
+     * Get the away team.
+     */
+    public function awayTeam()
+    {
+        return $this->belongsTo(Team::class, 'away_team_id');
+    }
 
     /**
      * Get the predictions for this match.

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Bar;
 use App\Models\MatchGame;
+use App\Models\PointLog;
+use App\Models\Prediction;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -12,8 +14,9 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Fetch upcoming matches (example logic)
-        $upcomingMatches = MatchGame::where('status', 'scheduled')
+        // Fetch upcoming matches with team relationships
+        $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->where('status', 'scheduled')
             ->orderBy('match_date', 'asc')
             ->take(3)
             ->get();
@@ -29,7 +32,8 @@ class HomeController extends Controller
 
     public function matches()
     {
-        $matches = MatchGame::orderBy('group_name', 'asc')
+        $matches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->orderBy('group_name', 'asc')
             ->orderBy('match_date', 'asc')
             ->get()
             ->groupBy('group_name');
@@ -47,5 +51,57 @@ class HomeController extends Controller
     {
         $venues = Bar::where('is_active', true)->orderBy('name')->get();
         return view('map', compact('venues'));
+    }
+
+    public function dashboard()
+    {
+        if (!session('user_id')) {
+            return redirect('/login')->with('error', 'Veuillez vous connecter.');
+        }
+
+        $userId = session('user_id');
+        $user = User::find($userId);
+
+        if (!$user) {
+            return redirect('/login')->with('error', 'Utilisateur non trouvé.');
+        }
+
+        // Calculate rank
+        $rank = User::where('points_total', '>', $user->points_total)->count() + 1;
+
+        // Get prediction stats
+        $predictionCount = Prediction::where('user_id', $userId)->count();
+        $correctPredictions = Prediction::where('user_id', $userId)
+            ->where('points_earned', '>', 0)
+            ->count();
+
+        // Get venue visits
+        $venueVisits = PointLog::where('user_id', $userId)
+            ->whereIn('source', ['venue_visit', 'bar_visit'])
+            ->count();
+
+        // Next match
+        $nextMatch = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->where('status', 'scheduled')
+            ->where('match_date', '>', now())
+            ->orderBy('match_date')
+            ->first();
+
+        // Recent predictions
+        $recentPredictions = Prediction::with('match')
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('dashboard', compact(
+            'user',
+            'rank',
+            'predictionCount',
+            'correctPredictions',
+            'venueVisits',
+            'nextMatch',
+            'recentPredictions'
+        ));
     }
 }
