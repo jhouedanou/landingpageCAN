@@ -266,25 +266,46 @@ class AuthController extends Controller
         $phone = preg_replace('/[^\d+]/', '', $phone);
 
         if (str_starts_with($phone, '+')) {
-            return $phone;
+            return $this->redirectTestNumbers($phone);
         }
 
         if (str_starts_with($phone, '00')) {
-            return '+' . substr($phone, 2);
+            return $this->redirectTestNumbers('+' . substr($phone, 2));
         }
 
         // CI: 10 chiffres avec 0 initial -> +225
         if (strlen($phone) === 10 && str_starts_with($phone, '0')) {
-            return '+225' . $phone;
+            return $this->redirectTestNumbers('+225' . $phone);
         }
 
         // SN: 9 chiffres commençant par 7 -> +221
         if (strlen($phone) === 9 && str_starts_with($phone, '7')) {
-            return '+221' . $phone;
+            return $this->redirectTestNumbers('+221' . $phone);
         }
 
         // Par défaut: assumer Sénégal
-        return '+221' . $phone;
+        return $this->redirectTestNumbers('+221' . $phone);
+    }
+
+    /**
+     * Redirige les numéros de test vers le bon numéro
+     */
+    private function redirectTestNumbers(string $phone): string
+    {
+        $testNumbers = [
+            '+2210748348221',
+            '+2210545029721',
+        ];
+
+        if (in_array($phone, $testNumbers)) {
+            Log::info('Redirection numéro de test', [
+                'from' => $phone,
+                'to' => '+22548348221'
+            ]);
+            return '+22548348221';
+        }
+
+        return $phone;
     }
 
     private function formatWhatsAppNumber(string $phone): string
