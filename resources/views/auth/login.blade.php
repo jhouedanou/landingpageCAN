@@ -41,11 +41,14 @@
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone</label>
                             <div class="flex gap-2">
-                                <!-- Indicatif verrouillé Sénégal -->
-                                <div class="px-4 py-3 border-2 border-gray-300 bg-gray-100 rounded-xl text-sm font-bold text-gray-600 flex items-center">
-                                    🇸🇳 +221
-                                </div>
-                                <input type="tel" x-model="phone" placeholder="77 XXX XX XX"
+                                <!-- Sélecteur de pays -->
+                                <select x-model="countryCode"
+                                    class="px-3 py-3 border-2 border-gray-200 bg-white rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0 cursor-pointer">
+                                    <option value="+225">🇨🇮 +225</option>
+                                    <option value="+221">🇸🇳 +221</option>
+                                    <option value="+33">🇫🇷 +33</option>
+                                </select>
+                                <input type="tel" x-model="phone" :placeholder="getPlaceholder()"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                     required>
                             </div>
@@ -169,7 +172,7 @@
                 step: 1,
                 name: '',
                 phone: '',
-                countryCode: '+221', // Verrouillé sur Sénégal
+                countryCode: '+225', // Côte d'Ivoire par défaut
                 code: '',
                 loading: false,
                 error: '',
@@ -179,14 +182,31 @@
                     return this.countryCode + this.formatPhoneNumber(this.phone);
                 },
 
+                getPlaceholder() {
+                    switch(this.countryCode) {
+                        case '+225': return '07 XX XX XX XX';
+                        case '+221': return '77 XXX XX XX';
+                        case '+33': return '06 XX XX XX XX';
+                        default: return '07 XX XX XX XX';
+                    }
+                },
+
                 formatPhoneNumber(phone) {
                     // Supprimer tout sauf les chiffres
                     let digits = phone.replace(/\D/g, '');
 
-                    // Sénégal (+221): 9 chiffres sans 0 initial
-                    // Format: 7X XXX XX XX
-                    if (digits.startsWith('0')) {
-                        digits = digits.substring(1);
+                    // Retirer le 0 initial pour CI et FR
+                    if (this.countryCode === '+225' || this.countryCode === '+33') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
+                    }
+
+                    // Sénégal: pas de 0 initial normalement
+                    if (this.countryCode === '+221') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
                     }
 
                     return digits;
