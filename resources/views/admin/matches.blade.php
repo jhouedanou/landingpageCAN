@@ -25,6 +25,65 @@
             </div>
             @endif
 
+            <!-- Search Bar -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <form method="GET" action="{{ route('admin.matches') }}" class="flex gap-4 items-end">
+                    <div class="flex-1">
+                        <label for="search" class="block text-sm font-bold text-gray-700 mb-2">
+                            🔍 Rechercher un match
+                        </label>
+                        <input
+                            type="text"
+                            id="search"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Nom d'équipe, groupe, date..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-soboa-orange focus:border-transparent"
+                        >
+                    </div>
+                    <div>
+                        <label for="status" class="block text-sm font-bold text-gray-700 mb-2">
+                            Statut
+                        </label>
+                        <select
+                            id="status"
+                            name="status"
+                            class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-soboa-orange focus:border-transparent"
+                        >
+                            <option value="">Tous</option>
+                            <option value="scheduled" {{ request('status') === 'scheduled' ? 'selected' : '' }}>À venir</option>
+                            <option value="live" {{ request('status') === 'live' ? 'selected' : '' }}>En cours</option>
+                            <option value="finished" {{ request('status') === 'finished' ? 'selected' : '' }}>Terminés</option>
+                        </select>
+                    </div>
+                    <button
+                        type="submit"
+                        class="bg-soboa-orange hover:bg-soboa-orange/90 text-white font-bold px-6 py-3 rounded-lg transition-colors"
+                    >
+                        Rechercher
+                    </button>
+                    @if(request('search') || request('status'))
+                    <a
+                        href="{{ route('admin.matches') }}"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-6 py-3 rounded-lg transition-colors"
+                    >
+                        Réinitialiser
+                    </a>
+                    @endif
+                </form>
+                @if(request('search') || request('status'))
+                <div class="mt-4 text-sm text-gray-600">
+                    <strong>{{ $matches->count() }}</strong> résultat(s) trouvé(s)
+                    @if(request('search'))
+                    pour "<strong>{{ request('search') }}</strong>"
+                    @endif
+                    @if(request('status'))
+                    ({{ request('status') === 'scheduled' ? 'À venir' : (request('status') === 'live' ? 'En cours' : 'Terminés') }})
+                    @endif
+                </div>
+                @endif
+            </div>
+
             <!-- Matches Table -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <table class="w-full">

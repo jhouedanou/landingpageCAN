@@ -63,15 +63,32 @@ class AdminController extends Controller
     /**
      * List all matches for management
      */
-    public function matches()
+    public function matches(Request $request)
     {
         if (!$this->checkAdmin()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $matches = MatchGame::with(['homeTeam', 'awayTeam'])
-            ->orderBy('match_date', 'asc')
-            ->get();
+        $query = MatchGame::with(['homeTeam', 'awayTeam']);
+
+        // Filtre par recherche (équipe, groupe, date)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('team_a', 'like', "%{$search}%")
+                  ->orWhere('team_b', 'like', "%{$search}%")
+                  ->orWhere('group_name', 'like', "%{$search}%")
+                  ->orWhere('stadium', 'like', "%{$search}%")
+                  ->orWhereDate('match_date', 'like', "%{$search}%");
+            });
+        }
+
+        // Filtre par statut
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $matches = $query->orderBy('match_date', 'asc')->get();
 
         return view('admin.matches', compact('matches'));
     }
@@ -560,19 +577,59 @@ class AdminController extends Controller
         $query = Prediction::with(['user', 'match.homeTeam', 'match.awayTeam'])
             ->orderBy('created_at', 'desc');
 
+        // Filtre par match
         if ($request->has('match_id') && $request->match_id) {
             $query->where('match_id', $request->match_id);
         }
 
+        // Filtre par utilisateur
         if ($request->has('user_id') && $request->user_id) {
             $query->where('user_id', $request->user_id);
         }
 
-        $predictions = $query->paginate(50);
+        // Filtre par statut de match (onglets)
+        $status = $request->get('status', 'all');
+        if ($status === 'upcoming') {
+            $query->whereHas('match', function ($q) {
+                $q->whereIn('status', ['scheduled', 'live']);
+            });
+        } elseif ($status === 'finished') {
+            $query->whereHas('match', function ($q) {
+                $q->where('status', 'finished');
+            });
+        }
+
+        $predictions = $query->paginate(50)->withQueryString();
+
+        // Statistiques
+        $totalPredictions = Prediction::count();
+        $upcomingPredictions = Prediction::whereHas('match', function ($q) {
+            $q->whereIn('status', ['scheduled', 'live']);
+        })->count();
+        $finishedPredictions = Prediction::whereHas('match', function ($q) {
+            $q->where('status', 'finished');
+        })->count();
+        $totalPointsAwarded = Prediction::sum('points_earned');
+        $avgPointsPerPrediction = $finishedPredictions > 0
+            ? round(Prediction::whereHas('match', function ($q) {
+                $q->where('status', 'finished');
+            })->avg('points_earned'), 2)
+            : 0;
+
         $matches = MatchGame::orderBy('match_date', 'desc')->get();
         $users = User::orderBy('name')->get();
 
-        return view('admin.predictions', compact('predictions', 'matches', 'users'));
+        return view('admin.predictions', compact(
+            'predictions',
+            'matches',
+            'users',
+            'status',
+            'totalPredictions',
+            'upcomingPredictions',
+            'finishedPredictions',
+            'totalPointsAwarded',
+            'avgPointsPerPrediction'
+        ));
     }
 
     /**
