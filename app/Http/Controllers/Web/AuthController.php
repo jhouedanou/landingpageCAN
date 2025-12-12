@@ -31,19 +31,19 @@ class AuthController extends Controller
         try {
             $originalPhone = $request->phone;
             $phone = $this->formatPhone($request->phone);
-            
+
             // VALIDATION STRICTE: Vérifier que le numéro est autorisé
             if (!$this->isPhoneAllowedForPublic($phone)) {
                 Log::warning('Tentative d\'inscription avec un numéro non autorisé', [
                     'phone' => $phone,
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Ce numéro n\'est pas autorisé. Seuls les numéros sénégalais (+221) sont acceptés pour l\'inscription.',
+                    'message' => 'Ce numéro n\'est pas autorisé. Seuls les numéros ivoiriens (+225), sénégalais (+221) et français (+33) sont acceptés.',
                 ], 403);
             }
-            
+
             $whatsappNumber = $this->formatWhatsAppNumber($phone);
 
             Log::info('=== ENVOI OTP WHATSAPP ===', [
@@ -167,7 +167,7 @@ class AuthController extends Controller
 
         try {
             $phone = $this->formatPhone($request->phone);
-            
+
             // Double vérification: le numéro doit être autorisé
             if (!$this->isPhoneAllowedForPublic($phone)) {
                 return response()->json([
@@ -175,7 +175,7 @@ class AuthController extends Controller
                     'message' => 'Ce numéro n\'est pas autorisé.',
                 ], 403);
             }
-            
+
             $whatsappNumber = $this->formatWhatsAppNumber($phone);
 
             $cacheKey = 'otp_' . $whatsappNumber;
@@ -241,23 +241,34 @@ class AuthController extends Controller
 
     /**
      * Vérifie si un numéro est autorisé pour l'inscription publique
+     * - Autorise tous les numéros ivoiriens (+225)
      * - Autorise tous les numéros sénégalais (+221)
-     * - Autorise les numéros CI en whitelist pour les tests
+     * - Autorise tous les numéros français (+33)
      */
     private function isPhoneAllowedForPublic(string $phone): bool
     {
-        // Les numéros sénégalais sont toujours autorisés
+        // Les numéros ivoiriens sont autorisés
+        if (str_starts_with($phone, '+225')) {
+            return true;
+        }
+
+        // Les numéros sénégalais sont autorisés
         if (str_starts_with($phone, '+221')) {
             return true;
         }
-        
-        // Vérifier si le numéro est dans la whitelist CI pour les tests
-        $testPhonesCI = config('auth_phones.test_phones_ci', []);
-        if (in_array($phone, $testPhonesCI)) {
-            Log::info('Numéro CI autorisé en mode test', ['phone' => $phone]);
+
+        // Les numéros français sont autorisés
+        if (str_starts_with($phone, '+33')) {
             return true;
         }
-        
+
+        // Vérifier si le numéro est dans une whitelist pour les tests
+        $testPhonesCI = config('auth_phones.test_phones_ci', []);
+        if (in_array($phone, $testPhonesCI)) {
+            Log::info('Numéro autorisé en mode test', ['phone' => $phone]);
+            return true;
+        }
+
         return false;
     }
 
@@ -278,13 +289,19 @@ class AuthController extends Controller
             return $this->redirectTestNumbers('+225' . $phone);
         }
 
+        // France: 10 chiffres commençant par 06 ou 07 -> +33
+        if (strlen($phone) === 10 && (str_starts_with($phone, '06') || str_starts_with($phone, '07'))) {
+            // Retirer le 0 initial pour les numéros français
+            return $this->redirectTestNumbers('+33' . substr($phone, 1));
+        }
+
         // SN: 9 chiffres commençant par 7 -> +221
         if (strlen($phone) === 9 && str_starts_with($phone, '7')) {
             return $this->redirectTestNumbers('+221' . $phone);
         }
 
-        // Par défaut: assumer Sénégal
-        return $this->redirectTestNumbers('+221' . $phone);
+        // Par défaut: assumer Côte d'Ivoire
+        return $this->redirectTestNumbers('+225' . $phone);
     }
 
     /**
@@ -349,8 +366,17 @@ class AuthController extends Controller
             return $number;
         }
 
-        // Si ce n'est ni CI ni SN -> Erreur
-        throw new \Exception("Pays non autorisé pour l'envoi d'OTP. Seuls CI (+225) et SN (+221) sont acceptés.");
+        // FRANCE (+33)
+        // Doit avoir 11 chiffres au total : 33 + 9 chiffres (ex: 6xxxxxxxx ou 7xxxxxxxx)
+        if (str_starts_with($number, '33')) {
+            if (strlen($number) !== 11) {
+                throw new \Exception("Numéro FR invalide. Le numéro doit comporter 9 chiffres après l'indicatif (+33).");
+            }
+            return $number;
+        }
+
+        // Si ce n'est ni CI, ni SN, ni FR -> Erreur
+        throw new \Exception("Pays non autorisé pour l'envoi d'OTP. Seuls CI (+225), SN (+221) et FR (+33) sont acceptés.");
     }
 
     public function logout(Request $request)
