@@ -17,7 +17,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-RZTW4S7F3H"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', 'G-RZTW4S7F3H');
     </script>
@@ -123,15 +123,11 @@
 ">
 
     <!-- Toast Notification -->
-    <div x-show="toast" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 translate-y-2"
-         x-cloak
-         class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] w-auto max-w-sm">
+    <div x-show="toast" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-2" x-cloak
+        class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] w-auto max-w-sm">
         <div class="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +140,8 @@
             </div>
             <button @click="toast = null" class="ml-2 text-white/60 hover:text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
                 </svg>
             </button>
         </div>
@@ -182,7 +179,8 @@
                 <div class="flex items-center gap-3">
                     @if(session('user_id'))
                         <div class="hidden md:flex items-center gap-3">
-                            <a href="/mes-pronostics" class="px-3 py-1.5 bg-soboa-orange/20 text-soboa-orange hover:bg-soboa-orange hover:text-white rounded-lg font-bold text-sm transition-all">
+                            <a href="/mes-pronostics"
+                                class="px-3 py-1.5 bg-soboa-orange/20 text-soboa-orange hover:bg-soboa-orange hover:text-white rounded-lg font-bold text-sm transition-all">
                                 📋 Mes Pronostics
                             </a>
                             <a href="/dashboard" class="text-right hover:opacity-80 transition-opacity">
@@ -265,7 +263,9 @@
 
     <!-- Main Content -->
     <main class="flex-grow pt-16 md:pt-20">
-        {{ $slot }}
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+            {{ $slot }}
+        </div>
     </main>
 
     <!-- Footer -->
