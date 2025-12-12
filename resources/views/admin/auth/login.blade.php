@@ -36,7 +36,7 @@
                         <!-- Nom complet -->
                         <div class="mb-5">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Nom de l'administrateur</label>
-                            <input type="text" x-model="name" placeholder="Administrateur"
+                            <input type="text" x-model="name" placeholder="Entrez votre nom"
                                 class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-600 focus:ring-0 text-lg"
                                 required>
                         </div>
@@ -49,7 +49,7 @@
                                 <div class="px-4 py-3 border-2 border-gray-300 bg-gray-100 rounded-xl text-sm font-bold text-gray-600 flex items-center">
                                     🇨🇮 +225
                                 </div>
-                                <input type="tel" x-model="phone" placeholder="07 48 34 82 21"
+                                <input type="tel" x-model="phone" placeholder="0X XX XX XX XX"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-600 focus:ring-0 text-lg"
                                     required>
                             </div>

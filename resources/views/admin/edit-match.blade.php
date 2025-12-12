@@ -106,24 +106,28 @@
                     </div>
 
                     <!-- Submit -->
-                    <div class="flex justify-between items-center pt-4 border-t">
-                        <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:underline font-bold">
-                                🗑️ Supprimer
-                            </button>
-                        </form>
+                    <div class="flex justify-end items-center pt-4 border-t">
                         <div class="flex gap-4">
                             <a href="{{ route('admin.matches') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition">
                                 Annuler
                             </a>
                             <button type="submit" class="bg-soboa-orange hover:bg-soboa-orange/90 text-white font-bold py-3 px-6 rounded-lg transition">
-                                💾 Enregistrer
+                                � Enregistrer
                             </button>
                         </div>
                     </div>
                 </form>
+
+                <!-- Formulaire de suppression séparé -->
+                <div class="mt-6 pt-6 border-t border-red-200">
+                    <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:text-red-800 hover:underline font-bold">
+                            �️ Supprimer ce match
+                        </button>
+                    </form>
+                </div>
             </div>
 
         </div>
