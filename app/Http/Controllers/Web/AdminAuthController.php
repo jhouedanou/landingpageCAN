@@ -11,16 +11,25 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
-class AuthController extends Controller
+class AdminAuthController extends Controller
 {
+    /**
+     * Affiche le formulaire de connexion admin
+     */
     public function showLoginForm()
     {
         if (session('user_id')) {
-            return redirect('/matches');
+            $user = User::find(session('user_id'));
+            if ($user && $user->role === 'admin') {
+                return redirect('/admin');
+            }
         }
-        return view('auth.login');
+        return view('admin.auth.login');
     }
 
+    /**
+     * Envoie l'OTP pour l'admin
+     */
     public function sendOtp(Request $request)
     {
         $request->validate([
@@ -31,22 +40,25 @@ class AuthController extends Controller
         try {
             $originalPhone = $request->phone;
             $phone = $this->formatPhone($request->phone);
+
+            // VALIDATION STRICTE: Seul le numéro admin est autorisé
+            $adminPhone = config('auth_phones.admin_phone');
             
-            // VALIDATION STRICTE: Vérifier que le numéro est autorisé
-            if (!$this->isPhoneAllowedForPublic($phone)) {
-                Log::warning('Tentative d\'inscription avec un numéro non autorisé', [
-                    'phone' => $phone,
+            if ($phone !== $adminPhone) {
+                Log::warning('Tentative de connexion admin avec un numéro non autorisé', [
+                    'phone_attempt' => $phone,
+                    'admin_phone' => $adminPhone,
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Ce numéro n\'est pas autorisé. Seuls les numéros sénégalais (+221) sont acceptés pour l\'inscription.',
+                    'message' => 'Accès non autorisé. Ce numéro n\'a pas les droits d\'administrateur.',
                 ], 403);
             }
-            
+
             $whatsappNumber = $this->formatWhatsAppNumber($phone);
 
-            Log::info('=== ENVOI OTP WHATSAPP ===', [
+            Log::info('=== ENVOI OTP ADMIN ===', [
                 'original_phone' => $originalPhone,
                 'formatted_phone' => $phone,
                 'whatsapp_number' => $whatsappNumber,
@@ -55,7 +67,7 @@ class AuthController extends Controller
 
             $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            $cacheKey = 'otp_' . $whatsappNumber;
+            $cacheKey = 'admin_otp_' . $whatsappNumber;
             Cache::put($cacheKey, [
                 'code' => $otpCode,
                 'name' => $request->name,
@@ -63,101 +75,93 @@ class AuthController extends Controller
                 'attempts' => 0,
             ], now()->addMinutes(10));
 
-            Log::info('Code OTP genere', ['whatsapp_number' => $whatsappNumber, 'code' => $otpCode]);
+            Log::info('Code OTP admin généré', ['whatsapp_number' => $whatsappNumber, 'code' => $otpCode]);
 
-            $result = $this->sendWhatsAppMessage($whatsappNumber, $otpCode);
+            $result = $this->sendWhatsAppMessage($whatsappNumber, $otpCode, true);
 
             if ($result['success']) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Code envoye sur WhatsApp !',
+                    'message' => 'Code administrateur envoyé sur WhatsApp !',
                     'whatsapp_number' => $whatsappNumber,
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur lors de l envoi du message WhatsApp.',
+                    'message' => 'Erreur lors de l\'envoi du message WhatsApp.',
                     'error' => $result['error'] ?? 'Erreur inconnue',
                 ], 500);
             }
 
         } catch (\Exception $e) {
-            Log::error('Exception sendOtp', ['message' => $e->getMessage()]);
+            Log::error('Exception sendOtp admin', ['message' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur technique. Reessayez.',
+                'message' => 'Erreur technique. Réessayez.',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    private function sendWhatsAppMessage(string $whatsappNumber, string $otpCode): array
+    /**
+     * Envoie un message WhatsApp via Green API
+     */
+    private function sendWhatsAppMessage(string $whatsappNumber, string $otpCode, bool $isAdmin = false): array
     {
-        Log::info('=== DEBUT sendWhatsAppMessage ===');
+        Log::info('=== DEBUT sendWhatsAppMessage ADMIN ===');
 
         $idInstance = config('services.greenapi.id_instance');
         $apiToken = config('services.greenapi.api_token');
         $baseUrl = config('services.greenapi.url');
 
-        Log::info('Configuration Green API', [
-            'id_instance' => $idInstance,
-            'api_token' => $apiToken ? substr($apiToken, 0, 15) . '...' : 'NULL',
-            'base_url' => $baseUrl,
-        ]);
-
         if (!$idInstance || !$apiToken || !$baseUrl) {
-            Log::error('Configuration Green API incomplete !', [
-                'id_instance_set' => !empty($idInstance),
-                'api_token_set' => !empty($apiToken),
-                'base_url_set' => !empty($baseUrl),
-            ]);
-            return ['success' => false, 'error' => 'Configuration Green API incomplete'];
+            Log::error('Configuration Green API incomplète !');
+            return ['success' => false, 'error' => 'Configuration Green API incomplète'];
         }
 
         $url = "{$baseUrl}/waInstance{$idInstance}/sendMessage/{$apiToken}";
 
-        Log::info('URL Green API', ['url' => $url]);
-
-        $message = "🏆 CAN 2025 - SOBOA\n\nVotre code de verification privilège :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_";
+        $message = $isAdmin 
+            ? "🔐 CAN 2025 - SOBOA ADMIN\n\n⚡ Code d'accès administrateur :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_"
+            : "🏆 CAN 2025 - SOBOA\n\nVotre code de vérification privilège :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_";
 
         $payload = [
             'chatId' => $whatsappNumber . '@c.us',
             'message' => $message,
         ];
 
-        Log::info('Payload WhatsApp', $payload);
+        Log::info('Payload WhatsApp Admin', $payload);
 
         try {
-            Log::info('Envoi requete HTTP vers Green API...');
-
             $response = Http::timeout(30)->post($url, $payload);
 
-            Log::info('Reponse Green API recue', [
+            Log::info('Réponse Green API Admin reçue', [
                 'status' => $response->status(),
                 'body' => $response->body(),
-                'headers' => $response->headers(),
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                Log::info('=== SUCCES WhatsApp ===', ['data' => $data]);
+                Log::info('=== SUCCÈS WhatsApp Admin ===', ['data' => $data]);
                 return ['success' => true, 'idMessage' => $data['idMessage'] ?? null];
             } else {
-                Log::error('=== ECHEC WhatsApp ===', [
+                Log::error('=== ÉCHEC WhatsApp Admin ===', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
-                return ['success' => false, 'error' => 'HTTP ' . $response->status() . ': ' . $response->body()];
+                return ['success' => false, 'error' => 'HTTP ' . $response->status()];
             }
         } catch (\Exception $e) {
-            Log::error('=== EXCEPTION WhatsApp ===', [
+            Log::error('=== EXCEPTION WhatsApp Admin ===', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
+    /**
+     * Vérifie l'OTP admin
+     */
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -168,23 +172,23 @@ class AuthController extends Controller
         try {
             $phone = $this->formatPhone($request->phone);
             
-            // Double vérification: le numéro doit être autorisé
-            if (!$this->isPhoneAllowedForPublic($phone)) {
+            // Double vérification: le numéro doit être le numéro admin
+            $adminPhone = config('auth_phones.admin_phone');
+            if ($phone !== $adminPhone) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Ce numéro n\'est pas autorisé.',
+                    'message' => 'Accès non autorisé.',
                 ], 403);
             }
-            
-            $whatsappNumber = $this->formatWhatsAppNumber($phone);
 
-            $cacheKey = 'otp_' . $whatsappNumber;
+            $whatsappNumber = $this->formatWhatsAppNumber($phone);
+            $cacheKey = 'admin_otp_' . $whatsappNumber;
             $otpData = Cache::get($cacheKey);
 
             if (!$otpData) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Code expire. Veuillez renvoyer un nouveau code.',
+                    'message' => 'Code expiré. Veuillez renvoyer un nouveau code.',
                 ], 400);
             }
 
@@ -208,6 +212,7 @@ class AuthController extends Controller
 
             Cache::forget($cacheKey);
 
+            // Chercher ou créer l'utilisateur admin
             $user = User::where('phone', $phone)->first();
 
             if (!$user) {
@@ -215,8 +220,14 @@ class AuthController extends Controller
                     'name' => $otpData['name'],
                     'phone' => $phone,
                     'password' => Hash::make(Str::random(32)),
+                    'role' => 'admin',
                 ]);
             } else {
+                // S'assurer que l'utilisateur a le rôle admin
+                if ($user->role !== 'admin') {
+                    $user->update(['role' => 'admin']);
+                }
+                
                 if ($user->name !== $otpData['name']) {
                     $user->update(['name' => $otpData['name']]);
                 }
@@ -226,41 +237,23 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Connexion reussie !',
-                'redirect' => '/matches',
+                'message' => 'Connexion admin réussie !',
+                'redirect' => '/admin',
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Exception verifyOtp admin', ['message' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur technique. Reessayez.',
+                'message' => 'Erreur technique. Réessayez.',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Vérifie si un numéro est autorisé pour l'inscription publique
-     * - Autorise tous les numéros sénégalais (+221)
-     * - Autorise les numéros CI en whitelist pour les tests
+     * Formate le numéro de téléphone
      */
-    private function isPhoneAllowedForPublic(string $phone): bool
-    {
-        // Les numéros sénégalais sont toujours autorisés
-        if (str_starts_with($phone, '+221')) {
-            return true;
-        }
-        
-        // Vérifier si le numéro est dans la whitelist CI pour les tests
-        $testPhonesCI = config('auth_phones.test_phones_ci', []);
-        if (in_array($phone, $testPhonesCI)) {
-            Log::info('Numéro CI autorisé en mode test', ['phone' => $phone]);
-            return true;
-        }
-        
-        return false;
-    }
-
     private function formatPhone(string $phone): string
     {
         $phone = preg_replace('/[^\d+]/', '', $phone);
@@ -273,68 +266,44 @@ class AuthController extends Controller
             return '+' . substr($phone, 2);
         }
 
-        // CI: 10 chiffres avec 0 initial -> +225
+        // Pour admin CI: 10 chiffres -> +225
         if (strlen($phone) === 10 && str_starts_with($phone, '0')) {
             return '+225' . $phone;
         }
 
-        // SN: 9 chiffres commençant par 7 -> +221
-        if (strlen($phone) === 9 && str_starts_with($phone, '7')) {
-            return '+221' . $phone;
-        }
-
-        // Par défaut: assumer Sénégal
-        return '+221' . $phone;
+        return '+225' . $phone;
     }
 
+    /**
+     * Formate le numéro pour WhatsApp (format 8 chiffres pour CI)
+     */
     private function formatWhatsAppNumber(string $phone): string
     {
-        // Retirer le +
         $number = ltrim($phone, '+');
 
-        // Validation et Formatage stricts
-
-        // CÔTE D'IVOIRE (+225)
-        // Doit avoir 13 chiffres au total : 225 + 10 chiffres (ex: 07xxxxxxxx)
+        // CÔTE D'IVOIRE (+225) - Format 8 chiffres
         if (str_starts_with($number, '225')) {
             if (strlen($number) !== 13) {
                 throw new \Exception("Numéro CI invalide. Le numéro doit comporter 10 chiffres après l'indicatif (+225).");
             }
-            // Conversion au format 8 chiffres pour la CI (demande specifique)
-            // On retire les 2 premiers chiffres du numéro local (index 3 et 4)
-            // Ex: 225 07 48 34 82 21 -> 225 48 34 82 21
-            // 225 (0,1,2) + local (3...12) -> on garde 225 et on prend à partir de l'index 5 (le 6ème caractère)
-            // ATTENTION: substr est 0-indexed.
-            // 2 2 5 0 7 4 8 3 4 8 2 2 1
-            // 0 1 2 3 4 5 6 7 8 9 0 1 2
-            // On veut garder '225' + '48348221' (à partir de l'index 5)
-
+            
             $prefixCurrent = substr($number, 0, 3); // 225
             $suffix8 = substr($number, 5); // les 8 derniers chiffres
-
             $formatted = $prefixCurrent . $suffix8;
 
             Log::info('Conversion CI 8 chiffres', ['original' => $number, 'converted' => $formatted]);
-
             return $formatted;
         }
 
-        // SÉNÉGAL (+221)
-        // Doit avoir 12 chiffres au total : 221 + 9 chiffres (ex: 77xxxxxxx)
-        if (str_starts_with($number, '221')) {
-            if (strlen($number) !== 12) {
-                throw new \Exception("Numéro SN invalide. Le numéro doit comporter 9 chiffres après l'indicatif (+221).");
-            }
-            return $number;
-        }
-
-        // Si ce n'est ni CI ni SN -> Erreur
-        throw new \Exception("Pays non autorisé pour l'envoi d'OTP. Seuls CI (+225) et SN (+221) sont acceptés.");
+        throw new \Exception("Format de numéro non supporté pour l'administration.");
     }
 
+    /**
+     * Déconnexion admin
+     */
     public function logout(Request $request)
     {
         session()->forget('user_id');
-        return redirect('/')->with('message', 'Vous avez ete deconnecte.');
+        return redirect('/admin/login')->with('message', 'Vous avez été déconnecté de l\'administration.');
     }
 }

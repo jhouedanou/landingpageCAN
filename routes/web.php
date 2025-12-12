@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\PredictionController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\AdminController;
+use App\Http\Controllers\Web\AdminAuthController;
 
 // Pages publiques
 Route::get('/', [HomeController::class, 'index']);
@@ -17,18 +18,24 @@ Route::get('/conditions', function () {
     return view('terms');
 })->name('terms');
 
-// Authentification Twilio
+// Authentification publique (Sénégal + exceptions test CI)
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->name('auth.send-otp');
 Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->name('auth.verify-otp');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Authentification administrateur (séparée)
+Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/auth/send-otp', [AdminAuthController::class, 'sendOtp'])->name('admin.auth.send-otp');
+Route::post('/admin/auth/verify-otp', [AdminAuthController::class, 'verifyOtp'])->name('admin.auth.verify-otp');
+Route::get('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+
 // Pronostics (requiert authentification)
 Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
 Route::get('/mes-pronostics', [PredictionController::class, 'myPredictions'])->name('predictions.index');
 
-// Administration
-Route::prefix('admin')->name('admin.')->group(function () {
+// Administration (protégé par middleware check.admin)
+Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
     
     // Matchs

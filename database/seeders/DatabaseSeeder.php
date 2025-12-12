@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             BarSeeder::class,
             PredictionSeeder::class,
+            AdminUserSeeder::class, // Assure que l'admin existe
         ]);
     }
 }
