@@ -1,80 +1,152 @@
 <x-layouts.app title="Accueil">
 
-    <!-- Modal de vérification d'âge -->
+    <!-- Modals Overlay Container -->
     <div x-data="{ 
-        showModal: !localStorage.getItem('age_verified'),
+        showAgeModal: localStorage.getItem('age_verified') !== 'true',
+        showPwaModal: false,
+        pwaPrompt: null,
+        
         init() {
-            // Bloquer le scroll si le modal est affiché
-            if (this.showModal) {
+            // Age Modal Logic
+            if (this.showAgeModal) {
                 document.body.style.overflow = 'hidden';
             }
+
+            // PWA Install Logic
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault(); // Prevent default browser banner
+                this.pwaPrompt = e;
+                this.checkPwaStatus();
+            });
+
+            // Si déjà vérifié, vérifier PWA tout de suite
+            if (!this.showAgeModal) {
+                this.checkPwaStatus();
+            }
         },
+
         confirmAge() {
             localStorage.setItem('age_verified', 'true');
-            this.showModal = false;
+            this.showAgeModal = false;
             document.body.style.overflow = 'auto';
+            
+            // Wait a bit before showing PWA prompt
+            setTimeout(() => this.checkPwaStatus(), 2000);
         },
+
         denyAge() {
             window.location.href = 'https://www.google.com';
+        },
+        
+        checkPwaStatus() {
+            // Afficher seulement si : Age OK, Prompt capturé, Pas refusé, Pas en standalone
+            const isRefused = localStorage.getItem('pwa_refused') === 'true';
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+            if (!this.showAgeModal && this.pwaPrompt && !isRefused && !isStandalone) {
+                this.showPwaModal = true;
+            }
+        },
+
+        installPwa() {
+            this.showPwaModal = false;
+            if (this.pwaPrompt) {
+                this.pwaPrompt.prompt();
+                this.pwaPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    this.pwaPrompt = null;
+                });
+            }
+        },
+
+        dismissPwa() {
+            this.showPwaModal = false;
+            localStorage.setItem('pwa_refused', 'true');
         }
     }">
-        <!-- Overlay -->
-        <div x-show="showModal" x-transition:enter="transition ease-out duration-300"
+
+        <!-- AGE VERIFICATION MODAL -->
+        <div x-show="showAgeModal" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
 
-            <!-- Modal Content -->
-            <div x-show="showModal" x-transition:enter="transition ease-out duration-300"
+            <div x-show="showAgeModal" x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-                class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+                class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center relative overflow-hidden">
 
-                <!-- Logo SOBOA -->
-                <div class="w-32 h-32 mx-auto mb-6">
-                    <img src="/images/soboa.png" alt="SOBOA" class="w-full h-full object-contain">
+                <!-- Background Pattern -->
+                <div
+                    class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-soboa-orange via-soboa-blue to-soboa-orange">
                 </div>
 
-                <!-- Title -->
-                <h2 class="text-2xl font-black text-soboa-blue mb-4">
-                    Vérification de l'âge
-                </h2>
-
-                <!-- Warning -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                    <p class="text-yellow-800 font-medium">
-                        ⚠️ Ce site est réservé aux personnes majeures
-                    </p>
+                <div
+                    class="w-24 h-24 bg-gray-50 rounded-full mx-auto mb-6 flex items-center justify-center shadow-inner">
+                    <span class="text-4xl">🔞</span>
                 </div>
 
-                <!-- Question -->
-                <p class="text-gray-700 text-lg mb-6">
-                    Avez-vous <span class="font-bold text-soboa-orange">18 ans ou plus</span> ?
-                </p>
+                <h2 class="text-3xl font-black text-soboa-blue mb-2">Êtes-vous majeur ?</h2>
+                <p class="text-gray-500 mb-8">L'accès à ce site est réservé aux personnes de 18 ans et plus.</p>
 
-                <!-- Legal text -->
-                <p class="text-gray-500 text-sm mb-6">
-                    En cliquant sur "Oui", vous confirmez avoir l'âge légal pour consommer de l'alcool
-                    dans votre pays de résidence et acceptez nos
-                    <a href="/conditions" class="text-soboa-orange hover:underline">conditions d'utilisation</a>.
-                </p>
+                <div class="flex flex-col gap-3">
+                    <button @click="confirmAge()"
+                        class="w-full bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <span>Oui, j'ai plus de 18 ans</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </button>
 
-                <!-- Buttons -->
-                <div class="flex gap-4">
                     <button @click="denyAge()"
-                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-6 rounded-xl transition">
+                        class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-4 px-6 rounded-xl transition">
                         Non, je suis mineur
                     </button>
-                    <button @click="confirmAge()"
-                        class="flex-1 bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-105">
-                        Oui, j'ai 18 ans+
-                    </button>
                 </div>
 
-                <!-- Footer warning -->
-                <p class="text-xs text-gray-400 mt-6">
-                    🚫 L'abus d'alcool est dangereux pour la santé. À consommer avec modération.
+                <p class="text-xs text-gray-400 mt-6 pt-6 border-t border-gray-100">
+                    L'abus d'alcool est dangereux pour la santé. À consommer avec modération.
                 </p>
             </div>
         </div>
+
+        <!-- PWA INSTALL MODAL -->
+        <div x-show="showPwaModal" x-cloak x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="translate-y-full opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
+            class="fixed bottom-0 left-0 right-0 z-[90] p-4 flex justify-center pointer-events-none">
+
+            <div
+                class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 pointer-events-auto border border-gray-100 flex flex-col sm:flex-row items-center gap-4 relative overflow-hidden">
+                <!-- Close Button -->
+                <button @click="dismissPwa()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+
+                <!-- Icon -->
+                <div class="flex-shrink-0 bg-soboa-blue/10 p-3 rounded-xl">
+                    <img src="/images/soboa.png" alt="App Icon" class="w-12 h-12 object-contain">
+                </div>
+
+                <!-- Text -->
+                <div class="flex-1 text-center sm:text-left">
+                    <h3 class="font-bold text-soboa-blue text-lg">Installez l'application</h3>
+                    <p class="text-sm text-gray-500">Accédez plus rapidement aux pronostics et résultats !</p>
+                </div>
+
+                <!-- Button -->
+                <button @click="installPwa()"
+                    class="bg-soboa-blue hover:bg-soboa-blue-dark text-white text-sm font-bold py-3 px-6 rounded-xl shadow-lg transition whitespace-nowrap">
+                    Installer
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <!-- Hero Section - CAN 2025 Celebration -->
