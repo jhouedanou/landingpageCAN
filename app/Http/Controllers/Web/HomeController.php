@@ -24,7 +24,7 @@ class HomeController extends Controller
 
         // Fetch top 5 users for leaderboard
         $topUsers = User::orderBy('points_total', 'desc')->take(5)->get();
-        
+
         // Count venues for stats
         $venueCount = Bar::where('is_active', true)->count();
 
@@ -42,7 +42,7 @@ class HomeController extends Controller
         // Vérifier si un point de vente est sélectionné
         $venueId = $request->query('venue') ?? session('selected_venue_id');
         $selectedVenue = null;
-        
+
         if ($venueId) {
             $selectedVenue = Bar::find($venueId);
             if ($selectedVenue) {
@@ -55,12 +55,18 @@ class HomeController extends Controller
             return redirect()->route('venues')->with('error', 'Veuillez d\'abord sélectionner un point de vente.');
         }
 
-        $matches = MatchGame::with(['homeTeam', 'awayTeam'])
+        $groupFilter = $request->query('group');
+
+        $query = MatchGame::with(['homeTeam', 'awayTeam'])
             ->orderBy('group_name', 'asc')
-            ->orderBy('match_date', 'asc')
-            ->get()
-            ->groupBy('group_name');
-        
+            ->orderBy('match_date', 'asc');
+
+        if ($groupFilter) {
+            $query->where('group_name', $groupFilter);
+        }
+
+        $matches = $query->get()->groupBy('group_name');
+
         // Récupérer les pronostics de l'utilisateur connecté
         $userPredictions = [];
         if (session('user_id')) {
@@ -69,7 +75,7 @@ class HomeController extends Controller
                 $userPredictions[$prediction->match_id] = $prediction;
             }
         }
-        
+
         return view('matches', compact('matches', 'userPredictions', 'selectedVenue'));
     }
 
@@ -211,8 +217,8 @@ class HomeController extends Controller
         $dLon = deg2rad($lon2 - $lon1);
 
         $a = sin($dLat / 2) * sin($dLat / 2) +
-             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($dLon / 2) * sin($dLon / 2);
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
