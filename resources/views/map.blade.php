@@ -31,7 +31,7 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=&quot;csrf-token&quot;]').content
                             },
                             body: JSON.stringify({
                                 latitude: this.userLocation.lat,
@@ -78,6 +78,72 @@
         }
     }">
         
+        <!-- Location Permission Popup Modal -->
+        <div x-show="locationError" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-cloak 
+             class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+             @click.self="locationError = null">
+            
+            <div x-show="locationError"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-90"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+                
+                <!-- Icon -->
+                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                
+                <!-- Title -->
+                <h2 class="text-2xl font-black text-soboa-blue mb-4">
+                    Localisation requise
+                </h2>
+                
+                <!-- Error Message -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                    <p class="text-yellow-800 font-medium" x-text="locationError"></p>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="text-left bg-gray-50 rounded-xl p-4 mb-6">
+                    <p class="font-bold text-gray-700 mb-3">📱 Pour activer la localisation :</p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-soboa-orange font-bold">•</span>
+                            <span><strong>iPhone/iPad :</strong> Réglages → Confidentialité → Service de localisation → Safari</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-soboa-orange font-bold">•</span>
+                            <span><strong>Android :</strong> Paramètres → Applications → Navigateur → Autorisations → Position</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-soboa-orange font-bold">•</span>
+                            <span><strong>Navigateur :</strong> Cliquez sur l'icône 🔒 dans la barre d'adresse → Autorisations</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="flex gap-4">
+                    <button @click="locationError = null" 
+                            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-6 rounded-xl transition">
+                        Fermer
+                    </button>
+                    <button @click="locationError = null; getLocation()" 
+                            class="flex-1 bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-105">
+                        Réessayer
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <!-- Header -->
         <div class="bg-soboa-blue py-12 px-4">
             <div class="max-w-7xl mx-auto text-center">
@@ -118,11 +184,6 @@
                         Se connecter pour valider
                     </a>
                     @endif
-                </div>
-                
-                <!-- Location Error -->
-                <div x-show="locationError" x-cloak class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    <span x-text="locationError"></span>
                 </div>
                 
                 <!-- Check-in Result -->
