@@ -278,6 +278,59 @@
     </footer>
 
 
+    <!-- Page Loader -->
+    <div id="page-loader" class="fixed inset-0 z-[9999] bg-white flex items-center justify-center transition-opacity duration-500">
+        <div class="relative flex flex-col items-center">
+            <img src="/images/soboa.png" alt="SOBOA" class="w-24 h-24 object-contain animate-pulse">
+            <div class="mt-4 flex gap-1">
+                <div class="w-3 h-3 bg-soboa-orange rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-3 h-3 bg-soboa-blue rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-3 h-3 bg-soboa-orange rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page Transitions Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('page-loader');
+            
+            // Hide loader after a short delay
+            setTimeout(() => {
+                loader.classList.add('opacity-0', 'pointer-events-none');
+            }, 500);
+
+            // Show loader on link click
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    // Only for internal links that are not anchors or js
+                    if (href && href.startsWith('/') && !href.startsWith('#') && !link.hasAttribute('target')) {
+                        loader.classList.remove('opacity-0', 'pointer-events-none');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <style>
+        /* Fade In Up Animation for Main Content */
+        main {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
