@@ -195,20 +195,17 @@
                     // Supprimer tout sauf les chiffres
                     let digits = phone.replace(/\D/g, '');
 
-                    // Retirer le 0 initial pour CI et FR
-                    if (this.countryCode === '+225' || this.countryCode === '+33') {
+                    // France (+33) et Sénégal (+221): Retirer le 0 initial
+                    if (this.countryCode === '+33' || this.countryCode === '+221') {
                         if (digits.startsWith('0')) {
                             digits = digits.substring(1);
                         }
                     }
 
-                    // Sénégal: pas de 0 initial normalement
-                    if (this.countryCode === '+221') {
-                        if (digits.startsWith('0')) {
-                            digits = digits.substring(1);
-                        }
-                    }
-
+                    // Côte d'Ivoire (+225): GARDER le 0 initial car format 10 chiffres (07...)
+                    // Si l'utilisateur a oublié le 0, on pourrait potentiellement l'ajouter, 
+                    // mais ici on laisse tel quel pour validation backend.
+                    
                     return digits;
                 },
 
