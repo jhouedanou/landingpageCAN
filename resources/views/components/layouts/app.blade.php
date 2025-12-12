@@ -276,16 +276,17 @@
         </div>
     </footer>
 
+
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
-                        console.log('SOBOA CAN 2025: Service Worker registered', registration.scope);
+                        console.log('SW registered:', registration.scope);
                     })
-                    .catch((error) => {
-                        console.error('SOBOA CAN 2025: Service Worker registration failed', error);
+                    .catch((err) => {
+                        console.log('SW registration failed:', err);
                     });
             });
         }
