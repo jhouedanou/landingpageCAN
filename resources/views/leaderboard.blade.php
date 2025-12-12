@@ -7,7 +7,7 @@
 
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
             <!-- Top 3 Podium (Visual) -->
-            <div class="bg-brand-dark p-6 text-white pb-10">
+            <div class="bg-soboa-blue p-6 text-white pb-10">
                 <div class="flex justify-center items-end gap-4">
                     <!-- 2nd Place -->
                     @if(isset($users[1]))
@@ -30,11 +30,11 @@
                     @if(isset($users[0]))
                         <div class="flex flex-col items-center z-10">
                             <div
-                                class="w-20 h-20 rounded-full border-4 border-brand-yellow bg-gray-700 flex items-center justify-center text-3xl font-bold mb-2 text-brand-yellow">
+                                class="w-20 h-20 rounded-full border-4 border-yellow-400 bg-gray-700 flex items-center justify-center text-3xl font-bold mb-2 text-yellow-400">
                                 {{ substr($users[0]->name, 0, 1) }}
                             </div>
                             <div class="text-center">
-                                <div class="font-bold text-lg text-brand-yellow">{{ $users[0]->name }}</div>
+                                <div class="font-bold text-lg text-yellow-400">{{ $users[0]->name }}</div>
                                 <div class="text-gray-300 text-sm">{{ $users[0]->points_total }} pts</div>
                             </div>
                             <div
@@ -74,7 +74,11 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
                         @foreach($users as $index => $user)
-                            <tr class="hover:bg-gray-50 transition">
+                            @php
+                                $isCurrentUser = $user->id == session('user_id');
+                            @endphp
+                            <tr
+                                class="{{ $isCurrentUser ? 'bg-orange-50 border-l-4 border-soboa-orange' : 'hover:bg-gray-50 transition' }}">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="text-gray-900 font-bold">#{{ $index + 1 + ($users->currentPage() - 1) * $users->perPage() }}</span>
@@ -82,13 +86,21 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div
-                                            class="h-8 w-8 rounded-full bg-brand-green text-white flex items-center justify-center font-bold text-xs mr-3">
+                                            class="h-8 w-8 rounded-full {{ $isCurrentUser ? 'bg-soboa-orange' : 'bg-gray-200 text-gray-600' }} text-white flex items-center justify-center font-bold text-xs mr-3">
                                             {{ substr($user->name, 0, 1) }}
                                         </div>
-                                        <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
+                                        <div
+                                            class="text-sm font-medium {{ $isCurrentUser ? 'text-soboa-orange font-bold' : 'text-gray-900' }}">
+                                            {{ $user->name }}
+                                            @if($isCurrentUser)
+                                                <span
+                                                    class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-soboa-orange text-white">Vous</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-brand-green">
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold {{ $isCurrentUser ? 'text-soboa-orange' : 'text-gray-700' }}">
                                     {{ $user->points_total }}
                                 </td>
                             </tr>
