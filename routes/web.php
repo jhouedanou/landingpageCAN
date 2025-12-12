@@ -28,9 +28,46 @@ Route::post('/predictions', [PredictionController::class, 'store'])->name('predi
 Route::get('/mes-pronostics', [PredictionController::class, 'myPredictions'])->name('predictions.index');
 
 // Administration
-Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
-Route::get('/admin/matches', [AdminController::class, 'matches'])->name('admin.matches');
-Route::get('/admin/matches/{id}/edit', [AdminController::class, 'editMatch'])->name('admin.edit-match');
-Route::put('/admin/matches/{id}', [AdminController::class, 'updateMatch'])->name('admin.update-match');
-Route::post('/admin/matches/{id}/calculate-points', [AdminController::class, 'calculatePoints'])->name('admin.calculate-points');
-Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    
+    // Matchs
+    Route::get('/matches', [AdminController::class, 'matches'])->name('matches');
+    Route::get('/matches/create', [AdminController::class, 'createMatch'])->name('create-match');
+    Route::post('/matches', [AdminController::class, 'storeMatch'])->name('store-match');
+    Route::get('/matches/{id}/edit', [AdminController::class, 'editMatch'])->name('edit-match');
+    Route::put('/matches/{id}', [AdminController::class, 'updateMatch'])->name('update-match');
+    Route::delete('/matches/{id}', [AdminController::class, 'deleteMatch'])->name('delete-match');
+    Route::post('/matches/{id}/calculate-points', [AdminController::class, 'calculatePoints'])->name('calculate-points');
+    
+    // Utilisateurs
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('edit-user');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('update-user');
+    Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('delete-user');
+    
+    // Points de vente (Bars)
+    Route::get('/bars', [AdminController::class, 'bars'])->name('bars');
+    Route::get('/bars/create', [AdminController::class, 'createBar'])->name('create-bar');
+    Route::post('/bars', [AdminController::class, 'storeBar'])->name('store-bar');
+    Route::get('/bars/{id}/edit', [AdminController::class, 'editBar'])->name('edit-bar');
+    Route::put('/bars/{id}', [AdminController::class, 'updateBar'])->name('update-bar');
+    Route::post('/bars/{id}/toggle', [AdminController::class, 'toggleBar'])->name('toggle-bar');
+    Route::delete('/bars/{id}', [AdminController::class, 'deleteBar'])->name('delete-bar');
+    
+    // Équipes
+    Route::get('/teams', [AdminController::class, 'teams'])->name('teams');
+    Route::get('/teams/create', [AdminController::class, 'createTeam'])->name('create-team');
+    Route::post('/teams', [AdminController::class, 'storeTeam'])->name('store-team');
+    Route::get('/teams/{id}/edit', [AdminController::class, 'editTeam'])->name('edit-team');
+    Route::put('/teams/{id}', [AdminController::class, 'updateTeam'])->name('update-team');
+    Route::delete('/teams/{id}', [AdminController::class, 'deleteTeam'])->name('delete-team');
+    
+    // Pronostics
+    Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions');
+    Route::delete('/predictions/{id}', [AdminController::class, 'deletePrediction'])->name('delete-prediction');
+    
+    // Paramètres
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings', [AdminController::class, 'updateSettings'])->name('update-settings');
+});

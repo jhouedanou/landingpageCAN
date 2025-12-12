@@ -3,11 +3,25 @@
         <div class="max-w-7xl mx-auto px-4">
             
             <!-- Header -->
-            <div class="mb-8">
-                <a href="{{ route('admin.dashboard') }}" class="text-soboa-orange hover:underline text-sm font-bold mb-2 inline-block">← Retour au dashboard</a>
-                <h1 class="text-3xl font-black text-soboa-blue">Utilisateurs</h1>
-                <p class="text-gray-600 mt-2">{{ $users->total() }} utilisateurs inscrits</p>
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <a href="{{ route('admin.dashboard') }}" class="text-soboa-orange hover:underline text-sm font-bold mb-2 inline-block">← Retour au dashboard</a>
+                    <h1 class="text-3xl font-black text-soboa-blue">Utilisateurs</h1>
+                    <p class="text-gray-600 mt-2">{{ $users->total() }} utilisateurs inscrits</p>
+                </div>
             </div>
+
+            @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+                {{ session('success') }}
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+                {{ session('error') }}
+            </div>
+            @endif
 
             <!-- Users Table -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -20,6 +34,7 @@
                             <th class="px-4 py-3 text-center text-sm font-bold">Points</th>
                             <th class="px-4 py-3 text-center text-sm font-bold">Rôle</th>
                             <th class="px-4 py-3 text-left text-sm font-bold">Inscrit le</th>
+                            <th class="px-4 py-3 text-center text-sm font-bold">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -45,7 +60,7 @@
                                     <span class="font-bold">{{ $user->name }}</span>
                                 </div>
                             </td>
-                            <td class="px-4 py-4 text-gray-600">{{ $user->phone_number }}</td>
+                            <td class="px-4 py-4 text-gray-600">{{ $user->phone }}</td>
                             <td class="px-4 py-4 text-center">
                                 <span class="font-black text-soboa-orange text-xl">{{ $user->points_total }}</span>
                             </td>
@@ -57,6 +72,11 @@
                                 @endif
                             </td>
                             <td class="px-4 py-4 text-gray-500 text-sm">{{ $user->created_at->format('d/m/Y') }}</td>
+                            <td class="px-4 py-4 text-center">
+                                <a href="{{ route('admin.edit-user', $user->id) }}" class="text-soboa-orange hover:underline text-sm font-bold">
+                                    Modifier
+                                </a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

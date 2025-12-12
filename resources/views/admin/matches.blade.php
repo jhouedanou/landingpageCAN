@@ -8,6 +8,9 @@
                     <a href="{{ route('admin.dashboard') }}" class="text-soboa-orange hover:underline text-sm font-bold mb-2 inline-block">← Retour au dashboard</a>
                     <h1 class="text-3xl font-black text-soboa-blue">Gestion des Matchs</h1>
                 </div>
+                <a href="{{ route('admin.create-match') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
+                    <span>+</span> Nouveau Match
+                </a>
             </div>
 
             @if(session('success'))
@@ -68,6 +71,8 @@
                             <td class="px-4 py-4 text-center">
                                 @if($match->status === 'finished')
                                 <span class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm">Terminé</span>
+                                @elseif($match->status === 'live')
+                                <span class="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-full text-sm animate-pulse">En cours</span>
                                 @else
                                 <span class="bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-full text-sm">À venir</span>
                                 @endif
@@ -75,18 +80,26 @@
                             <td class="px-4 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.edit-match', $match->id) }}" 
-                                       class="bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                       class="bg-soboa-orange hover:bg-soboa-orange/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
                                         ✏️ Modifier
                                     </a>
                                     @if($match->status === 'finished')
                                     <form action="{{ route('admin.calculate-points', $match->id) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" 
-                                                class="bg-soboa-blue hover:bg-soboa-blue-dark text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
                                             🔄 Recalculer
                                         </button>
                                     </form>
                                     @endif
+                                    <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                            🗑️
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

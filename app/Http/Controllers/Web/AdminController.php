@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessMatchPoints;
+use App\Models\Bar;
 use App\Models\MatchGame;
+use App\Models\Prediction;
+use App\Models\Team;
 use App\Models\User;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -38,6 +42,10 @@ class AdminController extends Controller
             'totalMatches' => MatchGame::count(),
             'finishedMatches' => MatchGame::where('status', 'finished')->count(),
             'upcomingMatches' => MatchGame::where('status', 'scheduled')->count(),
+            'totalBars' => Bar::count(),
+            'activeBars' => Bar::where('is_active', true)->count(),
+            'totalPredictions' => Prediction::count(),
+            'totalTeams' => Team::count(),
         ];
 
         $recentMatches = MatchGame::with(['homeTeam', 'awayTeam'])
@@ -49,6 +57,8 @@ class AdminController extends Controller
 
         return view('admin.dashboard', compact('stats', 'recentMatches', 'topUsers'));
     }
+
+    // ==================== MATCHES ====================
 
     /**
      * List all matches for management
@@ -67,6 +77,53 @@ class AdminController extends Controller
     }
 
     /**
+     * Show create form for a match
+     */
+    public function createMatch()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $teams = Team::orderBy('name')->get();
+
+        return view('admin.create-match', compact('teams'));
+    }
+
+    /**
+     * Store a new match
+     */
+    public function storeMatch(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'home_team_id' => 'required|exists:teams,id',
+            'away_team_id' => 'required|exists:teams,id|different:home_team_id',
+            'match_date' => 'required|date',
+            'group_name' => 'nullable|string|max:50',
+            'status' => 'required|in:scheduled,live,finished',
+        ]);
+
+        $homeTeam = Team::find($request->home_team_id);
+        $awayTeam = Team::find($request->away_team_id);
+
+        MatchGame::create([
+            'team_a' => $homeTeam->name,
+            'team_b' => $awayTeam->name,
+            'home_team_id' => $request->home_team_id,
+            'away_team_id' => $request->away_team_id,
+            'match_date' => $request->match_date,
+            'group_name' => $request->group_name,
+            'status' => $request->status,
+        ]);
+
+        return redirect()->route('admin.matches')->with('success', 'Match créé avec succès.');
+    }
+
+    /**
      * Show edit form for a match
      */
     public function editMatch($id)
@@ -76,8 +133,9 @@ class AdminController extends Controller
         }
 
         $match = MatchGame::with(['homeTeam', 'awayTeam'])->findOrFail($id);
+        $teams = Team::orderBy('name')->get();
 
-        return view('admin.edit-match', compact('match'));
+        return view('admin.edit-match', compact('match', 'teams'));
     }
 
     /**
@@ -90,9 +148,13 @@ class AdminController extends Controller
         }
 
         $request->validate([
+            'home_team_id' => 'required|exists:teams,id',
+            'away_team_id' => 'required|exists:teams,id',
+            'match_date' => 'required|date',
+            'group_name' => 'nullable|string|max:50',
             'score_a' => 'nullable|integer|min:0|max:20',
             'score_b' => 'nullable|integer|min:0|max:20',
-            'status' => 'required|in:scheduled,finished',
+            'status' => 'required|in:scheduled,live,finished',
         ]);
 
         $match = MatchGame::findOrFail($id);
@@ -100,7 +162,16 @@ class AdminController extends Controller
         $wasScheduled = $match->status === 'scheduled';
         $nowFinished = $request->status === 'finished';
 
+        $homeTeam = Team::find($request->home_team_id);
+        $awayTeam = Team::find($request->away_team_id);
+
         $match->update([
+            'team_a' => $homeTeam->name,
+            'team_b' => $awayTeam->name,
+            'home_team_id' => $request->home_team_id,
+            'away_team_id' => $request->away_team_id,
+            'match_date' => $request->match_date,
+            'group_name' => $request->group_name,
             'score_a' => $request->score_a,
             'score_b' => $request->score_b,
             'status' => $request->status,
@@ -116,17 +187,22 @@ class AdminController extends Controller
     }
 
     /**
-     * List all users
+     * Delete a match
      */
-    public function users()
+    public function deleteMatch($id)
     {
         if (!$this->checkAdmin()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $users = User::orderBy('points_total', 'desc')->paginate(50);
+        $match = MatchGame::findOrFail($id);
+        
+        // Supprimer les pronostics associés
+        Prediction::where('match_id', $id)->delete();
+        
+        $match->delete();
 
-        return view('admin.users', compact('users'));
+        return redirect()->route('admin.matches')->with('success', 'Match supprimé avec succès.');
     }
 
     /**
@@ -147,5 +223,414 @@ class AdminController extends Controller
         ProcessMatchPoints::dispatch($match->id);
 
         return back()->with('success', 'Calcul des points déclenché pour ce match.');
+    }
+
+    // ==================== USERS ====================
+
+    /**
+     * List all users
+     */
+    public function users()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $users = User::orderBy('points_total', 'desc')->paginate(50);
+
+        return view('admin.users', compact('users'));
+    }
+
+    /**
+     * Show edit form for a user
+     */
+    public function editUser($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $user = User::findOrFail($id);
+
+        return view('admin.edit-user', compact('user'));
+    }
+
+    /**
+     * Update user details
+     */
+    public function updateUser(Request $request, $id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'role' => 'required|in:user,admin',
+            'points_total' => 'required|integer|min:0',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->update($request->only(['name', 'phone', 'email', 'role', 'points_total']));
+
+        return redirect()->route('admin.users')->with('success', 'Utilisateur mis à jour avec succès.');
+    }
+
+    /**
+     * Delete a user
+     */
+    public function deleteUser($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $user = User::findOrFail($id);
+        
+        // Ne pas supprimer si c'est le dernier admin
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'Impossible de supprimer le dernier administrateur.');
+        }
+
+        // Supprimer les pronostics associés
+        Prediction::where('user_id', $id)->delete();
+        
+        $user->delete();
+
+        return redirect()->route('admin.users')->with('success', 'Utilisateur supprimé avec succès.');
+    }
+
+    // ==================== BARS (Points de Vente) ====================
+
+    /**
+     * List all bars
+     */
+    public function bars()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $bars = Bar::orderBy('name')->paginate(20);
+
+        return view('admin.bars', compact('bars'));
+    }
+
+    /**
+     * Show create form for a bar
+     */
+    public function createBar()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        return view('admin.create-bar');
+    }
+
+    /**
+     * Store a new bar
+     */
+    public function storeBar(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'is_active' => 'boolean',
+        ]);
+
+        Bar::create([
+            'name' => $request->name,
+            'address' => $request->address,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return redirect()->route('admin.bars')->with('success', 'Point de vente créé avec succès.');
+    }
+
+    /**
+     * Show edit form for a bar
+     */
+    public function editBar($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $bar = Bar::findOrFail($id);
+
+        return view('admin.edit-bar', compact('bar'));
+    }
+
+    /**
+     * Update bar details
+     */
+    public function updateBar(Request $request, $id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'is_active' => 'boolean',
+        ]);
+
+        $bar = Bar::findOrFail($id);
+        $bar->update([
+            'name' => $request->name,
+            'address' => $request->address,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return redirect()->route('admin.bars')->with('success', 'Point de vente mis à jour avec succès.');
+    }
+
+    /**
+     * Toggle bar active status
+     */
+    public function toggleBar($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $bar = Bar::findOrFail($id);
+        $bar->update(['is_active' => !$bar->is_active]);
+
+        $status = $bar->is_active ? 'activé' : 'désactivé';
+        return back()->with('success', "Point de vente {$status} avec succès.");
+    }
+
+    /**
+     * Delete a bar
+     */
+    public function deleteBar($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $bar = Bar::findOrFail($id);
+        $bar->delete();
+
+        return redirect()->route('admin.bars')->with('success', 'Point de vente supprimé avec succès.');
+    }
+
+    // ==================== TEAMS ====================
+
+    /**
+     * List all teams
+     */
+    public function teams()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $teams = Team::orderBy('name')->paginate(30);
+
+        return view('admin.teams', compact('teams'));
+    }
+
+    /**
+     * Show create form for a team
+     */
+    public function createTeam()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        return view('admin.create-team');
+    }
+
+    /**
+     * Store a new team
+     */
+    public function storeTeam(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255|unique:teams',
+            'iso_code' => 'required|string|size:2|unique:teams',
+            'group_name' => 'nullable|string|max:50',
+        ]);
+
+        Team::create([
+            'name' => $request->name,
+            'iso_code' => strtolower($request->iso_code),
+            'group_name' => $request->group_name,
+        ]);
+
+        return redirect()->route('admin.teams')->with('success', 'Équipe créée avec succès.');
+    }
+
+    /**
+     * Show edit form for a team
+     */
+    public function editTeam($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $team = Team::findOrFail($id);
+
+        return view('admin.edit-team', compact('team'));
+    }
+
+    /**
+     * Update team details
+     */
+    public function updateTeam(Request $request, $id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $team = Team::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255|unique:teams,name,' . $id,
+            'iso_code' => 'required|string|size:2|unique:teams,iso_code,' . $id,
+            'group_name' => 'nullable|string|max:50',
+        ]);
+
+        $team->update([
+            'name' => $request->name,
+            'iso_code' => strtolower($request->iso_code),
+            'group_name' => $request->group_name,
+        ]);
+
+        return redirect()->route('admin.teams')->with('success', 'Équipe mise à jour avec succès.');
+    }
+
+    /**
+     * Delete a team
+     */
+    public function deleteTeam($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $team = Team::findOrFail($id);
+        
+        // Vérifier si l'équipe est utilisée dans des matchs
+        $matchCount = MatchGame::where('home_team_id', $id)->orWhere('away_team_id', $id)->count();
+        if ($matchCount > 0) {
+            return back()->with('error', "Impossible de supprimer cette équipe car elle est utilisée dans {$matchCount} match(s).");
+        }
+        
+        $team->delete();
+
+        return redirect()->route('admin.teams')->with('success', 'Équipe supprimée avec succès.');
+    }
+
+    // ==================== PREDICTIONS ====================
+
+    /**
+     * List all predictions
+     */
+    public function predictions(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $query = Prediction::with(['user', 'match.homeTeam', 'match.awayTeam'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->has('match_id') && $request->match_id) {
+            $query->where('match_id', $request->match_id);
+        }
+
+        if ($request->has('user_id') && $request->user_id) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        $predictions = $query->paginate(50);
+        $matches = MatchGame::orderBy('match_date', 'desc')->get();
+        $users = User::orderBy('name')->get();
+
+        return view('admin.predictions', compact('predictions', 'matches', 'users'));
+    }
+
+    /**
+     * Delete a prediction
+     */
+    public function deletePrediction($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $prediction = Prediction::findOrFail($id);
+        $prediction->delete();
+
+        return back()->with('success', 'Pronostic supprimé avec succès.');
+    }
+
+    // ==================== SETTINGS ====================
+
+    /**
+     * Show settings form
+     */
+    public function settings()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $settings = SiteSetting::pluck('value', 'key')->toArray();
+
+        return view('admin.settings', compact('settings'));
+    }
+
+    /**
+     * Update settings
+     */
+    public function updateSettings(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $settingsToSave = [
+            'site_name' => $request->input('site_name', 'CAN 2025'),
+            'geofencing_radius' => $request->input('geofencing_radius', 200),
+            'points_exact_score' => $request->input('points_exact_score', 10),
+            'points_correct_winner' => $request->input('points_correct_winner', 5),
+            'points_correct_draw' => $request->input('points_correct_draw', 3),
+            'maintenance_mode' => $request->has('maintenance_mode') ? '1' : '0',
+        ];
+
+        foreach ($settingsToSave as $key => $value) {
+            SiteSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+
+        return back()->with('success', 'Paramètres mis à jour avec succès.');
     }
 }

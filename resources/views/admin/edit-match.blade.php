@@ -8,28 +8,15 @@
                 <h1 class="text-3xl font-black text-soboa-blue">Modifier le Match</h1>
             </div>
 
-            <!-- Match Preview -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                <div class="text-center">
-                    <span class="text-sm text-gray-500">{{ $match->match_date->translatedFormat('l d F Y à H:i') }}</span>
-                    <div class="flex items-center justify-center gap-6 mt-4">
-                        <div class="text-center">
-                            @if($match->homeTeam)
-                            <img src="https://flagcdn.com/w80/{{ $match->homeTeam->iso_code }}.png" class="w-16 h-12 rounded shadow mx-auto mb-2">
-                            @endif
-                            <span class="font-bold text-lg">{{ $match->team_a }}</span>
-                        </div>
-                        <span class="text-3xl font-black text-gray-300">VS</span>
-                        <div class="text-center">
-                            @if($match->awayTeam)
-                            <img src="https://flagcdn.com/w80/{{ $match->awayTeam->iso_code }}.png" class="w-16 h-12 rounded shadow mx-auto mb-2">
-                            @endif
-                            <span class="font-bold text-lg">{{ $match->team_b }}</span>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-4">📍 {{ $match->stadium }}</p>
-                </div>
+            @if($errors->any())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+                <ul class="list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
+            @endif
 
             <!-- Edit Form -->
             <div class="bg-white rounded-xl shadow-lg p-6">
@@ -37,25 +24,62 @@
                     @csrf
                     @method('PUT')
 
+                    <!-- Teams -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">Équipe domicile *</label>
+                            <select name="home_team_id" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                                @foreach($teams as $team)
+                                <option value="{{ $team->id }}" {{ old('home_team_id', $match->home_team_id) == $team->id ? 'selected' : '' }}>
+                                    {{ $team->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">Équipe extérieur *</label>
+                            <select name="away_team_id" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                                @foreach($teams as $team)
+                                <option value="{{ $team->id }}" {{ old('away_team_id', $match->away_team_id) == $team->id ? 'selected' : '' }}>
+                                    {{ $team->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">Date et heure du match *</label>
+                        <input type="datetime-local" name="match_date" value="{{ old('match_date', $match->match_date->format('Y-m-d\TH:i')) }}" required
+                               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">Groupe / Phase</label>
+                        <input type="text" name="group_name" value="{{ old('group_name', $match->group_name) }}"
+                               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
+                               placeholder="Ex: Groupe A, Quarts de finale, etc.">
+                    </div>
+
                     <!-- Scores -->
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-4">Score Final</label>
                         <div class="flex items-center justify-center gap-4">
                             <div class="text-center">
-                                <label class="text-xs text-gray-500 block mb-2">{{ $match->team_a }}</label>
+                                <label class="text-xs text-gray-500 block mb-2">Domicile</label>
                                 <input type="number" 
                                        name="score_a" 
-                                       value="{{ $match->score_a }}"
+                                       value="{{ old('score_a', $match->score_a) }}"
                                        min="0" 
                                        max="20"
                                        class="w-20 h-16 text-center text-3xl font-black border-2 border-gray-300 rounded-xl focus:border-soboa-orange focus:ring-soboa-orange">
                             </div>
                             <span class="text-3xl font-bold text-gray-400 mt-6">-</span>
                             <div class="text-center">
-                                <label class="text-xs text-gray-500 block mb-2">{{ $match->team_b }}</label>
+                                <label class="text-xs text-gray-500 block mb-2">Extérieur</label>
                                 <input type="number" 
                                        name="score_b" 
-                                       value="{{ $match->score_b }}"
+                                       value="{{ old('score_b', $match->score_b) }}"
                                        min="0" 
                                        max="20"
                                        class="w-20 h-16 text-center text-3xl font-black border-2 border-gray-300 rounded-xl focus:border-soboa-orange focus:ring-soboa-orange">
@@ -65,11 +89,12 @@
 
                     <!-- Status -->
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Statut du match</label>
-                        <select name="status" 
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Statut du match *</label>
+                        <select name="status" required
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-soboa-orange focus:ring-soboa-orange font-medium">
-                            <option value="scheduled" {{ $match->status === 'scheduled' ? 'selected' : '' }}>📅 À venir (scheduled)</option>
-                            <option value="finished" {{ $match->status === 'finished' ? 'selected' : '' }}>✅ Terminé (finished)</option>
+                            <option value="scheduled" {{ old('status', $match->status) === 'scheduled' ? 'selected' : '' }}>📅 À venir</option>
+                            <option value="live" {{ old('status', $match->status) === 'live' ? 'selected' : '' }}>🔴 En cours</option>
+                            <option value="finished" {{ old('status', $match->status) === 'finished' ? 'selected' : '' }}>✅ Terminé</option>
                         </select>
                     </div>
 
@@ -81,15 +106,22 @@
                     </div>
 
                     <!-- Submit -->
-                    <div class="flex gap-4">
-                        <a href="{{ route('admin.matches') }}" 
-                           class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-4 rounded-xl text-center transition-colors">
-                            Annuler
-                        </a>
-                        <button type="submit" 
-                                class="flex-1 bg-soboa-orange hover:bg-soboa-orange-dark text-white font-bold py-4 px-4 rounded-xl transition-colors">
-                            💾 Enregistrer
-                        </button>
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline font-bold">
+                                🗑️ Supprimer
+                            </button>
+                        </form>
+                        <div class="flex gap-4">
+                            <a href="{{ route('admin.matches') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition">
+                                Annuler
+                            </a>
+                            <button type="submit" class="bg-soboa-orange hover:bg-soboa-orange/90 text-white font-bold py-3 px-6 rounded-lg transition">
+                                💾 Enregistrer
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

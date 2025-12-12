@@ -7,7 +7,7 @@
                 <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
                     <span class="text-4xl">⚙️</span> Dashboard Administrateur
                 </h1>
-                <p class="text-gray-600 mt-2">Gérez les matchs, les scores et les utilisateurs</p>
+                <p class="text-gray-600 mt-2">Gérez les matchs, les scores, les utilisateurs et plus encore</p>
             </div>
 
             <!-- Stats Cards -->
@@ -23,39 +23,42 @@
                     <p class="text-gray-500 text-sm">Total Matchs</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-lg">
-                    <span class="text-3xl">✅</span>
-                    <p class="text-3xl font-black text-green-600 mt-2">{{ $stats['finishedMatches'] }}</p>
-                    <p class="text-gray-500 text-sm">Matchs Terminés</p>
+                    <span class="text-3xl">📍</span>
+                    <p class="text-3xl font-black text-green-600 mt-2">{{ $stats['activeBars'] }}/{{ $stats['totalBars'] }}</p>
+                    <p class="text-gray-500 text-sm">Points de Vente</p>
                 </div>
                 <div class="bg-white rounded-xl p-6 shadow-lg">
-                    <span class="text-3xl">📅</span>
-                    <p class="text-3xl font-black text-soboa-orange mt-2">{{ $stats['upcomingMatches'] }}</p>
-                    <p class="text-gray-500 text-sm">À Venir</p>
+                    <span class="text-3xl">🎯</span>
+                    <p class="text-3xl font-black text-soboa-orange mt-2">{{ $stats['totalPredictions'] }}</p>
+                    <p class="text-gray-500 text-sm">Pronostics</p>
                 </div>
             </div>
 
             <!-- Quick Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <a href="{{ route('admin.matches') }}" class="bg-soboa-blue hover:bg-soboa-blue-dark text-white rounded-xl p-6 shadow-lg flex items-center gap-4 transition-colors">
-                    <span class="text-4xl">📋</span>
-                    <div>
-                        <p class="font-bold text-lg">Gérer les Matchs</p>
-                        <p class="text-white/70 text-sm">Modifier scores et statuts</p>
-                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                <a href="{{ route('admin.matches') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">⚽</span>
+                    <span class="font-bold text-sm text-center">Matchs</span>
                 </a>
-                <a href="{{ route('admin.users') }}" class="bg-soboa-orange hover:bg-soboa-orange-dark text-white rounded-xl p-6 shadow-lg flex items-center gap-4 transition-colors">
-                    <span class="text-4xl">👥</span>
-                    <div>
-                        <p class="font-bold text-lg">Utilisateurs</p>
-                        <p class="text-white/70 text-sm">Voir tous les joueurs</p>
-                    </div>
+                <a href="{{ route('admin.users') }}" class="bg-soboa-orange hover:bg-soboa-orange/90 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">👥</span>
+                    <span class="font-bold text-sm text-center">Utilisateurs</span>
                 </a>
-                <a href="/leaderboard" class="bg-white hover:bg-gray-50 text-soboa-blue rounded-xl p-6 shadow-lg flex items-center gap-4 transition-colors border border-gray-200">
-                    <span class="text-4xl">🏆</span>
-                    <div>
-                        <p class="font-bold text-lg">Classement</p>
-                        <p class="text-gray-500 text-sm">Voir le leaderboard</p>
-                    </div>
+                <a href="{{ route('admin.bars') }}" class="bg-green-600 hover:bg-green-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Points de Vente</span>
+                </a>
+                <a href="{{ route('admin.teams') }}" class="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">🏳️</span>
+                    <span class="font-bold text-sm text-center">Équipes</span>
+                </a>
+                <a href="{{ route('admin.predictions') }}" class="bg-pink-600 hover:bg-pink-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Pronostics</span>
+                </a>
+                <a href="{{ route('admin.settings') }}" class="bg-gray-700 hover:bg-gray-800 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">⚙️</span>
+                    <span class="font-bold text-sm text-center">Paramètres</span>
                 </a>
             </div>
 
@@ -118,7 +121,7 @@
                                 </div>
                                 <div>
                                     <p class="font-bold text-gray-800">{{ $user->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $user->phone_number }}</p>
+                                    <p class="text-xs text-gray-500">{{ $user->phone }}</p>
                                 </div>
                             </div>
                             <span class="font-black text-soboa-orange text-lg">{{ $user->points_total }} pts</span>
