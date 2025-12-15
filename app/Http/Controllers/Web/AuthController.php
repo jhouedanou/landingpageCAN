@@ -223,7 +223,10 @@ class AuthController extends Controller
                 }
             }
 
-            session(['user_id' => $user->id]);
+            session([
+                'user_id' => $user->id,
+                'user_points' => $user->points_total ?? 0
+            ]);
 
             return response()->json([
                 'success' => true,

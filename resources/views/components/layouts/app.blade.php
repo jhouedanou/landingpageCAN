@@ -103,6 +103,18 @@
         /* Swiper custom styling */
         .upcomingMatchesSwiper {
             padding: 20px 0 40px 0;
+            overflow: hidden;
+        }
+
+        .upcomingMatchesSwiper .swiper-wrapper {
+            display: flex;
+        }
+
+        .upcomingMatchesSwiper .swiper-slide {
+            width: 100% !important;
+            flex-shrink: 0;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
         .upcomingMatchesSwiper .swiper-button-next,
@@ -141,11 +153,12 @@
                 return;
             }
 
-            // Initialiser Swiper
+            // Initialiser Swiper - toujours 1 seul item visible
             const swiper = new Swiper('.upcomingMatchesSwiper', {
                 slidesPerView: 1,
                 spaceBetween: 20,
                 loop: true,
+                centeredSlides: true,
                 autoplay: {
                     delay: 5000,
                     disableOnInteraction: false,
@@ -159,16 +172,7 @@
                     nextEl: '.swiper-button-next',
                     prevEl: '.swiper-button-prev',
                 },
-                breakpoints: {
-                    640: {
-                        slidesPerView: 2,
-                        spaceBetween: 20,
-                    },
-                    1024: {
-                        slidesPerView: 3,
-                        spaceBetween: 30,
-                    },
-                },
+                // Pas de breakpoints - toujours 1 seul item
             });
         }, 0);
     }
@@ -227,7 +231,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass-dark shadow-xl">
+    <nav class="fixed top-0 left-0 right-0 z-[100] transition-all duration-300 glass-dark shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16 md:h-20">
                 <!-- Logo -->
@@ -307,7 +311,7 @@
             x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-4" x-cloak
-            class="md:hidden glass-dark border-t border-white/10">
+            class="md:hidden glass-dark border-t border-white/10 relative z-[100]">
             <div class="px-4 py-4 space-y-2">
                 <a href="/"
                     class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">

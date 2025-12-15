@@ -45,7 +45,7 @@
         @endif
 
         <!-- Onglets de Phases (niveau 1) -->
-        <div class="bg-white rounded-xl shadow-sm p-4 sticky top-20 z-50 border border-gray-200">
+        <div class="bg-white rounded-xl shadow-sm p-4 sticky top-[64px] md:top-[80px] z-40 border border-gray-200">
             <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <button @click="activePhase = 'all'; activeGroup = 'all'"
                     :class="activePhase === 'all' ? 'bg-soboa-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-white'"
@@ -122,7 +122,7 @@
         </div>
 
         <!-- Onglets de Groupes (niveau 2) - Visible uniquement pour la phase de poules -->
-        <div class="bg-white rounded-xl shadow-sm p-4 sticky top-36 z-40 border border-gray-200"
+        <div class="bg-white rounded-xl shadow-sm p-4 sticky top-[120px] md:top-[140px] z-30 border border-gray-200"
              x-show="activePhase === 'all' || activePhase === 'group_stage'"
              x-transition>
             <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -205,9 +205,9 @@
                     </div>
 
                     <!-- Navigation -->
-                    <div class="swiper-button-next"></div>
+                    <!-- <div class="swiper-button-next"></div>
                     <div class="swiper-button-prev"></div>
-                    <div class="swiper-pagination"></div>
+                    <div class="swiper-pagination"></div> -->
                 </div>
             </div>
         </div>

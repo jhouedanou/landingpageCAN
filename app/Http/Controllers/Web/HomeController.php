@@ -9,6 +9,7 @@ use App\Models\PointLog;
 use App\Models\Prediction;
 use App\Models\User;
 use App\Services\PointsService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -22,8 +23,8 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
-        // Fetch top 5 users for leaderboard
-        $topUsers = User::orderBy('points_total', 'desc')->take(5)->get();
+        // Fetch top 3 users for leaderboard
+        $topUsers = User::orderBy('points_total', 'desc')->take(3)->get();
 
         // Count venues for stats
         $venueCount = Bar::where('is_active', true)->count();
@@ -181,7 +182,7 @@ class HomeController extends Controller
         ));
     }
 
-    public function checkIn(Request $request, PointsService $pointsService)
+    public function checkIn(Request $request, PointsService $pointsService, WhatsAppService $whatsAppService)
     {
         // Vérifier si l'utilisateur est connecté
         if (!session('user_id')) {
@@ -225,9 +226,27 @@ class HomeController extends Controller
             // Refresh user pour obtenir les points mis à jour
             $user->refresh();
 
+            // Mettre à jour la session avec les nouveaux points
+            session(['user_points' => $user->points_total]);
+
             $message = $pointsAwarded > 0
                 ? "Bienvenue à {$foundBar->name} ! +{$pointsAwarded} points gagnés 🎉"
                 : "Bienvenue à {$foundBar->name} ! (Points déjà réclamés aujourd'hui)";
+
+            // Envoyer notification WhatsApp si des points ont été gagnés
+            if ($pointsAwarded > 0 && $user->phone) {
+                try {
+                    $whatsAppMessage = "🎉 Check-in réussi à {$foundBar->name}!\n\n";
+                    $whatsAppMessage .= "Points gagnés: +{$pointsAwarded} pts\n";
+                    $whatsAppMessage .= "Total points: {$user->points_total} pts\n\n";
+                    $whatsAppMessage .= "Continuez à parier et à visiter nos lieux partenaires pour gagner plus de points!";
+
+                    $whatsAppService->sendMessage($user->phone, $whatsAppMessage);
+                } catch (\Exception $e) {
+                    // Log l'erreur mais ne bloque pas le check-in
+                    \Log::error('Erreur envoi WhatsApp check-in: ' . $e->getMessage());
+                }
+            }
 
             return response()->json([
                 'success' => true,
