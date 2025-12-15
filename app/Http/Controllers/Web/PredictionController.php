@@ -49,10 +49,10 @@ class PredictionController extends Controller
             return back()->with('error', 'Ce match est en cours. Les pronostics sont fermés.');
         }
 
-        // Lock predictions 1 hour before match starts
-        $lockTime = $match->match_date->copy()->subHour();
+        // Lock predictions 2 minutes before match starts
+        $lockTime = $match->match_date->copy()->subMinutes(2);
         if (now()->gte($lockTime)) {
-            return back()->with('error', 'Les pronostics sont fermés 1 heure avant le match.');
+            return back()->with('error', 'Les pronostics sont fermés 2 minutes avant le début du match.');
         }
 
         // Déterminer le gagnant prédit

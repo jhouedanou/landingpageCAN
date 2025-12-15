@@ -143,12 +143,12 @@
                                 @if(session('user_id'))
                                     @php
                                         $userPrediction = $userPredictions[$match->id] ?? null;
-                                        $lockTime = $match->match_date->copy()->subHour();
+                                        $lockTime = $match->match_date->copy()->subMinutes(2);
                                         $isLocked = now()->gte($lockTime);
                                     @endphp
 
                                     @if($isLocked)
-                                        <!-- Match verrouillé (moins d'1h avant le coup d'envoi) -->
+                                        <!-- Match verrouillé (moins de 2 minutes avant le coup d'envoi) -->
                                         <div class="text-center">
                                             <div class="bg-gray-100 border border-gray-200 rounded-xl p-4">
                                                 <div class="flex items-center justify-center gap-2 text-gray-600 mb-2">

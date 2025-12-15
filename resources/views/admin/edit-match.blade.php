@@ -55,10 +55,31 @@
                     </div>
 
                     <div>
-                        <label class="block text-gray-700 font-bold mb-2">Groupe / Phase</label>
+                        <label class="block text-gray-700 font-bold mb-2">Phase du tournoi *</label>
+                        <select name="phase" required class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                            <option value="">Sélectionner...</option>
+                            <option value="group_stage" {{ old('phase', $match->phase) === 'group_stage' ? 'selected' : '' }}>Phase de poules</option>
+                            <option value="round_of_16" {{ old('phase', $match->phase) === 'round_of_16' ? 'selected' : '' }}>1/8e de finale</option>
+                            <option value="quarter_final" {{ old('phase', $match->phase) === 'quarter_final' ? 'selected' : '' }}>1/4 de finale</option>
+                            <option value="semi_final" {{ old('phase', $match->phase) === 'semi_final' ? 'selected' : '' }}>1/2 finale (Demi-finales)</option>
+                            <option value="third_place" {{ old('phase', $match->phase) === 'third_place' ? 'selected' : '' }}>Match pour la 3e place</option>
+                            <option value="final" {{ old('phase', $match->phase) === 'final' ? 'selected' : '' }}>Finale</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">Groupe (pour phase de poules uniquement)</label>
                         <input type="text" name="group_name" value="{{ old('group_name', $match->group_name) }}"
                                class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
-                               placeholder="Ex: Groupe A, Quarts de finale, etc.">
+                               placeholder="Ex: A, B, C, D, E, F...">
+                        <p class="text-sm text-gray-500 mt-1">Laisser vide si ce n'est pas un match de poule</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">Stade</label>
+                        <input type="text" name="stadium" value="{{ old('stadium', $match->stadium) }}"
+                               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
+                               placeholder="Ex: Stade Mohammed V, Rabat">
                     </div>
 
                     <!-- Scores -->

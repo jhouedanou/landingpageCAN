@@ -120,7 +120,9 @@ class AdminController extends Controller
             'home_team_id' => 'required|exists:teams,id',
             'away_team_id' => 'required|exists:teams,id|different:home_team_id',
             'match_date' => 'required|date',
+            'phase' => 'required|in:group_stage,round_of_16,quarter_final,semi_final,third_place,final',
             'group_name' => 'nullable|string|max:50',
+            'stadium' => 'nullable|string|max:255',
             'status' => 'required|in:scheduled,live,finished',
         ]);
 
@@ -133,7 +135,9 @@ class AdminController extends Controller
             'home_team_id' => $request->home_team_id,
             'away_team_id' => $request->away_team_id,
             'match_date' => $request->match_date,
+            'phase' => $request->phase,
             'group_name' => $request->group_name,
+            'stadium' => $request->stadium,
             'status' => $request->status,
         ]);
 
@@ -168,14 +172,16 @@ class AdminController extends Controller
             'home_team_id' => 'required|exists:teams,id',
             'away_team_id' => 'required|exists:teams,id',
             'match_date' => 'required|date',
+            'phase' => 'required|in:group_stage,round_of_16,quarter_final,semi_final,third_place,final',
             'group_name' => 'nullable|string|max:50',
+            'stadium' => 'nullable|string|max:255',
             'score_a' => 'nullable|integer|min:0|max:20',
             'score_b' => 'nullable|integer|min:0|max:20',
             'status' => 'required|in:scheduled,live,finished',
         ]);
 
         $match = MatchGame::findOrFail($id);
-        
+
         $wasScheduled = $match->status === 'scheduled';
         $nowFinished = $request->status === 'finished';
 
@@ -188,7 +194,9 @@ class AdminController extends Controller
             'home_team_id' => $request->home_team_id,
             'away_team_id' => $request->away_team_id,
             'match_date' => $request->match_date,
+            'phase' => $request->phase,
             'group_name' => $request->group_name,
+            'stadium' => $request->stadium,
             'score_a' => $request->score_a,
             'score_b' => $request->score_b,
             'status' => $request->status,
@@ -658,7 +666,12 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $settings = SiteSetting::pluck('value', 'key')->toArray();
+        // Récupérer ou créer les paramètres du site
+        $settings = SiteSetting::firstOrCreate([], [
+            'site_name' => 'SOBOA CAN 2025',
+            'primary_color' => '#003399',
+            'secondary_color' => '#FF6600',
+        ]);
 
         return view('admin.settings', compact('settings'));
     }
@@ -672,21 +685,42 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $settingsToSave = [
-            'site_name' => $request->input('site_name', 'CAN 2025'),
-            'geofencing_radius' => $request->input('geofencing_radius', 200),
-            'points_exact_score' => $request->input('points_exact_score', 10),
-            'points_correct_winner' => $request->input('points_correct_winner', 5),
-            'points_correct_draw' => $request->input('points_correct_draw', 3),
-            'maintenance_mode' => $request->has('maintenance_mode') ? '1' : '0',
+        $request->validate([
+            'site_name' => 'required|string|max:255',
+            'primary_color' => 'required|string|max:7',
+            'secondary_color' => 'required|string|max:7',
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
+        ]);
+
+        $settings = SiteSetting::firstOrCreate([]);
+
+        $dataToUpdate = [
+            'site_name' => $request->input('site_name'),
+            'primary_color' => $request->input('primary_color'),
+            'secondary_color' => $request->input('secondary_color'),
         ];
 
-        foreach ($settingsToSave as $key => $value) {
-            SiteSetting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value]
-            );
+        // Gérer l'upload du logo
+        if ($request->hasFile('logo')) {
+            // Supprimer l'ancien logo s'il existe
+            if ($settings->logo_path && \Storage::disk('public')->exists($settings->logo_path)) {
+                \Storage::disk('public')->delete($settings->logo_path);
+            }
+
+            // Stocker le nouveau logo
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $dataToUpdate['logo_path'] = $logoPath;
         }
+
+        // Gérer la suppression du logo
+        if ($request->has('remove_logo') && $request->input('remove_logo') == '1') {
+            if ($settings->logo_path && \Storage::disk('public')->exists($settings->logo_path)) {
+                \Storage::disk('public')->delete($settings->logo_path);
+            }
+            $dataToUpdate['logo_path'] = null;
+        }
+
+        $settings->update($dataToUpdate);
 
         return back()->with('success', 'Paramètres mis à jour avec succès.');
     }

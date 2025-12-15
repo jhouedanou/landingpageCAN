@@ -1,30 +1,23 @@
-<!DOCTYPE html>
-<html lang="fr">
+<x-layouts.app title="Admin - {{ $phaseName }}">
+    <div class="bg-gray-100 min-h-screen py-8">
+        <div class="max-w-7xl mx-auto px-4">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $phaseName }} - Admin CAN 2025</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Header -->
-        <div class="bg-blue-900 text-white p-6 shadow-lg">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Header -->
+            <div class="mb-8 flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold">{{ $phaseName }}</h1>
-                    <p class="text-blue-200 mt-1">Gérez les matchs et qualifiez les équipes manuellement</p>
+                    <h1 class="text-3xl font-black text-soboa-blue">{{ $phaseName }}</h1>
+                    <p class="text-gray-600 mt-2">Gérez les matchs de cette phase</p>
                 </div>
-                <a href="{{ route('admin.tournament') }}"
-                    class="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg font-bold transition-colors">
-                    ← Retour au tournoi
-                </a>
+                <div class="flex gap-3">
+                    <a href="{{ route('admin.create-match') }}" class="bg-soboa-orange hover:bg-soboa-orange/90 text-white px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 shadow-lg">
+                        + Créer un match
+                    </a>
+                    <a href="{{ route('admin.tournament') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white px-6 py-3 rounded-xl font-bold transition-all hover:scale-105 shadow-lg">
+                        ← Retour au tournoi
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <div class="max-w-7xl mx-auto p-6">
             <!-- Messages -->
             @if (session('success'))
                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded">
@@ -46,11 +39,16 @@
                             <div class="bg-gray-100 p-4 border-b flex justify-between items-center">
                                 <div>
                                     <span class="font-bold text-gray-700">
-                                        Match {{ $match->match_number ?? $match->id }}
+                                        Match #{{ $match->id }}
                                     </span>
                                     @if ($match->match_date)
                                         <span class="text-sm text-gray-600 ml-4">
                                             📅 {{ $match->match_date->format('d/m/Y H:i') }}
+                                        </span>
+                                    @endif
+                                    @if ($match->stadium)
+                                        <span class="text-sm text-gray-600 ml-4">
+                                            🏟️ {{ $match->stadium }}
                                         </span>
                                     @endif
                                 </div>
@@ -58,6 +56,10 @@
                                     @if ($match->status === 'finished')
                                         <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                                             Terminé
+                                        </span>
+                                    @elseif ($match->status === 'live')
+                                        <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                            En cours
                                         </span>
                                     @else
                                         <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">
@@ -71,124 +73,53 @@
                                 <div class="grid md:grid-cols-3 gap-6 items-center mb-6">
                                     <!-- Équipe à domicile -->
                                     <div class="text-center">
+                                        @if($match->homeTeam && $match->homeTeam->iso_code)
+                                            <img src="https://flagcdn.com/w80/{{ $match->homeTeam->iso_code }}.png"
+                                                 alt="{{ $match->team_a }}"
+                                                 class="w-20 h-14 object-cover rounded shadow mx-auto mb-3">
+                                        @endif
                                         <div class="text-2xl font-bold text-gray-800 mb-2">
-                                            {{ $match->team_a ?? 'TBD' }}
+                                            {{ $match->team_a }}
                                         </div>
                                         @if ($match->status === 'finished' && $match->score_a !== null)
                                             <div class="text-4xl font-bold text-blue-600">
                                                 {{ $match->score_a }}
                                             </div>
-                                        @else
-                                            <button
-                                                onclick="document.getElementById('qualify-home-{{ $match->id }}').classList.toggle('hidden')"
-                                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                                                ✏️ Qualifier équipe
-                                            </button>
                                         @endif
-
-                                        <!-- Formulaire de qualification équipe à domicile -->
-                                        <div id="qualify-home-{{ $match->id }}" class="hidden mt-3">
-                                            <form
-                                                action="{{ route('admin.qualify-team', $match->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                <input type="hidden" name="position" value="home">
-                                                <select name="team_id" required
-                                                    class="w-full border-2 border-gray-300 rounded-lg p-2 mb-2">
-                                                    <option value="">-- Sélectionner --</option>
-                                                    @foreach ($teams as $team)
-                                                        <option value="{{ $team->id }}">
-                                                            {{ $team->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <button type="submit"
-                                                    class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded font-bold text-sm">
-                                                    Valider
-                                                </button>
-                                            </form>
-                                        </div>
                                     </div>
 
-                                    <!-- VS -->
+                                    <!-- VS / Score -->
                                     <div class="text-center">
                                         <div class="text-3xl font-bold text-gray-400">VS</div>
-                                        @if ($match->stadium)
-                                            <div class="text-xs text-gray-500 mt-2">{{ $match->stadium }}</div>
+                                        @if($match->status !== 'finished')
+                                            <div class="text-sm text-gray-500 mt-2">{{ $match->match_date->format('H:i') }}</div>
                                         @endif
                                     </div>
 
                                     <!-- Équipe extérieure -->
                                     <div class="text-center">
+                                        @if($match->awayTeam && $match->awayTeam->iso_code)
+                                            <img src="https://flagcdn.com/w80/{{ $match->awayTeam->iso_code }}.png"
+                                                 alt="{{ $match->team_b }}"
+                                                 class="w-20 h-14 object-cover rounded shadow mx-auto mb-3">
+                                        @endif
                                         <div class="text-2xl font-bold text-gray-800 mb-2">
-                                            {{ $match->team_b ?? 'TBD' }}
+                                            {{ $match->team_b }}
                                         </div>
                                         @if ($match->status === 'finished' && $match->score_b !== null)
                                             <div class="text-4xl font-bold text-red-600">
                                                 {{ $match->score_b }}
                                             </div>
-                                        @else
-                                            <button
-                                                onclick="document.getElementById('qualify-away-{{ $match->id }}').classList.toggle('hidden')"
-                                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                                                ✏️ Qualifier équipe
-                                            </button>
                                         @endif
-
-                                        <!-- Formulaire de qualification équipe extérieure -->
-                                        <div id="qualify-away-{{ $match->id }}" class="hidden mt-3">
-                                            <form
-                                                action="{{ route('admin.qualify-team', $match->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                <input type="hidden" name="position" value="away">
-                                                <select name="team_id" required
-                                                    class="w-full border-2 border-gray-300 rounded-lg p-2 mb-2">
-                                                    <option value="">-- Sélectionner --</option>
-                                                    @foreach ($teams as $team)
-                                                        <option value="{{ $team->id }}">
-                                                            {{ $team->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <button type="submit"
-                                                    class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded font-bold text-sm">
-                                                    Valider
-                                                </button>
-                                            </form>
-                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Informations supplémentaires -->
-                                <div class="border-t pt-4 text-sm text-gray-600">
-                                    @if ($match->parentMatch1 || $match->parentMatch2)
-                                        <div class="bg-blue-50 p-3 rounded-lg">
-                                            <strong class="text-blue-900">📌 Provenance des équipes :</strong>
-                                            <div class="mt-2 grid md:grid-cols-2 gap-2">
-                                                @if ($match->parentMatch1)
-                                                    <div>
-                                                        • Équipe à domicile : Gagnant du
-                                                        <strong>Match {{ $match->parentMatch1->match_number ?? $match->parentMatch1->id }}</strong>
-                                                    </div>
-                                                @endif
-                                                @if ($match->parentMatch2)
-                                                    <div>
-                                                        • Équipe extérieure : Gagnant du
-                                                        <strong>Match {{ $match->parentMatch2->match_number ?? $match->parentMatch2->id }}</strong>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <!-- Bouton d'édition du match -->
-                                    <div class="mt-4 text-right">
-                                        <a href="{{ route('admin.edit-match', $match->id) }}"
-                                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold inline-block">
-                                            ⚙️ Modifier le match
-                                        </a>
-                                    </div>
+                                <!-- Actions -->
+                                <div class="border-t pt-4 text-right">
+                                    <a href="{{ route('admin.edit-match', $match->id) }}"
+                                        class="bg-soboa-blue hover:bg-soboa-blue/90 text-white px-6 py-2 rounded-lg font-bold inline-block transition-all">
+                                        ⚙️ Modifier le match
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -201,16 +132,12 @@
                     <p class="text-gray-600 mb-6">
                         Les matchs de {{ $phaseName }} n'ont pas encore été créés.
                     </p>
-                    @if ($phase !== 'group_stage')
-                        <a href="{{ route('admin.tournament') }}"
-                            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold inline-block">
-                            🚀 Générer le bracket depuis la page principale
-                        </a>
-                    @endif
+                    <a href="{{ route('admin.create-match') }}"
+                        class="bg-soboa-orange hover:bg-soboa-orange/90 text-white px-6 py-3 rounded-lg font-bold inline-block transition-all">
+                        + Créer un match pour cette phase
+                    </a>
                 </div>
             @endif
         </div>
     </div>
-</body>
-
-</html>
+</x-layouts.app>

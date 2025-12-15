@@ -35,7 +35,7 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-8">
                 <a href="{{ route('admin.matches') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">⚽</span>
                     <span class="font-bold text-sm text-center">Matchs</span>
@@ -51,6 +51,10 @@
                 <a href="{{ route('admin.teams') }}" class="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">🏳️</span>
                     <span class="font-bold text-sm text-center">Équipes</span>
+                </a>
+                <a href="{{ route('admin.tournament') }}" class="bg-blue-800 hover:bg-blue-900 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">🏆</span>
+                    <span class="font-bold text-sm text-center">Tournoi</span>
                 </a>
                 <a href="{{ route('admin.predictions') }}" class="bg-pink-600 hover:bg-pink-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">�</span>

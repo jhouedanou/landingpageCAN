@@ -14,6 +14,10 @@
                     <a href="{{ route('admin.dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">
                         ← Retour
                     </a>
+                    <button onclick="document.getElementById('import-modal').classList.remove('hidden')"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
+                        <span>📥</span> Importer CSV
+                    </button>
                     <a href="{{ route('admin.create-bar') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
                         <span>+</span> Nouveau Point de Vente
                     </a>

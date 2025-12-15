@@ -83,9 +83,8 @@
                     class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-soboa-orange via-soboa-blue to-soboa-orange">
                 </div>
 
-                <div
-                    class="w-24 h-24 bg-gray-50 rounded-full mx-auto mb-6 flex items-center justify-center shadow-inner">
-                    <span class="text-4xl">🔞</span>
+                <div class="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                    <img src="{{ asset('logo.png') }}" alt="Logo" class="w-full h-full object-contain">
                 </div>
 
                 <h2 class="text-3xl font-black text-soboa-blue mb-2">Êtes-vous majeur ?</h2>
