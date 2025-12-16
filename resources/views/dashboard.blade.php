@@ -303,5 +303,114 @@
         </script>
         @endif
 
+    <!-- Detailed Activity Log -->
+    <div class="max-w-7xl mx-auto px-4 pb-12">
+        <h2 class="text-xl font-bold text-soboa-blue mb-4 flex items-center gap-2">
+            <span>📋</span> Historique détaillé des actions
+        </h2>
+
+        @if($activityLog && $activityLog->count() > 0)
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                <div class="max-h-[600px] overflow-y-auto">
+                    @foreach($activityLog as $log)
+                        <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition">
+                            <div class="flex items-start justify-between gap-4">
+                                <!-- Icon & Details -->
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <!-- Action Type Icon -->
+                                        @if($log->source === 'login')
+                                            <span class="text-2xl">🔐</span>
+                                            <span class="font-bold text-gray-800">Connexion quotidienne</span>
+                                        @elseif($log->source === 'bar_visit')
+                                            <span class="text-2xl">📍</span>
+                                            <span class="font-bold text-gray-800">Check-in au lieu</span>
+                                        @elseif($log->source === 'venue_visit')
+                                            <span class="text-2xl">🎯</span>
+                                            <span class="font-bold text-gray-800">Pronostic depuis un lieu</span>
+                                        @elseif($log->source === 'prediction_participation')
+                                            <span class="text-2xl">🎲</span>
+                                            <span class="font-bold text-gray-800">Participation au pronostic</span>
+                                        @elseif($log->source === 'prediction_correct_winner')
+                                            <span class="text-2xl">🎯</span>
+                                            <span class="font-bold text-gray-800">Bon pronostic (vainqueur)</span>
+                                        @elseif($log->source === 'prediction_exact_score')
+                                            <span class="text-2xl">🎊</span>
+                                            <span class="font-bold text-gray-800">Score exact !</span>
+                                        @else
+                                            <span class="text-2xl">⭐</span>
+                                            <span class="font-bold text-gray-800">{{ ucfirst(str_replace('_', ' ', $log->source)) }}</span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Additional Details -->
+                                    <div class="ml-9 space-y-1">
+                                        <!-- Date & Time -->
+                                        <p class="text-sm text-gray-600">
+                                            <span class="font-semibold capitalize">{{ $log->created_at->translatedFormat('l d F Y') }}</span>
+                                            <span class="text-gray-400">à</span>
+                                            <span class="font-semibold">{{ $log->created_at->format('H:i') }}</span>
+                                        </p>
+
+                                        <!-- Venue if available -->
+                                        @if($log->bar)
+                                            <p class="text-sm text-gray-600">
+                                                <span class="text-gray-400">📍 Lieu:</span>
+                                                <span class="font-semibold text-soboa-blue">{{ $log->bar->name }}</span>
+                                            </p>
+                                            @if($log->bar->address)
+                                                <p class="text-xs text-gray-400">{{ $log->bar->address }}</p>
+                                            @endif
+                                        @endif
+
+                                        <!-- Match if available -->
+                                        @if($log->match)
+                                            <p class="text-sm text-gray-600">
+                                                <span class="text-gray-400">⚽ Match:</span>
+                                                <span class="font-semibold">
+                                                    @if($log->match->homeTeam && $log->match->awayTeam)
+                                                        {{ $log->match->homeTeam->name }} vs {{ $log->match->awayTeam->name }}
+                                                    @else
+                                                        {{ $log->match->team_a ?? 'Équipe A' }} vs {{ $log->match->team_b ?? 'Équipe B' }}
+                                                    @endif
+                                                </span>
+                                            </p>
+                                            @if($log->match->match_date)
+                                                <p class="text-xs text-gray-400 capitalize">
+                                                    {{ $log->match->match_date->translatedFormat('l d F Y à H:i') }}
+                                                </p>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Points Badge -->
+                                <div class="flex-shrink-0">
+                                    <span class="inline-flex items-center justify-center px-4 py-2 rounded-full font-black text-xl
+                                        @if($log->points >= 5)
+                                            bg-gradient-to-r from-yellow-400 to-orange-500 text-white
+                                        @elseif($log->points >= 3)
+                                            bg-gradient-to-r from-green-400 to-blue-500 text-white
+                                        @else
+                                            bg-soboa-orange text-white
+                                        @endif
+                                    ">
+                                        +{{ $log->points }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @else
+            <div class="bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
+                <div class="text-6xl mb-4">📭</div>
+                <p class="text-gray-500 text-lg">Aucune activité pour le moment</p>
+                <p class="text-gray-400 text-sm mt-2">Commencez à gagner des points en faisant des pronostics et en visitant nos lieux partenaires !</p>
+            </div>
+        @endif
+    </div>
+
     </div>
 </x-layouts.app>

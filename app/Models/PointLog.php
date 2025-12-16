@@ -26,4 +26,9 @@ class PointLog extends Model
     {
         return $this->belongsTo(Bar::class);
     }
+
+    public function match()
+    {
+        return $this->belongsTo(MatchGame::class, 'match_id');
+    }
 }

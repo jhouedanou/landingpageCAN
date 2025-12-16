@@ -106,7 +106,7 @@ class PredictionController extends Controller
             $user = User::find($userId);
 
             // Award 4 points for making a prediction in a venue (1x/day)
-            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user);
+            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $venue->id);
 
             // Refresh user to get updated points_total
             $user->refresh();
@@ -149,7 +149,7 @@ class PredictionController extends Controller
         $user = User::find($userId);
 
         // Award 4 points for making a prediction in a venue (1x/day)
-        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user);
+        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $venue->id);
 
         // Refresh user to get updated points_total
         $user->refresh();

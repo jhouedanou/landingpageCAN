@@ -41,9 +41,10 @@ class PointsService
      * Award points for bar visit (geofencing).
      * Limit 1x/day.
      *
+     * @param int|null $barId The ID of the bar visited
      * @return int Points awarded (0 if already awarded today)
      */
-    public function awardBarVisitPoints(User $user): int
+    public function awardBarVisitPoints(User $user, ?int $barId = null): int
     {
         $today = Carbon::today();
 
@@ -53,10 +54,11 @@ class PointsService
             ->exists();
 
         if (!$alreadyAwarded) {
-             DB::transaction(function () use ($user) {
+             DB::transaction(function () use ($user, $barId) {
                 $user->increment('points_total', 4);
                 PointLog::create([
                     'user_id' => $user->id,
+                    'bar_id' => $barId,
                     'source' => 'bar_visit',
                     'points' => 4,
                 ]);
@@ -71,9 +73,10 @@ class PointsService
      * Award points for prediction made in a venue (geofencing).
      * Limit 1x/day. User gets 4 points for making a prediction from a partner venue.
      *
+     * @param int|null $barId The ID of the bar where prediction was made
      * @return int Points awarded (0 if already awarded today)
      */
-    public function awardPredictionVenuePoints(User $user): int
+    public function awardPredictionVenuePoints(User $user, ?int $barId = null): int
     {
         $today = Carbon::today();
 
@@ -83,10 +86,11 @@ class PointsService
             ->exists();
 
         if (!$alreadyAwarded) {
-            DB::transaction(function () use ($user) {
+            DB::transaction(function () use ($user, $barId) {
                 $user->increment('points_total', 4);
                 PointLog::create([
                     'user_id' => $user->id,
+                    'bar_id' => $barId,
                     'source' => 'venue_visit',
                     'points' => 4,
                 ]);

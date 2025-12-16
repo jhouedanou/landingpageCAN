@@ -89,7 +89,7 @@ class PredictionController extends Controller
         $isNewPrediction = $prediction->wasRecentlyCreated;
 
         // Award 4 points for making a prediction in a venue (1x/day)
-        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user);
+        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $nearbyVenue->id);
 
         // Refresh user to get updated points_total
         $user->refresh();

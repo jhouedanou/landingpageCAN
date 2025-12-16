@@ -35,7 +35,7 @@ class CheckInController extends Controller
         }
 
         if ($foundBar) {
-            $pointsAwarded = $pointsService->awardBarVisitPoints($user);
+            $pointsAwarded = $pointsService->awardBarVisitPoints($user, $foundBar->id);
 
             // Refresh user to get updated points_total
             $user->refresh();

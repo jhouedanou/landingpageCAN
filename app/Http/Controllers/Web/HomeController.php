@@ -237,6 +237,13 @@ class HomeController extends Controller
             // This is expected before running the migration
         }
 
+        // Detailed activity log - last 50 actions
+        $activityLog = PointLog::where('user_id', $userId)
+            ->with(['bar', 'match.homeTeam', 'match.awayTeam'])
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
         return view('dashboard', compact(
             'user',
             'rank',
@@ -247,7 +254,8 @@ class HomeController extends Controller
             'recentPredictions',
             'pointsByDate',
             'pointsByVenue',
-            'visitedVenues'
+            'visitedVenues',
+            'activityLog'
         ));
     }
 
@@ -290,7 +298,7 @@ class HomeController extends Controller
         }
 
         if ($foundBar) {
-            $pointsAwarded = $pointsService->awardBarVisitPoints($user);
+            $pointsAwarded = $pointsService->awardBarVisitPoints($user, $foundBar->id);
 
             // Refresh user pour obtenir les points mis à jour
             $user->refresh();
