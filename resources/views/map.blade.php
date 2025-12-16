@@ -5,6 +5,7 @@
         locationError: null,
         isChecking: false,
         nearbyVenues: null,
+        checkInResult: null,
         venues: @json($venues),
 
         calculateDistance(lat1, lon1, lat2, lon2) {
@@ -18,10 +19,56 @@
             return R * c;
         },
 
+        async performCheckIn(lat, lng) {
+            try {
+                const response = await fetch('/check-in', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    this.checkInResult = {
+                        success: true,
+                        message: data.message,
+                        points_awarded: data.points_awarded,
+                        total_points: data.total_points
+                    };
+
+                    // Update header points
+                    if (data.total_points !== undefined) {
+                        window.dispatchEvent(new CustomEvent('update-points', {
+                            detail: { points: data.total_points }
+                        }));
+                    }
+                } else {
+                    this.checkInResult = {
+                        success: false,
+                        message: data.message || 'Aucun lieu partenaire détecté.'
+                    };
+                }
+            } catch (error) {
+                this.checkInResult = {
+                    success: false,
+                    message: 'Erreur de connexion. Réessayez.'
+                };
+            }
+        },
+
         async getLocation() {
             this.isChecking = true;
             this.locationError = null;
             this.nearbyVenues = null;
+            this.checkInResult = null;
 
             if (!navigator.geolocation) {
                 this.locationError = 'La géolocalisation n\'est pas supportée par votre navigateur.';
@@ -30,11 +77,14 @@
             }
 
             navigator.geolocation.getCurrentPosition(
-                (position) => {
+                async (position) => {
                     this.userLocation = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
+
+                    // Perform check-in
+                    await this.performCheckIn(this.userLocation.lat, this.userLocation.lng);
 
                     // Calculate distances to all venues
                     const venuesWithDistance = this.venues.map(venue => ({
@@ -188,6 +238,27 @@
                             Se connecter
                         </a>
                     @endif
+                </div>
+
+                <!-- Check-in Result -->
+                <div x-show="checkInResult" x-cloak class="mb-6">
+                    <div x-show="checkInResult?.success"
+                        class="bg-green-50 border-2 border-green-200 text-green-700 px-6 py-4 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-3xl">🎉</span>
+                            <div>
+                                <p class="font-bold text-lg" x-text="checkInResult?.message"></p>
+                                <p class="text-sm text-green-600 mt-1">
+                                    +<span x-text="checkInResult?.points_awarded"></span> points • Total: <span x-text="checkInResult?.total_points"></span> pts
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div x-show="!checkInResult?.success"
+                        class="bg-yellow-50 border-2 border-yellow-200 text-yellow-700 px-6 py-4 rounded-xl flex items-center gap-3">
+                        <span class="text-3xl">📍</span>
+                        <p x-text="checkInResult?.message" class="font-medium"></p>
+                    </div>
                 </div>
 
                 <!-- Nearby Venues List -->
