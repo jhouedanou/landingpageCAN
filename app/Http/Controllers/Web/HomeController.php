@@ -22,7 +22,8 @@ class HomeController extends Controller
 
         if ($senegalTeam) {
             $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
-                ->where('status', 'scheduled')
+                ->where('status', '!=', 'finished')
+                ->where('match_date', '>=', now())
                 ->where(function($query) use ($senegalTeam) {
                     $query->where('home_team_id', $senegalTeam->id)
                         ->orWhere('away_team_id', $senegalTeam->id);
