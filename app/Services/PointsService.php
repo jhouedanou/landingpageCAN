@@ -68,6 +68,36 @@ class PointsService
     }
 
     /**
+     * Award points for prediction made in a venue (geofencing).
+     * Limit 1x/day. User gets 4 points for making a prediction from a partner venue.
+     *
+     * @return int Points awarded (0 if already awarded today)
+     */
+    public function awardPredictionVenuePoints(User $user): int
+    {
+        $today = Carbon::today();
+
+        $alreadyAwarded = PointLog::where('user_id', $user->id)
+            ->where('source', 'venue_visit')
+            ->whereDate('created_at', $today)
+            ->exists();
+
+        if (!$alreadyAwarded) {
+            DB::transaction(function () use ($user) {
+                $user->increment('points_total', 4);
+                PointLog::create([
+                    'user_id' => $user->id,
+                    'source' => 'venue_visit',
+                    'points' => 4,
+                ]);
+            });
+            return 4;
+        }
+
+        return 0;
+    }
+
+    /**
      * Calculate points for a finished match for all predictions.
      * Triggered when a Match is updated to "finished".
      * This method now delegates to the ProcessMatchPoints job for consistency.

@@ -8,11 +8,15 @@ use App\Models\MatchGame;
 use App\Models\Prediction;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Services\PointsService;
 use Illuminate\Http\Request;
 
 class PredictionController extends Controller
 {
-    public function __construct(protected WhatsAppService $whatsAppService)
+    public function __construct(
+        protected WhatsAppService $whatsAppService,
+        protected PointsService $pointsService
+    )
     {
     }
 
@@ -100,6 +104,10 @@ class PredictionController extends Controller
             ]);
 
             $user = User::find($userId);
+
+            // Award 4 points for making a prediction in a venue (1x/day)
+            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user);
+
             $successMessage = 'Pronostic modifié ! ✏️ ' . $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b;
 
             // Envoyer confirmation WhatsApp
@@ -110,14 +118,15 @@ class PredictionController extends Controller
                     'message' => $successMessage,
                     'whatsapp_sent' => $whatsappResult['success'] ?? false,
                     'teams' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b,
-                    'venue' => $venue->name
+                    'venue' => $venue->name,
+                    'venue_bonus_points' => $venuePointsAwarded
                 ], 200);
             }
 
             return back()->with('toast', json_encode([
                 'type' => 'success',
                 'message' => 'Pronostic modifié ! ✏️',
-                'description' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b . ' (depuis ' . $venue->name . ') • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !'
+                'description' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b . ' (depuis ' . $venue->name . ') • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !' . ($venuePointsAwarded > 0 ? ' + ' . $venuePointsAwarded . ' pts venue' : '')
             ]));
         }
 
@@ -131,6 +140,10 @@ class PredictionController extends Controller
         ]);
 
         $user = User::find($userId);
+
+        // Award 4 points for making a prediction in a venue (1x/day)
+        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user);
+
         $successMessage = 'Pronostic enregistré ! 🎯 ' . $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b;
 
         // Envoyer confirmation WhatsApp
@@ -141,14 +154,15 @@ class PredictionController extends Controller
                 'message' => $successMessage,
                 'whatsapp_sent' => $whatsappResult['success'] ?? false,
                 'teams' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b,
-                'venue' => $venue->name
+                'venue' => $venue->name,
+                'venue_bonus_points' => $venuePointsAwarded
             ], 200);
         }
 
         return back()->with('toast', json_encode([
             'type' => 'success',
             'message' => 'Pronostic enregistré ! 🎯',
-            'description' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b . ' (depuis ' . $venue->name . ') • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !'
+            'description' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b . ' (depuis ' . $venue->name . ') • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !' . ($venuePointsAwarded > 0 ? ' + ' . $venuePointsAwarded . ' pts venue' : '')
         ]));
     }
 

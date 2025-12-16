@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MatchGame;
 use App\Models\Prediction;
 use App\Services\GeolocationService;
+use App\Services\PointsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
@@ -13,10 +14,12 @@ use Illuminate\Support\Carbon;
 class PredictionController extends Controller
 {
     protected GeolocationService $geolocationService;
+    protected PointsService $pointsService;
 
-    public function __construct(GeolocationService $geolocationService)
+    public function __construct(GeolocationService $geolocationService, PointsService $pointsService)
     {
         $this->geolocationService = $geolocationService;
+        $this->pointsService = $pointsService;
     }
 
     public function store(Request $request)
@@ -85,6 +88,12 @@ class PredictionController extends Controller
 
         $isNewPrediction = $prediction->wasRecentlyCreated;
 
+        // Award 4 points for making a prediction in a venue (1x/day)
+        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user);
+
+        // Refresh user to get updated points_total
+        $user->refresh();
+
         return response()->json([
             'success' => true,
             'prediction' => $prediction,
@@ -95,8 +104,10 @@ class PredictionController extends Controller
                 'participation' => 1,
                 'correct_winner' => 3,
                 'exact_score' => 3,
-                'max_possible' => 7
+                'max_possible' => 7,
+                'venue_bonus' => $venuePointsAwarded
             ],
+            'user_points_total' => $user->points_total,
             'venue' => [
                 'id' => $nearbyVenue->id,
                 'name' => $nearbyVenue->name,
