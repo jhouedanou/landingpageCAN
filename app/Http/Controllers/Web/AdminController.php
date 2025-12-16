@@ -793,7 +793,7 @@ class AdminController extends Controller
 
         // Récupérer ou créer les paramètres du site
         $settings = SiteSetting::with('favoriteTeam')->firstOrCreate([], [
-            'site_name' => 'SOBOA CAN 2025',
+            'site_name' => 'SOBOA Grande Fête du Foot Africain',
             'primary_color' => '#003399',
             'secondary_color' => '#FF6600',
         ]);

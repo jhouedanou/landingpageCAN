@@ -10,21 +10,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SOBOA CAN 2025 | {{ $title ?? 'Accueil' }}</title>
-    <meta name="description" content="Pronostiquez les matchs de la CAN 2025, gagnez des points et devenez le meilleur pronostiqueur!">
+    <title>SOBOA Grande Fête du Foot Africain | {{ $title ?? 'Accueil' }}</title>
+    <meta name="description" content="Pronostiquez les matchs de la Grande Fête du Foot Africain, gagnez des points et devenez le meilleur pronostiqueur!">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="SOBOA CAN 2025 | {{ $title ?? 'Accueil' }}">
-    <meta property="og:description" content="Vivez la CAN 2025 avec SOBOA ! Pronostiquez les matchs, visitez nos lieux partenaires et tentez de gagner des récompenses exclusives.">
+    <meta property="og:title" content="SOBOA Grande Fête du Foot Africain | {{ $title ?? 'Accueil' }}">
+    <meta property="og:description" content="Vivez la Grande Fête du Foot Africain avec SOBOA ! Pronostiquez les matchs, visitez nos lieux partenaires et tentez de gagner des récompenses exclusives.">
     <meta property="og:image" content="{{ asset('images/hero_celebration.png') }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="SOBOA CAN 2025 | {{ $title ?? 'Accueil' }}">
-    <meta property="twitter:description" content="Vivez la CAN 2025 avec SOBOA ! Pronostiquez les matchs et gagnez des récompenses.">
+    <meta property="twitter:title" content="SOBOA Grande Fête du Foot Africain | {{ $title ?? 'Accueil' }}">
+    <meta property="twitter:description" content="Vivez la Grande Fête du Foot Africain avec SOBOA ! Pronostiquez les matchs et gagnez des récompenses.">
     <meta property="twitter:image" content="{{ asset('images/hero_celebration.png') }}">
 
     <!-- Google tag (gtag.js) -->
@@ -263,7 +263,7 @@
                     </div>
                     <div class="text-white">
                         <span class="font-black text-lg md:text-xl tracking-tight">SOBOA</span>
-                        <span class="text-soboa-orange font-bold text-xs md:text-sm block -mt-1">CAN 2025</span>
+                        <span class="text-soboa-orange font-bold text-xs md:text-sm block -mt-1">Grande Fête du Foot Africain</span>
                     </div>
                 </a>
 
@@ -392,7 +392,7 @@
                         </div>
                         <div>
                             <span class="font-black text-xl">SOBOA</span>
-                            <span class="text-soboa-orange block text-sm font-bold">CAN 2025 - Maroc</span>
+                            <span class="text-soboa-orange block text-sm font-bold">Grande Fête du Foot Africain - Maroc</span>
                         </div>
                     </div>
                     <p class="text-white/60 text-sm">Pronostiquez, jouez et gagnez avec SOBOA pendant la Coupe d'Afrique

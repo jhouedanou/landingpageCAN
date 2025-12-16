@@ -6,7 +6,7 @@
             </h1>
             
             <p class="text-gray-600 text-center mb-8">
-                Jeu de pronostics CAN 2025 - SOBOA<br>
+                Jeu de pronostics Grande Fête du Foot Africain - SOBOA<br>
                 <span class="text-sm">Dernière mise à jour : Décembre 2025</span>
             </p>
 
@@ -17,9 +17,9 @@
                     <h2 class="text-xl font-bold text-soboa-blue mb-3">Article 1 - Objet</h2>
                     <p class="leading-relaxed">
                         Les présentes conditions générales d'utilisation (CGU) régissent la participation au jeu de pronostics 
-                        "CAN SOBOA 2025" (ci-après "le Jeu"), organisé par SOBOA dans le cadre de la Coupe d'Afrique des Nations 2025.
+                        "CAN SOBOA 2025" (ci-après "le Jeu"), organisé par SOBOA dans le cadre de la Grande Fête du Foot Africain 2025.
                         Le Jeu est un jeu gratuit sans obligation d'achat permettant aux participants de faire des pronostics 
-                        sur les résultats des matchs de la CAN 2025.
+                        sur les résultats des matchs de la Grande Fête du Foot Africain.
                     </p>
                 </section>
 
@@ -44,7 +44,7 @@
                     <h2 class="text-xl font-bold text-soboa-blue mb-3">Article 3 - Règles du Jeu</h2>
                     <div class="space-y-3">
                         <p><strong>3.1 Pronostics :</strong> Les participants peuvent soumettre des pronostics sur les scores 
-                        des matchs de la CAN 2025 avant le coup d'envoi de chaque match.</p>
+                        des matchs de la Grande Fête du Foot Africain avant le coup d'envoi de chaque match.</p>
                         
                         <p><strong>3.2 Attribution des points :</strong></p>
                         <ul class="list-disc list-inside ml-4 space-y-1">
@@ -142,7 +142,7 @@
                     <h2 class="text-xl font-bold text-soboa-blue mb-3">📞 Contact</h2>
                     <p class="leading-relaxed">
                         Pour toute question relative au Jeu ou aux présentes CGU, veuillez contacter :<br>
-                        <strong>SOBOA - Service Jeu CAN 2025</strong><br>
+                        <strong>SOBOA - Service Jeu Grande Fête du Foot Africain</strong><br>
                         Email : can2025@soboa.ci
                     </p>
                 </section>

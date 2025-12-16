@@ -8,7 +8,7 @@
                     <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
                         <span class="text-4xl">🏳️</span> Équipes
                     </h1>
-                    <p class="text-gray-600 mt-2">Gérez les équipes participantes à la CAN 2025</p>
+                    <p class="text-gray-600 mt-2">Gérez les équipes participantes à la Grande Fête du Foot Africain</p>
                 </div>
                 <div class="flex gap-3">
                     <a href="{{ route('admin.dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">

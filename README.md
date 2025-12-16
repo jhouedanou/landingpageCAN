@@ -1,6 +1,6 @@
-# SOBOA CAN 2025
+# SOBOA Grande Fête du Foot Africain
 
-Application web de pronostics pour la Coupe d'Afrique des Nations 2025.
+Application web de pronostics pour la Grande Fête du Foot Africain 2025.
 
 ## Installation
 

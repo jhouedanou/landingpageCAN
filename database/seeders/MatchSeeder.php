@@ -57,6 +57,6 @@ class MatchSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ 13 CAN 2025 group stage matches seeded successfully!');
+        $this->command->info('✅ 13 Grande Fête du Foot Africain group stage matches seeded successfully!');
     }
 }

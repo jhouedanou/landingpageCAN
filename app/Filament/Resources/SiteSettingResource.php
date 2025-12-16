@@ -34,7 +34,7 @@ class SiteSettingResource extends Resource
                             ->label('Nom du site')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder('SOBOA CAN 2025'),
+                            ->placeholder('SOBOA Grande Fête du Foot Africain'),
                     ]),
 
                 Forms\Components\Section::make('Couleurs')

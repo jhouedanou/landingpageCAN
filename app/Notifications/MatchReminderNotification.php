@@ -40,7 +40,7 @@ class MatchReminderNotification extends Notification implements ShouldQueue
         $matchDate = $this->match->match_date->format('d/m à H:i');
         $stadium = $this->match->stadium ?? 'Stade non défini';
 
-        $message = "⏰ *Rappel CAN 2025*\n\n";
+        $message = "⏰ *Rappel Grande Fête du Foot Africain*\n\n";
         $message .= "Le match commence dans 30 minutes !\n\n";
         $message .= "🏆 {$teamA} vs {$teamB}\n";
         $message .= "📅 {$matchDate}\n";

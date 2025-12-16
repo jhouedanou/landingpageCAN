@@ -148,7 +148,7 @@
 
     </div>
 
-    <!-- Hero Section - CAN 2025 Celebration -->
+    <!-- Hero Section - Grande Fête du Foot Africain Celebration -->
     <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden hero-gradient" x-data="{ 
                  countdown: { days: 0, hours: 0, minutes: 0, seconds: 0 },
                  targetDate: new Date('2025-12-21T20:00:00').getTime(),
@@ -188,11 +188,11 @@
 
         <!-- Content -->
         <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
-            <!-- CAN 2025 Badge -->
+            <!-- Grande Fête du Foot Africain Badge -->
             <div
                 class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-white/20">
                 <span class="text-3xl">🏆</span>
-                <span class="text-white font-bold text-lg">Coupe d'Afrique des Nations</span>
+                <span class="text-white font-bold text-lg">Grande Fête du Foot Africain</span>
             </div>
 
             <!-- Main Heading -->
@@ -274,7 +274,7 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
                 <div>
-                    <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">CAN 2025 - Sénégal</span>
+                    <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">Grande Fête du Foot Africain - Sénégal</span>
                     <div class="flex items-center gap-2 mt-2">
                         <h2 class="text-3xl md:text-4xl font-black text-soboa-blue">Prochains matchs</h2>
                         <span class="text-3xl md:text-4xl">🇸🇳</span>

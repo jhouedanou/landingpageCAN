@@ -1,1 +1,1 @@
-// CAN 2025 - SOBOA App Scripts
+// Grande Fête du Foot Africain - SOBOA App Scripts

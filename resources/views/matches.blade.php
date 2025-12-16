@@ -2,7 +2,7 @@
     <div class="space-y-6" x-data="{ activePhase: 'all', activeGroup: 'all' }">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold text-soboa-blue">Calendrier des Matchs</h1>
-            <span class="text-sm text-gray-500">CAN 2025 - Maroc</span>
+            <span class="text-sm text-gray-500">Grande Fête du Foot Africain - Maroc</span>
         </div>
 
         <!-- Bannière du point de vente sélectionné -->

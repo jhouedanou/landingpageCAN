@@ -13,7 +13,7 @@ return new class extends Migration {
     {
         Schema::create('site_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('site_name')->default('SOBOA CAN 2025');
+            $table->string('site_name')->default('SOBOA Grande Fête du Foot Africain');
             $table->string('primary_color')->default('#003399');
             $table->string('secondary_color')->default('#FF6600');
             $table->string('logo_path')->nullable();
@@ -23,7 +23,7 @@ return new class extends Migration {
 
         // Insert default settings
         DB::table('site_settings')->insert([
-            'site_name' => 'SOBOA CAN 2025',
+            'site_name' => 'SOBOA Grande Fête du Foot Africain',
             'primary_color' => '#003399',
             'secondary_color' => '#FF6600',
             'created_at' => now(),

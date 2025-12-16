@@ -57,6 +57,6 @@ class TeamSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ 24 CAN 2025 teams seeded successfully!');
+        $this->command->info('✅ 24 Grande Fête du Foot Africain teams seeded successfully!');
     }
 }

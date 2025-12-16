@@ -1,4 +1,4 @@
-# 🎮 Guide de Gestion Manuelle du Tournoi CAN 2025
+# 🎮 Guide de Gestion Manuelle du Tournoi Grande Fête du Foot Africain
 
 ## Vue d'ensemble
 
@@ -229,6 +229,6 @@ Si vous changez d'avis et voulez la qualification automatique :
 
 ## 🎊 Félicitations !
 
-Vous avez maintenant le contrôle total sur votre tournoi CAN 2025 ! 🏆
+Vous avez maintenant le contrôle total sur votre tournoi Grande Fête du Foot Africain ! 🏆
 
 Pour toute question, consultez `TOURNAMENT.md` pour plus de détails techniques.

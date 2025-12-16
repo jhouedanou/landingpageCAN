@@ -1,8 +1,8 @@
-# 🏆 Système de Gestion de Tournoi CAN 2025
+# 🏆 Système de Gestion de Tournoi Grande Fête du Foot Africain
 
 ## Vue d'ensemble
 
-Le système de gestion de tournoi permet de gérer automatiquement toutes les phases de la Coupe d'Afrique des Nations :
+Le système de gestion de tournoi permet de gérer automatiquement toutes les phases de la Grande Fête du Foot Africain :
 - **Phase de poules** (6 groupes de 4 équipes)
 - **1/8e de finale** (16 équipes)
 - **1/4 de finale** (8 équipes)
@@ -273,7 +273,7 @@ Quand ces matchs se terminent → **Qualification automatique** pour les quarts 
 ```
 Match : Sénégal vs Cameroun
 Score : 1-0
-→ Sénégal est couronné champion de la CAN 2025 ! 🏆
+→ Sénégal est couronné champion de la Grande Fête du Foot Africain ! 🏆
 ```
 
 ## Commandes utiles

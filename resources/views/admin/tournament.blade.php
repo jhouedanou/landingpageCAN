@@ -6,7 +6,7 @@
             <div class="mb-8 flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                        <span class="text-4xl">🏆</span> Gestion du Tournoi CAN 2025
+                        <span class="text-4xl">🏆</span> Gestion du Tournoi Grande Fête du Foot Africain
                     </h1>
                     <p class="text-gray-600 mt-2">Vue d'ensemble de toutes les phases du tournoi</p>
                 </div>

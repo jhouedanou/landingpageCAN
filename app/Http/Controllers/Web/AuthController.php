@@ -119,7 +119,7 @@ class AuthController extends Controller
 
         Log::info('URL Green API', ['url' => $url]);
 
-        $message = "🏆 CAN 2025 - SOBOA\n\nVotre code de verification privilège :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_";
+        $message = "🏆 Grande Fête du Foot Africain - SOBOA\n\nVotre code de verification privilège :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_";
 
         $payload = [
             'chatId' => $whatsappNumber . '@c.us',

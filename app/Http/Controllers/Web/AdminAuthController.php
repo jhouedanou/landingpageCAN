@@ -122,8 +122,8 @@ class AdminAuthController extends Controller
         $url = "{$baseUrl}/waInstance{$idInstance}/sendMessage/{$apiToken}";
 
         $message = $isAdmin 
-            ? "🔐 CAN 2025 - SOBOA ADMIN\n\n⚡ Code d'accès administrateur :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_"
-            : "🏆 CAN 2025 - SOBOA\n\nVotre code de vérification privilège :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_";
+            ? "🔐 Grande Fête du Foot Africain - SOBOA ADMIN\n\n⚡ Code d'accès administrateur :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_"
+            : "🏆 Grande Fête du Foot Africain - SOBOA\n\nVotre code de vérification privilège :\n\n👉 ```{$otpCode}``` 👈\n\n_(Appuyez sur le code pour le copier)_";
 
         $payload = [
             'chatId' => $whatsappNumber . '@c.us',
