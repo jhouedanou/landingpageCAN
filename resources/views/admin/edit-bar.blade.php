@@ -43,9 +43,15 @@
 
                                 <div>
                                     <label class="block text-gray-700 font-bold mb-2">Adresse complète *</label>
-                                    <input type="text" name="address" value="{{ old('address', $bar->address) }}" required
-                                           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
-                                           placeholder="Ex: Cocody, Rue des Jardins, Abidjan">
+                                    <div class="flex gap-2">
+                                        <input type="text" name="address" value="{{ old('address', $bar->address) }}" required
+                                               class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
+                                               placeholder="Ex: Cocody, Rue des Jardins, Abidjan">
+                                        <button type="button" onclick="searchAddress()" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold py-3 px-4 rounded-lg transition">
+                                            🔍
+                                        </button>
+                                    </div>
+                                    <p class="text-gray-500 text-xs mt-2">Cliquez sur 🔍 pour localiser automatiquement ou cliquez directement sur la carte</p>
                                 </div>
 
                                 <div>
@@ -147,10 +153,21 @@
         // Fonction de recherche par adresse
         async function searchAddress() {
             const address = document.querySelector('input[name="address"]').value;
-            if (!address) return;
+            if (!address) {
+                alert('Veuillez entrer une adresse');
+                return;
+            }
 
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    alert('Erreur de connexion à Nominatim. Cliquez sur la carte pour définir manuellement les coordonnées.');
+                    return;
+                }
+
                 const results = await response.json();
 
                 if (results.length > 0) {
@@ -166,14 +183,13 @@
                         map.removeLayer(marker);
                     }
                     marker = L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${address}</strong><br/>Lat: ${lat}<br/>Lng: ${lng}`).openPopup();
+                } else {
+                    alert('Adresse non trouvée. Cliquez directement sur la carte pour sélectionner manuellement.');
                 }
             } catch (error) {
                 console.error('Erreur de recherche:', error);
+                alert('Impossible de localiser l\'adresse. Cliquez directement sur la carte pour sélectionner manuellement.');
             }
         }
-
-        // Ajouter un écouteur pour la recherche d'adresse
-        const addressInput = document.querySelector('input[name="address"]');
-        addressInput.addEventListener('blur', searchAddress);
     </script>
 </x-layouts.app>
