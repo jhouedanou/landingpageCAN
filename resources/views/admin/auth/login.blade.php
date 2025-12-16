@@ -30,17 +30,9 @@
                     </div>
                 </div>
 
-                <!-- Étape 1: Nom et téléphone -->
+                <!-- Étape 1: Téléphone -->
                 <div x-show="step === 1">
                     <form @submit.prevent="sendOtp">
-                        <!-- Nom complet -->
-                        <div class="mb-5">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Nom de l'administrateur</label>
-                            <input type="text" x-model="name" placeholder="Entrez votre nom"
-                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-600 focus:ring-0 text-lg"
-                                required>
-                        </div>
-
                         <!-- Téléphone -->
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone administrateur</label>
@@ -141,7 +133,7 @@
 
                         <!-- Changer de numéro -->
                         <div class="text-center mt-4 pt-4 border-t">
-                            <button type="button" @click="step = 1; code = ''; error = ''"
+                            <button type="button" @click="step = 1; code = ''; error = ''; resendCooldown = 0"
                                 class="text-sm text-gray-500 hover:text-gray-700">
                                 ← Modifier le numéro
                             </button>
@@ -173,7 +165,6 @@
         function adminLoginForm() {
             return {
                 step: 1,
-                name: '',
                 phone: '',
                 countryCode: '+225', // Verrouillé sur Côte d'Ivoire
                 code: '',
@@ -198,8 +189,8 @@
                 },
 
                 async sendOtp() {
-                    if (!this.name.trim() || !this.phone.trim()) {
-                        this.error = 'Veuillez remplir tous les champs.';
+                    if (!this.phone.trim()) {
+                        this.error = 'Veuillez entrer votre numéro de téléphone.';
                         return;
                     }
 
@@ -217,7 +208,6 @@
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             },
                             body: JSON.stringify({
-                                name: this.name,
                                 phone: this.fullPhone
                             })
                         });
@@ -298,7 +288,6 @@
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             },
                             body: JSON.stringify({
-                                name: this.name,
                                 phone: this.fullPhone
                             })
                         });

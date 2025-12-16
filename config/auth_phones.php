@@ -17,14 +17,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Numéro de téléphone administrateur
+    | Numéros de téléphone administrateurs
     |--------------------------------------------------------------------------
     |
-    | Ce numéro a accès à l'interface d'administration.
-    | Doit correspondre à un utilisateur avec role='admin' dans la base.
+    | Ces numéros ont accès à l'interface d'administration.
+    | Doivent correspondre à des utilisateurs avec role='admin' dans la base.
     |
     */
-    'admin_phone' => '+2250748348221',
+    'admin_phones' => [
+        '+2250748348221',
+        '+2250545029721',
+    ],
 
     /*
     |--------------------------------------------------------------------------

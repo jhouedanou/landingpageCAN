@@ -34,22 +34,21 @@ class AdminAuthController extends Controller
     {
         $request->validate([
             'phone' => 'required|string',
-            'name' => 'required|string|max:255',
         ]);
 
         try {
             $originalPhone = $request->phone;
             $phone = $this->formatPhone($request->phone);
 
-            // VALIDATION STRICTE: Seul le numéro admin est autorisé
-            $adminPhone = config('auth_phones.admin_phone');
-            
-            if ($phone !== $adminPhone) {
+            // VALIDATION STRICTE: Vérifier que le numéro est dans la liste des admins autorisés
+            $adminPhones = config('auth_phones.admin_phones', []);
+
+            if (!in_array($phone, $adminPhones)) {
                 Log::warning('Tentative de connexion admin avec un numéro non autorisé', [
                     'phone_attempt' => $phone,
-                    'admin_phone' => $adminPhone,
+                    'admin_phones' => $adminPhones,
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Accès non autorisé. Ce numéro n\'a pas les droits d\'administrateur.',
@@ -62,7 +61,6 @@ class AdminAuthController extends Controller
                 'original_phone' => $originalPhone,
                 'formatted_phone' => $phone,
                 'whatsapp_number' => $whatsappNumber,
-                'name' => $request->name,
             ]);
 
             $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -70,7 +68,6 @@ class AdminAuthController extends Controller
             $cacheKey = 'admin_otp_' . $whatsappNumber;
             Cache::put($cacheKey, [
                 'code' => $otpCode,
-                'name' => $request->name,
                 'phone' => $phone,
                 'attempts' => 0,
             ], now()->addMinutes(10));
@@ -171,10 +168,10 @@ class AdminAuthController extends Controller
 
         try {
             $phone = $this->formatPhone($request->phone);
-            
-            // Double vérification: le numéro doit être le numéro admin
-            $adminPhone = config('auth_phones.admin_phone');
-            if ($phone !== $adminPhone) {
+
+            // Double vérification: le numéro doit être dans la liste des admins autorisés
+            $adminPhones = config('auth_phones.admin_phones', []);
+            if (!in_array($phone, $adminPhones)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Accès non autorisé.',
@@ -217,7 +214,7 @@ class AdminAuthController extends Controller
 
             if (!$user) {
                 $user = User::create([
-                    'name' => $otpData['name'],
+                    'name' => 'Admin ' . substr($phone, -4),
                     'phone' => $phone,
                     'password' => Hash::make(Str::random(32)),
                     'role' => 'admin',
@@ -226,10 +223,6 @@ class AdminAuthController extends Controller
                 // S'assurer que l'utilisateur a le rôle admin
                 if ($user->role !== 'admin') {
                     $user->update(['role' => 'admin']);
-                }
-                
-                if ($user->name !== $otpData['name']) {
-                    $user->update(['name' => $otpData['name']]);
                 }
             }
 
