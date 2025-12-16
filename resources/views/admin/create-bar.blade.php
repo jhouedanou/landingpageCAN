@@ -101,7 +101,7 @@
 
     <script>
         // Initialiser la carte Leaflet
-        const map = L.map('map').setView([6.8276, -5.2893], 11); // Abidjan par défaut
+        const map = L.map('map').setView([14.6928, -17.0469], 12); // Dakar, Sénégal par défaut
 
         // Ajouter la couche OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
