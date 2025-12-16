@@ -49,6 +49,13 @@
                                 total_points: data.total_points
                             };
 
+                            // Mettre à jour le header avec les nouveaux points
+                            if (data.total_points !== undefined) {
+                                window.dispatchEvent(new CustomEvent('update-points', {
+                                    detail: { points: data.total_points }
+                                }));
+                            }
+
                             // Rediriger vers le dashboard après 2 secondes
                             setTimeout(() => {
                                 window.location.href = '/dashboard';

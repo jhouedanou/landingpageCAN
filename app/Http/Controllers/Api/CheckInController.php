@@ -40,6 +40,9 @@ class CheckInController extends Controller
             // Refresh user to get updated points_total
             $user->refresh();
 
+            // Update session with new points total
+            session(['user_points' => $user->points_total]);
+
             $message = $pointsAwarded > 0
                 ? "Bienvenue à {$foundBar->name} ! +{$pointsAwarded} points gagnés 🎉"
                 : "Bienvenue à {$foundBar->name} ! (Points déjà réclamés aujourd'hui)";
