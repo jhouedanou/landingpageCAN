@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 
 class CleanDatabase extends Command
 {
-    protected $signature = 'db:clean {--force : Skip confirmation}';
+    protected $signature = 'db:clean {--force : Skip confirmation} {--skip-backup : Skip backup creation}';
     protected $description = 'Clean database: remove users (except admin), matches, PDV, and related data. Keep teams.';
 
     public function handle()
@@ -36,40 +36,44 @@ class CleanDatabase extends Command
             }
         }
 
-        // Create backup before cleaning
-        $this->info('');
-        $this->info('📦 Création d\'un backup de sécurité avant nettoyage...');
-        $backupResult = $this->call('db:backup');
+        // Create backup before cleaning (unless --skip-backup is used)
+        if (!$this->option('skip-backup')) {
+            $this->info('');
+            $this->info('📦 Création d\'un backup de sécurité avant nettoyage...');
+            $backupResult = $this->call('db:backup');
 
-        if ($backupResult !== 0) {
-            $this->error('❌ Impossible de créer le backup. Nettoyage annulé.');
-            return 1;
+            if ($backupResult !== 0) {
+                $this->error('❌ Impossible de créer le backup. Nettoyage annulé.');
+                return 1;
+            }
+        } else {
+            $this->warn('⚠️  Backup ignoré (--skip-backup utilisé)');
         }
 
         $this->info('');
 
         try {
-            // Start transaction
-            \DB::beginTransaction();
+            // Disable foreign key constraints for cleanup
+            \DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
             // 1. Delete all predictions (they reference matches and users)
             $predictionCount = Prediction::count();
-            Prediction::truncate();
+            Prediction::query()->delete();
             $this->info("✅ Suppression de $predictionCount pronostics");
 
             // 2. Delete all point logs (they reference users and matches)
             $pointLogCount = PointLog::count();
-            PointLog::truncate();
+            PointLog::query()->delete();
             $this->info("✅ Suppression de $pointLogCount logs de points");
 
             // 3. Delete all matches
             $matchCount = MatchGame::count();
-            MatchGame::truncate();
+            MatchGame::query()->delete();
             $this->info("✅ Suppression de $matchCount matchs");
 
             // 4. Delete all bars/PDV
             $barCount = Bar::count();
-            Bar::truncate();
+            Bar::query()->delete();
             $this->info("✅ Suppression de $barCount points de vente (PDV)");
 
             // 5. Delete all users except admin
@@ -80,33 +84,45 @@ class CleanDatabase extends Command
                 $usersDeleted = User::where('id', '!=', $adminId)->delete();
                 $this->info("✅ Suppression de $usersDeleted utilisateurs (admin conservé: {$adminUser->name})");
             } else {
-                $usersDeleted = User::delete();
+                $usersDeleted = User::query()->delete();
                 $this->warn("⚠️  Aucun admin trouvé. Tous les utilisateurs ont été supprimés.");
             }
 
-            // Reset auto-increment for better organization
-            $this->resetAutoIncrement();
+            // Re-enable foreign key constraints
+            \DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-            // Commit transaction
-            \DB::commit();
-
-            $this->info('');
-            $this->info('✅ Nettoyage de la base de données terminé avec succès!');
-            $this->info('');
-            $this->info('État final:');
-            $this->info('  - Équipes: ' . \App\Models\Team::count() . ' équipes');
-            $this->info('  - Utilisateurs: ' . User::count() . ' utilisateur(s)');
-            $this->info('  - Matchs: ' . MatchGame::count() . ' match(s)');
-            $this->info('  - PDV: ' . Bar::count() . ' point(s) de vente');
-            $this->info('  - Pronostics: ' . Prediction::count() . ' pronostic(s)');
-            $this->info('  - Logs de points: ' . PointLog::count() . ' log(s)');
-
-            return 0;
         } catch (\Exception $e) {
-            \DB::rollBack();
+            // Re-enable foreign key constraints even on error
+            try {
+                \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            } catch (\Exception $ignored) {
+                // Ignore if this fails
+            }
+
             $this->error('❌ Erreur lors du nettoyage: ' . $e->getMessage());
             return 1;
         }
+
+        // Reset auto-increment for better organization (after transaction completely done)
+        try {
+            $this->resetAutoIncrement();
+        } catch (\Exception $e) {
+            $this->warn('⚠️  Erreur lors du reset des auto-increment: ' . $e->getMessage());
+        }
+
+        $this->info('');
+        $this->info('✅ Nettoyage de la base de données terminé avec succès!');
+        $this->info('');
+
+        $this->info('État final:');
+        $this->info('  - Équipes: ' . \App\Models\Team::count() . ' équipes');
+        $this->info('  - Utilisateurs: ' . User::count() . ' utilisateur(s)');
+        $this->info('  - Matchs: ' . MatchGame::count() . ' match(s)');
+        $this->info('  - PDV: ' . Bar::count() . ' point(s) de vente');
+        $this->info('  - Pronostics: ' . Prediction::count() . ' pronostic(s)');
+        $this->info('  - Logs de points: ' . PointLog::count() . ' log(s)');
+
+        return 0;
     }
 
     private function resetAutoIncrement()
