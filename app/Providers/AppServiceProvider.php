@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\MatchGame;
 use App\Observers\MatchObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,5 +24,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Enregistrer l'observateur pour la qualification automatique
         MatchGame::observe(MatchObserver::class);
+
+        // Configurer Carbon pour utiliser le français
+        Carbon::setLocale('fr');
     }
 }

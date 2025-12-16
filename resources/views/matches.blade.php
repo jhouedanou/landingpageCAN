@@ -169,7 +169,7 @@
                         <div class="swiper-slide">
                             <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 hover:bg-white/20 transition">
                                 <!-- Date -->
-                                <div class="text-xs text-white/70 mb-2 text-center font-medium">
+                                <div class="text-xs text-white/70 mb-2 text-center font-medium capitalize">
                                     📅 {{ $match->match_date->translatedFormat('l d F Y') }}
                                 </div>
 

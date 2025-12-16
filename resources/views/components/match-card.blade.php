@@ -25,8 +25,8 @@
     
     <!-- Date & Time -->
     <div class="text-center mb-4">
-        <span class="text-sm text-gray-500 font-semibold">
-            {{ $match->match_date->translatedFormat('l d M') }}
+        <span class="text-sm text-gray-500 font-semibold capitalize">
+            {{ $match->match_date->translatedFormat('l d F Y') }}
         </span>
         <span class="text-lg font-black text-soboa-orange block">
             {{ $match->match_date->format('H:i') }}
