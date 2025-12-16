@@ -6,7 +6,7 @@
         isChecking: false,
         nearbyVenues: null,
         checkInResult: null,
-        venues: @json($venues),
+        venues: @json($venues ?? []),
 
         calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // km
@@ -21,12 +21,13 @@
 
         async performCheckIn(lat, lng) {
             try {
+                const csrfToken = document.querySelector('meta[name=csrf-token]').content;
                 const response = await fetch('/check-in', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({
                         latitude: lat,
