@@ -4,69 +4,58 @@
         userLocation: null,
         locationError: null,
         isChecking: false,
-        checkInResult: null,
-        
+        nearbyVenues: null,
+        venues: @json($venues),
+
+        calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        },
+
         async getLocation() {
             this.isChecking = true;
             this.locationError = null;
-            this.checkInResult = null;
-            
+            this.nearbyVenues = null;
+
             if (!navigator.geolocation) {
                 this.locationError = 'La géolocalisation n\'est pas supportée par votre navigateur.';
                 this.isChecking = false;
                 return;
             }
-            
+
             navigator.geolocation.getCurrentPosition(
-                async (position) => {
+                (position) => {
                     this.userLocation = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
-                    
-                    // Check-in API call
-                    try {
-                        const response = await fetch('/check-in', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name=&quot;csrf-token&quot;]').content
-                            },
-                            body: JSON.stringify({
-                                latitude: this.userLocation.lat,
-                                longitude: this.userLocation.lng
-                            })
-                        });
-                        
-                        const data = await response.json();
 
-                        if (response.ok) {
-                            this.checkInResult = {
-                                success: true,
-                                message: data.message,
-                                points_awarded: data.points_awarded,
-                                total_points: data.total_points
-                            };
+                    // Calculate distances to all venues
+                    const venuesWithDistance = this.venues.map(venue => ({
+                        ...venue,
+                        distance: this.calculateDistance(
+                            this.userLocation.lat,
+                            this.userLocation.lng,
+                            venue.latitude,
+                            venue.longitude
+                        )
+                    }));
 
-                            // Mettre à jour le header avec les nouveaux points
-                            if (data.total_points !== undefined) {
-                                window.dispatchEvent(new CustomEvent('update-points', {
-                                    detail: { points: data.total_points }
-                                }));
-                            }
+                    // Filter venues within 10km and sort by distance
+                    this.nearbyVenues = venuesWithDistance
+                        .filter(v => v.distance <= 10)
+                        .sort((a, b) => a.distance - b.distance);
 
-                            // Rediriger vers le dashboard après 2 secondes
-                            setTimeout(() => {
-                                window.location.href = '/dashboard';
-                            }, 2000);
-                        } else {
-                            this.checkInResult = { success: false, message: data.message || 'Aucun lieu partenaire à proximité.' };
-                        }
-                    } catch (error) {
-                        this.checkInResult = { success: false, message: 'Erreur de connexion. Réessayez.' };
+                    if (this.nearbyVenues.length === 0) {
+                        this.nearbyVenues = [];
                     }
-                    
+
                     this.isChecking = false;
                 },
                 (error) => {
@@ -167,17 +156,17 @@
             </div>
         </div>
 
-        <!-- Check-in Section -->
+        <!-- Nearby Venues Section -->
         <div class="max-w-7xl mx-auto px-4 -mt-8">
             <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 bg-soboa-orange/10 rounded-full flex items-center justify-center">
                             <span class="text-3xl">📍</span>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-soboa-blue">Vous êtes dans un lieu partenaire?</h2>
-                            <p class="text-gray-600 text-sm">Activez votre position pour gagner vos points bonus!</p>
+                            <h2 class="text-xl font-bold text-soboa-blue">Lieux partenaires à proximité</h2>
+                            <p class="text-gray-600 text-sm">Trouvez les points de vente près de vous!</p>
                         </div>
                     </div>
 
@@ -191,33 +180,56 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            <span x-text="isChecking ? 'Vérification...' : 'Je suis ici !'"></span>
+                            <span x-text="isChecking ? 'Vérification...' : 'Voir les lieux proches'"></span>
                         </button>
                     @else
                         <a href="/login"
                             class="w-full md:w-auto bg-soboa-blue hover:bg-soboa-blue-dark text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-all text-center">
-                            Se connecter pour valider
+                            Se connecter
                         </a>
                     @endif
                 </div>
 
-                <!-- Check-in Result -->
-                <div x-show="checkInResult" x-cloak class="mt-4">
-                    <div x-show="checkInResult?.success"
-                        class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-2xl">🎉</span>
-                            <span x-text="checkInResult?.message" class="font-medium"></span>
+                <!-- Nearby Venues List -->
+                <div x-show="nearbyVenues !== null" x-cloak>
+                    <template x-if="nearbyVenues.length > 0">
+                        <div class="space-y-4">
+                            <p class="text-soboa-blue font-bold text-lg">
+                                <span x-text="nearbyVenues.length"></span> lieu(x) trouvé(s) à proximité:
+                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <template x-for="venue in nearbyVenues" :key="venue.id">
+                                    <div class="bg-gradient-to-br from-soboa-orange/5 to-soboa-blue/5 rounded-xl p-4 border border-soboa-orange/20 hover:border-soboa-orange/50 transition">
+                                        <div class="flex items-start gap-3 mb-3">
+                                            <span class="text-2xl">📍</span>
+                                            <div class="flex-1">
+                                                <h3 class="font-bold text-soboa-blue" x-text="venue.name"></h3>
+                                                <p class="text-gray-600 text-sm" x-text="venue.address"></p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-soboa-orange font-bold text-lg">
+                                                <span x-text="venue.distance.toFixed(1)"></span> km
+                                            </span>
+                                            <a href="#" @click.prevent="document.querySelector('[id=map]').scrollIntoView({ behavior: 'smooth' })"
+                                                class="bg-soboa-blue hover:bg-soboa-blue-dark text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                                                Voir sur la carte →
+                                            </a>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
-                        <div x-show="checkInResult?.total_points" class="text-sm text-green-600 font-bold">
-                            Total : <span x-text="checkInResult?.total_points"></span> points
+                    </template>
+
+                    <template x-if="nearbyVenues.length === 0">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+                            <p class="text-yellow-700 font-medium">
+                                <span class="text-2xl">📍</span> Aucun lieu partenaire à proximité (rayon: 10 km)
+                            </p>
+                            <p class="text-yellow-600 text-sm mt-2">Consultez la carte ou la liste complète ci-dessous pour voir tous les lieux partenaires.</p>
                         </div>
-                    </div>
-                    <div x-show="!checkInResult?.success"
-                        class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg flex items-center gap-2">
-                        <span class="text-2xl">📍</span>
-                        <span x-text="checkInResult?.message"></span>
-                    </div>
+                    </template>
                 </div>
             </div>
         </div>
