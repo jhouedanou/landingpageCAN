@@ -225,7 +225,8 @@ class AuthController extends Controller
 
             session([
                 'user_id' => $user->id,
-                'user_points' => $user->points_total ?? 0
+                'user_points' => $user->points_total ?? 0,
+                'predictor_name' => $user->name
             ]);
 
             return response()->json([

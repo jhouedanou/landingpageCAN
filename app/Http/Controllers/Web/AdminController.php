@@ -7,6 +7,7 @@ use App\Jobs\ProcessMatchPoints;
 use App\Models\Bar;
 use App\Models\MatchGame;
 use App\Models\Prediction;
+use App\Models\Stadium;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\SiteSetting;
@@ -104,8 +105,12 @@ class AdminController extends Controller
         }
 
         $teams = Team::orderBy('name')->get();
+        $stadiums = Stadium::where('is_active', true)->orderBy('city')->get();
 
-        return view('admin.create-match', compact('teams'));
+        // Liste des groupes disponibles pour la CAN
+        $groups = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        return view('admin.create-match', compact('teams', 'stadiums', 'groups'));
     }
 
     /**
@@ -156,8 +161,12 @@ class AdminController extends Controller
 
         $match = MatchGame::with(['homeTeam', 'awayTeam'])->findOrFail($id);
         $teams = Team::orderBy('name')->get();
+        $stadiums = Stadium::where('is_active', true)->orderBy('city')->get();
 
-        return view('admin.edit-match', compact('match', 'teams'));
+        // Liste des groupes disponibles pour la CAN
+        $groups = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        return view('admin.edit-match', compact('match', 'teams', 'stadiums', 'groups'));
     }
 
     /**
@@ -697,6 +706,130 @@ class AdminController extends Controller
         return redirect()->route('admin.teams')->with('success', 'Équipe supprimée avec succès.');
     }
 
+    // ==================== STADIUMS ====================
+
+    /**
+     * List all stadiums
+     */
+    public function stadiums()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $stadiums = Stadium::orderBy('city')->orderBy('name')->paginate(20);
+
+        return view('admin.stadiums', compact('stadiums'));
+    }
+
+    /**
+     * Show create form for a stadium
+     */
+    public function createStadium()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        return view('admin.create-stadium');
+    }
+
+    /**
+     * Store a new stadium
+     */
+    public function storeStadium(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'capacity' => 'required|integer|min:0',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        Stadium::create([
+            'name' => $request->name,
+            'city' => $request->city,
+            'capacity' => $request->capacity,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return redirect()->route('admin.stadiums')->with('success', 'Stade créé avec succès.');
+    }
+
+    /**
+     * Show edit form for a stadium
+     */
+    public function editStadium($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $stadium = Stadium::findOrFail($id);
+
+        return view('admin.edit-stadium', compact('stadium'));
+    }
+
+    /**
+     * Update stadium details
+     */
+    public function updateStadium(Request $request, $id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $stadium = Stadium::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'capacity' => 'required|integer|min:0',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        $stadium->update([
+            'name' => $request->name,
+            'city' => $request->city,
+            'capacity' => $request->capacity,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return redirect()->route('admin.stadiums')->with('success', 'Stade mis à jour avec succès.');
+    }
+
+    /**
+     * Delete a stadium
+     */
+    public function deleteStadium($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $stadium = Stadium::findOrFail($id);
+
+        // Vérifier si le stade est utilisé dans des matchs
+        $matchCount = MatchGame::where('stadium', $stadium->name)->count();
+        if ($matchCount > 0) {
+            return back()->with('error', "Impossible de supprimer ce stade car il est utilisé dans {$matchCount} match(s).");
+        }
+
+        $stadium->delete();
+
+        return redirect()->route('admin.stadiums')->with('success', 'Stade supprimé avec succès.');
+    }
+
     // ==================== PREDICTIONS ====================
 
     /**
@@ -767,6 +900,25 @@ class AdminController extends Controller
     }
 
     /**
+     * Show predictions for a specific match
+     */
+    public function matchPredictions($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $match = MatchGame::with(['homeTeam', 'awayTeam'])->findOrFail($id);
+
+        $predictions = Prediction::with('user')
+            ->where('match_id', $id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return view('admin.match-predictions', compact('match', 'predictions'));
+    }
+
+    /**
      * Delete a prediction
      */
     public function deletePrediction($id)
@@ -819,6 +971,7 @@ class AdminController extends Controller
             'primary_color' => 'required|string|max:7',
             'secondary_color' => 'required|string|max:7',
             'favorite_team_id' => 'nullable|exists:teams,id',
+            'geofencing_radius' => 'required|integer|min:50|max:1000',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
         ]);
 
@@ -829,6 +982,7 @@ class AdminController extends Controller
             'primary_color' => $request->input('primary_color'),
             'secondary_color' => $request->input('secondary_color'),
             'favorite_team_id' => $request->input('favorite_team_id'),
+            'geofencing_radius' => $request->input('geofencing_radius'),
         ];
 
         // Gérer l'upload du logo

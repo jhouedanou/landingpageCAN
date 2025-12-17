@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold text-soboa-blue">Points de Vente</h1>
-            <span class="text-sm text-gray-500">{{ $venues->count() }} points de vente à Abidjan</span>
+            <span class="text-sm text-gray-500">{{ $venues->count() }} points de vente au Maroc</span>
         </div>
 
         @if(session('error'))
@@ -198,8 +198,8 @@
         let userLatitude = null;
         let userLongitude = null;
 
-        // Rayon de geofencing en mètres
-        const GEOFENCING_RADIUS = 200;
+        // Rayon de geofencing en mètres (défini dans les paramètres admin)
+        const GEOFENCING_RADIUS = {{ $geofencingRadius ?? 200 }};
 
         // Calculer la distance entre deux points (formule de Haversine)
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -268,12 +268,24 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({
                         venue_id: venueId,
                         latitude: userLatitude,
                         longitude: userLongitude
                     })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Venue selected successfully:', data.message);
+                    } else {
+                        console.warn('Failed to select venue:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error selecting venue:', error);
                 });
             } else {
                 // L'utilisateur est trop loin
@@ -322,18 +334,57 @@
         // Gérer les erreurs de géolocalisation
         function handleGeolocationError(error) {
             let message = 'Impossible de récupérer votre position.';
+            let instructions = '';
+
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    message = 'Vous avez refusé l\'accès à la géolocalisation. Veuillez l\'autoriser dans les paramètres.';
+                    message = '❌ Accès à la géolocalisation refusé';
+                    instructions = 'Pour utiliser cette fonctionnalité, veuillez autoriser l\'accès à votre position dans les paramètres de votre navigateur.';
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    message = 'Position non disponible. Vérifiez que le GPS est activé.';
+                    message = '📍 Position non disponible';
+                    instructions = 'Vérifiez que le GPS est activé sur votre appareil.';
                     break;
                 case error.TIMEOUT:
-                    message = 'Délai d\'attente dépassé. Réessayez.';
+                    message = '⏱️ Délai d\'attente dépassé';
+                    instructions = 'La récupération de votre position prend trop de temps. Réessayez.';
                     break;
             }
-            showStatus('error', message);
+
+            showStatus('error', message + (instructions ? '\n' + instructions : ''));
+
+            // Afficher une alerte détaillée pour l'erreur de permission
+            if (error.code === error.PERMISSION_DENIED) {
+                showPermissionInstructions();
+            }
+        }
+
+        // Afficher les instructions pour autoriser la géolocalisation
+        function showPermissionInstructions() {
+            const instructionsDiv = document.createElement('div');
+            instructionsDiv.className = 'mt-4 bg-yellow-50 border border-yellow-300 rounded-xl p-4';
+            instructionsDiv.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-yellow-800 mb-2">Comment activer la géolocalisation ?</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-yellow-700">
+                            <li>Cliquez sur l'icône de cadenas 🔒 dans la barre d'adresse</li>
+                            <li>Recherchez "Localisation" ou "Position"</li>
+                            <li>Sélectionnez "Autoriser"</li>
+                            <li>Rechargez la page</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            const errorEl = document.getElementById('geolocation-error');
+            if (errorEl && !document.getElementById('permission-instructions')) {
+                instructionsDiv.id = 'permission-instructions';
+                errorEl.after(instructionsDiv);
+            }
         }
 
         // Calculer et afficher les distances pour tous les points de vente
@@ -417,10 +468,34 @@
             nearestVenuesSection.classList.remove('hidden');
         }
 
+        // Vérifier les permissions de géolocalisation
+        async function checkGeolocationPermission() {
+            if (!navigator.permissions) {
+                return 'unknown'; // L'API Permissions n'est pas supportée
+            }
+
+            try {
+                const result = await navigator.permissions.query({ name: 'geolocation' });
+                return result.state; // 'granted', 'denied', or 'prompt'
+            } catch (error) {
+                console.log('Permissions API non disponible:', error);
+                return 'unknown';
+            }
+        }
+
         // Fonction pour localiser l'utilisateur
-        function locateUser() {
+        async function locateUser() {
             if (!navigator.geolocation) {
                 showStatus('error', 'La géolocalisation n\'est pas supportée par votre navigateur.');
+                return;
+            }
+
+            // Vérifier les permissions avant de demander la position
+            const permissionState = await checkGeolocationPermission();
+
+            if (permissionState === 'denied') {
+                showStatus('error', '❌ Accès à la géolocalisation refusé');
+                showPermissionInstructions();
                 return;
             }
 
@@ -477,8 +552,24 @@
             });
         });
 
-        // Lancer automatiquement la localisation au chargement
-        setTimeout(locateUser, 500);
+        // Vérifier les permissions avant de lancer automatiquement la localisation
+        async function autoLocateIfAllowed() {
+            const permissionState = await checkGeolocationPermission();
+
+            // Ne pas demander automatiquement si déjà refusé
+            if (permissionState === 'denied') {
+                console.log('Géolocalisation refusée. Activation manuelle requise.');
+                return;
+            }
+
+            // Lancer la localisation si autorisé ou si le navigateur va demander
+            if (permissionState === 'granted' || permissionState === 'prompt' || permissionState === 'unknown') {
+                setTimeout(locateUser, 500);
+            }
+        }
+
+        // Lancer la vérification au chargement
+        autoLocateIfAllowed();
     });
     </script>
 </x-layouts.app>

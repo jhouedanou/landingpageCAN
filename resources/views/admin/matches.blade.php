@@ -138,7 +138,11 @@
                             </td>
                             <td class="px-4 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.edit-match', $match->id) }}" 
+                                    <a href="{{ route('admin.match-predictions', $match->id) }}"
+                                       class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                        📊 Pronostics
+                                    </a>
+                                    <a href="{{ route('admin.edit-match', $match->id) }}"
                                        class="bg-soboa-orange hover:bg-soboa-orange/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
                                         ✏️ Modifier
                                     </a>

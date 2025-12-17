@@ -73,17 +73,27 @@
 
                         <div>
                             <label class="block text-gray-700 font-bold mb-2">Groupe (pour phase de poules uniquement)</label>
-                            <input type="text" name="group_name" value="{{ old('group_name') }}"
-                                   class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
-                                   placeholder="Ex: A, B, C, D, E, F...">
+                            <select name="group_name" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                                <option value="">Sélectionner un groupe...</option>
+                                @foreach($groups as $group)
+                                <option value="{{ $group }}" {{ old('group_name') == $group ? 'selected' : '' }}>
+                                    Groupe {{ $group }}
+                                </option>
+                                @endforeach
+                            </select>
                             <p class="text-sm text-gray-500 mt-1">Laisser vide si ce n'est pas un match de poule</p>
                         </div>
 
                         <div>
                             <label class="block text-gray-700 font-bold mb-2">Stade</label>
-                            <input type="text" name="stadium" value="{{ old('stadium') }}"
-                                   class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
-                                   placeholder="Ex: Stade Mohammed V, Rabat">
+                            <select name="stadium" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                                <option value="">Sélectionner un stade...</option>
+                                @foreach($stadiums as $stadium)
+                                <option value="{{ $stadium->name }}" {{ old('stadium') == $stadium->name ? 'selected' : '' }}>
+                                    {{ $stadium->name }} - {{ $stadium->city }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <div>

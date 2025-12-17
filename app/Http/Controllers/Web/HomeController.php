@@ -55,7 +55,10 @@ class HomeController extends Controller
     public function venues()
     {
         $venues = Bar::where('is_active', true)->orderBy('name')->get();
-        return view('venues', compact('venues'));
+        $settings = \App\Models\SiteSetting::first();
+        $geofencingRadius = $settings->geofencing_radius ?? 200;
+
+        return view('venues', compact('venues', 'geofencingRadius'));
     }
 
     public function matches(Request $request)

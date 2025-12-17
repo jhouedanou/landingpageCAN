@@ -20,3 +20,9 @@ Schedule::command('notifications:send-match-results')
     ->withoutOverlapping()
     ->onOneServer()
     ->runInBackground();
+
+// Clean old log files daily at 2 AM
+Schedule::command('logs:clean --days=7')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->onOneServer();

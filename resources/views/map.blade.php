@@ -7,6 +7,7 @@
         nearbyVenues: null,
         checkInResult: null,
         venues: @json($venues ?? []),
+        permissionDenied: false,
 
         calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // km
@@ -17,6 +18,18 @@
                       Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c;
+        },
+
+        async checkGeolocationPermission() {
+            if (!navigator.permissions) {
+                return 'unknown';
+            }
+            try {
+                const result = await navigator.permissions.query({ name: 'geolocation' });
+                return result.state;
+            } catch (error) {
+                return 'unknown';
+            }
         },
 
         async performCheckIn(lat, lng) {
@@ -77,6 +90,17 @@
                 return;
             }
 
+            // Vérifier les permissions avant de demander la position
+            const permissionState = await this.checkGeolocationPermission();
+
+            // Si déjà refusé, afficher le message mais ne pas redemander
+            if (permissionState === 'denied') {
+                this.locationError = 'Vous avez refusé l\'accès à votre position.';
+                this.permissionDenied = true;
+                this.isChecking = false;
+                return;
+            }
+
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     this.userLocation = {
@@ -113,6 +137,7 @@
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
                             this.locationError = 'Vous avez refusé l\'accès à votre position.';
+                            this.permissionDenied = true;
                             break;
                         case error.POSITION_UNAVAILABLE:
                             this.locationError = 'Position indisponible.';
@@ -156,8 +181,11 @@
                 </h2>
 
                 <!-- Error Message -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                    <p class="text-yellow-800 font-medium" x-text="locationError"></p>
+                <div class="border rounded-xl p-4 mb-6"
+                     :class="permissionDenied ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'">
+                    <p class="font-medium"
+                       :class="permissionDenied ? 'text-red-800' : 'text-yellow-800'"
+                       x-text="locationError"></p>
                 </div>
 
                 <!-- Instructions -->

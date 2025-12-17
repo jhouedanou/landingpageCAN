@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\MatchGame;
 use App\Models\PointLog;
 use App\Models\Prediction;
+use App\Services\WhatsAppService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,6 +19,7 @@ class ProcessMatchPoints implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected int $matchId;
+    protected WhatsAppService $whatsAppService;
 
     /**
      * Create a new job instance.
@@ -25,6 +27,7 @@ class ProcessMatchPoints implements ShouldQueue
     public function __construct(int $matchId)
     {
         $this->matchId = $matchId;
+        $this->whatsAppService = new WhatsAppService();
     }
 
     /**
@@ -93,6 +96,26 @@ class ProcessMatchPoints implements ShouldQueue
                         'points' => 3,
                         'match_id' => $this->matchId,
                     ]);
+
+                    // Send WhatsApp notification for correct winner prediction
+                    if ($prediction->user) {
+                        $teamA = $match->homeTeam->name ?? $match->team_a;
+                        $teamB = $match->awayTeam->name ?? $match->team_b;
+                        $message = "🎉 *Bravo !*\n\n";
+                        $message .= "Vous avez correctement prédit le vainqueur du match :\n";
+                        $message .= "*{$teamA}* {$match->score_a} - {$match->score_b} *{$teamB}*\n\n";
+                        $message .= "✅ +3 points gagnés !\n";
+                        $message .= "📊 Total de vos points : " . ($prediction->user->points_total + 3);
+
+                        try {
+                            $this->whatsAppService->sendMessage(
+                                $this->whatsAppService->formatWhatsAppNumber($prediction->user->phone),
+                                $message
+                            );
+                        } catch (\Exception $e) {
+                            Log::warning("Failed to send WhatsApp for winner prediction: " . $e->getMessage());
+                        }
+                    }
                 }
             }
 
@@ -110,6 +133,26 @@ class ProcessMatchPoints implements ShouldQueue
                         'points' => 3,
                         'match_id' => $this->matchId,
                     ]);
+
+                    // Send WhatsApp notification for exact score prediction
+                    if ($prediction->user) {
+                        $teamA = $match->homeTeam->name ?? $match->team_a;
+                        $teamB = $match->awayTeam->name ?? $match->team_b;
+                        $message = "🏆 *INCROYABLE !*\n\n";
+                        $message .= "Vous avez prédit le score EXACT du match :\n";
+                        $message .= "*{$teamA}* {$match->score_a} - {$match->score_b} *{$teamB}*\n\n";
+                        $message .= "🎯 Score exact ! +3 points bonus !\n";
+                        $message .= "📊 Total de vos points : " . ($prediction->user->points_total + $totalPoints);
+
+                        try {
+                            $this->whatsAppService->sendMessage(
+                                $this->whatsAppService->formatWhatsAppNumber($prediction->user->phone),
+                                $message
+                            );
+                        } catch (\Exception $e) {
+                            Log::warning("Failed to send WhatsApp for exact score: " . $e->getMessage());
+                        }
+                    }
                 }
             }
 

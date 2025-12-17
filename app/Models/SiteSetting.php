@@ -17,6 +17,7 @@ class SiteSetting extends Model
         'logo_path',
         'hero_image_path',
         'favorite_team_id',
+        'geofencing_radius',
     ];
 
     /**

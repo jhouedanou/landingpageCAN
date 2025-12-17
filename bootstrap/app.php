@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Middleware global de sécurité
         $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
 
+        // Middleware pour rafraîchir les points de l'utilisateur
+        $middleware->append(\App\Http\Middleware\RefreshUserPoints::class);
+
         $middleware->alias([
             'check.admin' => \App\Http\Middleware\CheckAdmin::class,
         ]);

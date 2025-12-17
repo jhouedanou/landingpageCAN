@@ -170,6 +170,24 @@
                     </div>
                 </div>
 
+                <!-- Paramètres de Géolocalisation -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>📍</span> Géolocalisation
+                    </h2>
+
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-2">Rayon de géolocalisation (en mètres)</label>
+                        <input type="number" name="geofencing_radius" value="{{ old('geofencing_radius', $settings->geofencing_radius ?? 200) }}"
+                               required min="50" max="1000" step="10"
+                               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                        <p class="text-gray-500 text-sm mt-1">
+                            Distance maximale (en mètres) pour qu'un utilisateur puisse faire un check-in dans un point de vente.
+                            Valeur recommandée : 200 mètres
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Info Box -->
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mb-6">
                     <div class="flex items-start gap-3">

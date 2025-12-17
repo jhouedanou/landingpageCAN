@@ -84,9 +84,18 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/teams/{id}/edit', [AdminController::class, 'editTeam'])->name('edit-team');
     Route::put('/teams/{id}', [AdminController::class, 'updateTeam'])->name('update-team');
     Route::delete('/teams/{id}', [AdminController::class, 'deleteTeam'])->name('delete-team');
-    
+
+    // Stades
+    Route::get('/stadiums', [AdminController::class, 'stadiums'])->name('stadiums');
+    Route::get('/stadiums/create', [AdminController::class, 'createStadium'])->name('create-stadium');
+    Route::post('/stadiums', [AdminController::class, 'storeStadium'])->name('store-stadium');
+    Route::get('/stadiums/{id}/edit', [AdminController::class, 'editStadium'])->name('edit-stadium');
+    Route::put('/stadiums/{id}', [AdminController::class, 'updateStadium'])->name('update-stadium');
+    Route::delete('/stadiums/{id}', [AdminController::class, 'deleteStadium'])->name('delete-stadium');
+
     // Pronostics
     Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions');
+    Route::get('/matches/{id}/predictions', [AdminController::class, 'matchPredictions'])->name('admin.match-predictions');
     Route::delete('/predictions/{id}', [AdminController::class, 'deletePrediction'])->name('delete-prediction');
     
     // Paramètres
