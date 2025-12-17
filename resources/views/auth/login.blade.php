@@ -222,20 +222,11 @@
                 },
 
                 generateCaptcha() {
-                    this.captchaNum1 = Math.floor(Math.random() * 50) + 1;
-                    this.captchaNum2 = Math.floor(Math.random() * 50) + 1;
-                    this.captchaOp = Math.random() > 0.5 ? '+' : '-';
+                    this.captchaNum1 = Math.floor(Math.random() * 10) + 1;
+                    this.captchaNum2 = Math.floor(Math.random() * 10) + 1;
+                    this.captchaOp = '+';
                     this.captchaAnswer = '';
-
-                    if (this.captchaOp === '+') {
-                        this.captchaCorrectAnswer = this.captchaNum1 + this.captchaNum2;
-                    } else {
-                        // Éviter les réponses négatives
-                        if (this.captchaNum1 < this.captchaNum2) {
-                            [this.captchaNum1, this.captchaNum2] = [this.captchaNum2, this.captchaNum1];
-                        }
-                        this.captchaCorrectAnswer = this.captchaNum1 - this.captchaNum2;
-                    }
+                    this.captchaCorrectAnswer = this.captchaNum1 + this.captchaNum2;
                 },
 
                 get fullPhone() {

@@ -188,11 +188,11 @@
 
         <!-- Content -->
         <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
-            <!-- Grande Fête du Foot Africain Badge -->
+            <!-- SOBOA FOOT TIME Badge -->
             <div
                 class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-white/20">
-                <span class="text-3xl">🏆</span>
-                <span class="text-white font-bold text-lg">Grande Fête du Foot Africain</span>
+                <span class="text-3xl">⚽</span>
+                <span class="text-white font-bold text-lg">SOBOA FOOT TIME</span>
             </div>
 
             <!-- Main Heading -->
@@ -202,7 +202,7 @@
             </h1>
 
             <p class="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium">
-                Devinez les scores des matchs, visitez nos lieux partenaires et remportez des cadeaux exclusifs!
+                Le jeu commence ici ! Devinez les scores, visitez nos lieux partenaires et gagnez des cadeaux !
             </p>
 
             <!-- Countdown Timer -->
@@ -274,10 +274,10 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
                 <div>
-                    <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">Grande Fête du Foot Africain - Sénégal</span>
+                    <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">SOBOA FOOT TIME</span>
                     <div class="flex items-center gap-2 mt-2">
                         <h2 class="text-3xl md:text-4xl font-black text-soboa-blue">Prochains matchs</h2>
-                        <span class="text-3xl md:text-4xl">🇸🇳</span>
+                        <span class="text-3xl md:text-4xl">⚽</span>
                     </div>
                 </div>
                 <a href="/matches"

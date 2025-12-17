@@ -235,7 +235,7 @@
                 <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">Gagnez +4 points</span>
                 <h1 class="text-3xl md:text-5xl font-black text-white mt-2">Points de vente partenaires</h1>
                 <p class="text-white/70 mt-4 max-w-2xl mx-auto">
-                    Visitez nos lieux partenaires pendant la CAN et gagnez 4 points bonus par jour!
+                    Visitez nos lieux partenaires et gagnez 4 points bonus par jour !
                 </p>
             </div>
         </div>
