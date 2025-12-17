@@ -119,11 +119,35 @@
                 </form>
             </div>
 
+            <!-- Bulk Delete Section -->
+            <form id="bulkDeleteForm" action="{{ route('admin.bulk-delete-predictions') }}" method="POST" class="mb-6">
+                @csrf
+                <div id="bulkActionsBar" class="hidden bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-gray-700">
+                            <span id="selectedCount">0</span> pronostic(s) sélectionné(s)
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="document.getElementById('bulkDeleteForm').reset(); updateBulkActionsBar(); location.reload()"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg transition-colors">
+                            Annuler
+                        </button>
+                        <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer les pronostics sélectionnés ?')"
+                                class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                            🗑️ Supprimer les pronostics sélectionnés
+                        </button>
+                    </div>
+                </div>
+
             <!-- Liste -->
             <div class="bg-white rounded-b-xl shadow-lg overflow-hidden">
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="text-center p-4 font-bold text-gray-700 w-10">
+                                <input type="checkbox" id="selectAllPredictions" class="cursor-pointer" onchange="toggleAllPredictions()">
+                            </th>
                             <th class="text-left p-4 font-bold text-gray-700">Utilisateur</th>
                             <th class="text-left p-4 font-bold text-gray-700">Match</th>
                             <th class="text-center p-4 font-bold text-gray-700">Pronostic</th>
@@ -140,6 +164,9 @@
                     <tbody>
                         @forelse($predictions as $prediction)
                         <tr class="border-t hover:bg-gray-50 transition-colors">
+                            <td class="p-4 text-center">
+                                <input type="checkbox" name="prediction_ids[]" value="{{ $prediction->id }}" class="predictionCheckbox cursor-pointer" onchange="updateBulkActionsBar()">
+                            </td>
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 bg-gradient-to-br from-soboa-blue to-blue-600 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-md">
@@ -221,7 +248,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="p-12 text-center">
+                            <td colspan="8" class="p-12 text-center">
                                 <div class="text-gray-400">
                                     <div class="text-6xl mb-4">🎯</div>
                                     <p class="text-xl font-bold text-gray-600">Aucun pronostic trouvé</p>
@@ -241,6 +268,37 @@
                     </tbody>
                 </table>
             </div>
+            </form>
+
+            <script>
+                function toggleAllPredictions() {
+                    const selectAllCheckbox = document.getElementById('selectAllPredictions');
+                    const predictionCheckboxes = document.querySelectorAll('.predictionCheckbox');
+                    predictionCheckboxes.forEach(checkbox => {
+                        checkbox.checked = selectAllCheckbox.checked;
+                    });
+                    updateBulkActionsBar();
+                }
+
+                function updateBulkActionsBar() {
+                    const checkboxes = document.querySelectorAll('.predictionCheckbox:checked');
+                    const bulkActionsBar = document.getElementById('bulkActionsBar');
+                    const selectedCount = document.getElementById('selectedCount');
+
+                    selectedCount.textContent = checkboxes.length;
+
+                    if (checkboxes.length > 0) {
+                        bulkActionsBar.classList.remove('hidden');
+                    } else {
+                        bulkActionsBar.classList.add('hidden');
+                    }
+
+                    // Update select all checkbox state
+                    const allCheckboxes = document.querySelectorAll('.predictionCheckbox');
+                    const selectAllCheckbox = document.getElementById('selectAllPredictions');
+                    selectAllCheckbox.checked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+                }
+            </script>
 
             <!-- Pagination -->
             <div class="mt-6">

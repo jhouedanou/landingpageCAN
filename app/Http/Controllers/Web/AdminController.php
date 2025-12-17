@@ -933,6 +933,50 @@ class AdminController extends Controller
         return back()->with('success', 'Pronostic supprimé avec succès.');
     }
 
+    /**
+     * Bulk delete predictions
+     */
+    public function bulkDeletePredictions(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'prediction_ids' => 'required|array|min:1',
+            'prediction_ids.*' => 'integer|exists:predictions,id',
+        ]);
+
+        $count = Prediction::whereIn('id', $request->prediction_ids)->delete();
+
+        return back()->with('success', "{$count} pronostic(s) supprimé(s) avec succès.");
+    }
+
+    /**
+     * Bulk delete matches and their associated predictions
+     */
+    public function bulkDeleteMatches(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'match_ids' => 'required|array|min:1',
+            'match_ids.*' => 'integer|exists:match_games,id',
+        ]);
+
+        $matchIds = $request->match_ids;
+
+        // Delete all predictions associated with these matches
+        Prediction::whereIn('match_id', $matchIds)->delete();
+
+        // Delete the matches
+        $count = MatchGame::whereIn('id', $matchIds)->delete();
+
+        return back()->with('success', "{$count} match(es) et ses pronostics supprimés avec succès.");
+    }
+
     // ==================== SETTINGS ====================
 
     /**

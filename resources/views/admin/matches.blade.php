@@ -84,12 +84,36 @@
                 @endif
             </div>
 
-            <!-- Matches Table -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <table class="w-full">
-                    <thead class="bg-soboa-blue text-white">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-sm font-bold">Date</th>
+            <!-- Bulk Delete Section -->
+            <form id="bulkDeleteForm" action="{{ route('admin.bulk-delete-matches') }}" method="POST" class="mb-6">
+                @csrf
+                <div id="bulkActionsBar" class="hidden bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-gray-700">
+                            <span id="selectedCount">0</span> match(es) sélectionné(s)
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="document.getElementById('bulkDeleteForm').reset(); updateBulkActionsBar(); location.reload()"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg transition-colors">
+                            Annuler
+                        </button>
+                        <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer les matchs sélectionnés et leurs pronostics associés ?')"
+                                class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                            🗑️ Supprimer les matchs sélectionnés
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Matches Table -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-soboa-blue text-white">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-bold w-10">
+                                    <input type="checkbox" id="selectAllMatches" class="cursor-pointer" onchange="toggleAllMatches()">
+                                </th>
+                                <th class="px-4 py-3 text-left text-sm font-bold">Date</th>
                             <th class="px-4 py-3 text-left text-sm font-bold">Groupe</th>
                             <th class="px-4 py-3 text-left text-sm font-bold">Match</th>
                             <th class="px-4 py-3 text-center text-sm font-bold">Score</th>
@@ -100,6 +124,9 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach($matches as $match)
                         <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-center">
+                                <input type="checkbox" name="match_ids[]" value="{{ $match->id }}" class="matchCheckbox cursor-pointer" onchange="updateBulkActionsBar()">
+                            </td>
                             <td class="px-4 py-4">
                                 <span class="font-medium">{{ $match->match_date->format('d/m/Y') }}</span>
                                 <span class="text-gray-500 text-sm block">{{ $match->match_date->format('H:i') }}</span>
@@ -169,7 +196,38 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
+                    </div>
+                </form>
+
+            <script>
+                function toggleAllMatches() {
+                    const selectAllCheckbox = document.getElementById('selectAllMatches');
+                    const matchCheckboxes = document.querySelectorAll('.matchCheckbox');
+                    matchCheckboxes.forEach(checkbox => {
+                        checkbox.checked = selectAllCheckbox.checked;
+                    });
+                    updateBulkActionsBar();
+                }
+
+                function updateBulkActionsBar() {
+                    const checkboxes = document.querySelectorAll('.matchCheckbox:checked');
+                    const bulkActionsBar = document.getElementById('bulkActionsBar');
+                    const selectedCount = document.getElementById('selectedCount');
+
+                    selectedCount.textContent = checkboxes.length;
+
+                    if (checkboxes.length > 0) {
+                        bulkActionsBar.classList.remove('hidden');
+                    } else {
+                        bulkActionsBar.classList.add('hidden');
+                    }
+
+                    // Update select all checkbox state
+                    const allCheckboxes = document.querySelectorAll('.matchCheckbox');
+                    const selectAllCheckbox = document.getElementById('selectAllMatches');
+                    selectAllCheckbox.checked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+                }
+            </script>
 
         </div>
     </div>
