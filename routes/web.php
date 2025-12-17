@@ -95,7 +95,7 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
 
     // Pronostics
     Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions');
-    Route::get('/matches/{id}/predictions', [AdminController::class, 'matchPredictions'])->name('admin.match-predictions');
+    Route::get('/matches/{id}/predictions', [AdminController::class, 'matchPredictions'])->name('match-predictions');
     Route::delete('/predictions/{id}', [AdminController::class, 'deletePrediction'])->name('delete-prediction');
     
     // Paramètres

@@ -1,12 +1,17 @@
 <x-layouts.app title="Points de Vente">
 
+    <script>
+        // Données des venues passées depuis le serveur
+        window.venuesData = @json($venues ?? []);
+    </script>
+
     <div class="min-h-screen bg-gray-50" x-data="{
         userLocation: null,
         locationError: null,
         isChecking: false,
         nearbyVenues: null,
         checkInResult: null,
-        venues: @json($venues ?? []),
+        venues: window.venuesData || [],
         permissionDenied: false,
 
         calculateDistance(lat1, lon1, lat2, lon2) {

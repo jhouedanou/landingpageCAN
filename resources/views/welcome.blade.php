@@ -83,8 +83,8 @@
                     class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-soboa-orange via-soboa-blue to-soboa-orange">
                 </div>
 
-                <div class="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                    <img src="{{ asset('logo.png') }}" alt="Logo" class="w-full h-full object-contain">
+                <div class="w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-white rounded-full shadow-lg p-2">
+                    <img src="/images/soboa.png" alt="SOBOA" class="w-full h-full object-contain">
                 </div>
 
                 <h2 class="text-3xl font-black text-soboa-blue mb-2">Êtes-vous majeur ?</h2>

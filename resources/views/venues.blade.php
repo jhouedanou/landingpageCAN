@@ -2,7 +2,7 @@
     <div class="space-y-6">
         <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold text-soboa-blue">Points de Vente</h1>
-            <span class="text-sm text-gray-500">{{ $venues->count() }} points de vente au Maroc</span>
+            <span class="text-sm text-gray-500">{{ $venues->count() }} points de vente au Sénégal</span>
         </div>
 
         @if(session('error'))

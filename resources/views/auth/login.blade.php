@@ -61,6 +61,35 @@
                             </p>
                         </div>
 
+                        <!-- CAPTCHA Mathématique -->
+                        <div class="mb-6 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Sécurité: Résolvez cette opération</label>
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="text-lg font-bold text-gray-800">
+                                    <span x-text="captchaNum1"></span>
+                                    <span x-text="captchaOp" class="mx-2"></span>
+                                    <span x-text="captchaNum2"></span>
+                                    <span class="mx-2">=</span>
+                                    <span class="text-blue-600">?</span>
+                                </div>
+                            </div>
+                            <input type="number" x-model="captchaAnswer" placeholder="Votre réponse"
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
+                                required>
+                        </div>
+
+                        <!-- Erreur CAPTCHA -->
+                        <div x-show="captchaError" x-cloak
+                            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Réponse CAPTCHA incorrecte</span>
+                            </div>
+                        </div>
+
                         <!-- Bouton -->
                         <button type="submit" :disabled="loading"
                             class="w-full bg-soboa-orange hover:bg-soboa-orange-dark disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
@@ -176,12 +205,36 @@
                 code: '',
                 loading: false,
                 error: '',
+                captchaError: false,
+                captchaNum1: 0,
+                captchaNum2: 0,
+                captchaOp: '+',
+                captchaAnswer: '',
+                captchaCorrectAnswer: 0,
                 resendCooldown: 0,
 
                 init() {
                     const savedName = localStorage.getItem('user_name');
                     if (savedName) {
                         this.name = savedName;
+                    }
+                    this.generateCaptcha();
+                },
+
+                generateCaptcha() {
+                    this.captchaNum1 = Math.floor(Math.random() * 50) + 1;
+                    this.captchaNum2 = Math.floor(Math.random() * 50) + 1;
+                    this.captchaOp = Math.random() > 0.5 ? '+' : '-';
+                    this.captchaAnswer = '';
+
+                    if (this.captchaOp === '+') {
+                        this.captchaCorrectAnswer = this.captchaNum1 + this.captchaNum2;
+                    } else {
+                        // Éviter les réponses négatives
+                        if (this.captchaNum1 < this.captchaNum2) {
+                            [this.captchaNum1, this.captchaNum2] = [this.captchaNum2, this.captchaNum1];
+                        }
+                        this.captchaCorrectAnswer = this.captchaNum1 - this.captchaNum2;
                     }
                 },
 
@@ -222,6 +275,15 @@
                         return;
                     }
 
+                    // Vérifier le CAPTCHA mathématique
+                    if (!this.captchaAnswer || parseInt(this.captchaAnswer) !== this.captchaCorrectAnswer) {
+                        this.captchaError = true;
+                        this.error = '';
+                        this.generateCaptcha();
+                        return;
+                    }
+                    this.captchaError = false;
+
                     this.loading = true;
                     this.error = '';
 
@@ -252,9 +314,11 @@
                         if (data.success) {
                             this.step = 2;
                             this.startResendCooldown();
+                            this.generateCaptcha();
                             console.log('WhatsApp OTP envoyé avec succès !');
                         } else {
                             this.error = data.message || 'Erreur lors de l\'envoi du code.';
+                            this.generateCaptcha();
                             if (data.error) {
                                 console.error('Erreur WhatsApp:', data.error);
                             }
@@ -262,6 +326,7 @@
                     } catch (err) {
                         console.error('Erreur réseau:', err);
                         this.error = 'Erreur de connexion. Veuillez réessayer.';
+                        this.generateCaptcha();
                     } finally {
                         this.loading = false;
                     }
@@ -331,8 +396,10 @@
 
                         if (data.success) {
                             this.startResendCooldown();
+                            this.generateCaptcha();
                         } else {
                             this.error = data.message || 'Erreur lors du renvoi.';
+                            this.generateCaptcha();
                         }
                     } catch (err) {
                         this.error = 'Erreur de connexion.';
