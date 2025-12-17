@@ -97,6 +97,8 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions');
     Route::get('/matches/{id}/predictions', [AdminController::class, 'matchPredictions'])->name('match-predictions');
     Route::delete('/predictions/{id}', [AdminController::class, 'deletePrediction'])->name('delete-prediction');
+    Route::post('/predictions/bulk-delete', [AdminController::class, 'bulkDeletePredictions'])->name('bulk-delete-predictions');
+    Route::post('/matches/bulk-delete', [AdminController::class, 'bulkDeleteMatches'])->name('bulk-delete-matches');
     
     // Paramètres
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
