@@ -181,19 +181,19 @@
              }">
 
         <!-- Background -->
-        <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden z-0">
             <img src="/images/sen.webp" alt="" class="absolute inset-0 w-full h-full object-cover" :style="`transform: translateY(${parallaxOffset}px)`">
-            <div class="absolute inset-0 bg-black/50 z-10"></div>
+            <div class="absolute inset-0 bg-black opacity-50"></div>
         </div>
 
         <!-- Animated Shapes -->
-        <div class="absolute top-20 left-10 w-64 h-64 bg-soboa-orange/20 rounded-full blur-3xl animate-pulse-slow">
+        <div class="absolute top-20 left-10 w-64 h-64 bg-soboa-orange/20 rounded-full blur-3xl animate-pulse-slow z-[5]">
         </div>
-        <div class="absolute bottom-20 right-10 w-80 h-80 bg-soboa-orange/10 rounded-full blur-3xl animate-float"></div>
-        <div class="absolute top-1/2 left-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl animate-bounce-slow"></div>
+        <div class="absolute bottom-20 right-10 w-80 h-80 bg-soboa-orange/10 rounded-full blur-3xl animate-float z-[5]"></div>
+        <div class="absolute top-1/2 left-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl animate-bounce-slow z-[5]"></div>
 
         <!-- Content -->
-        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
+        <div class="relative z-[10] text-center px-4 max-w-5xl mx-auto">
             <!-- SOBOA FOOT TIME Badge -->
             <div
                 class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-white/20">
