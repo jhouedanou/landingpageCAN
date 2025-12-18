@@ -72,7 +72,7 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $query = MatchGame::with(['homeTeam', 'awayTeam']);
+        $query = MatchGame::with(['homeTeam', 'awayTeam', 'animations']);
 
         // Filtre par recherche (équipe, groupe, date)
         if ($request->filled('search')) {
@@ -213,12 +213,12 @@ class AdminController extends Controller
             'status' => $request->status,
         ]);
 
-        // If match is finished with scores, trigger points calculation
-        // This handles both: status change to finished, or updating scores on already finished match
-        if ($nowFinished && $request->score_a !== null && $request->score_b !== null && !$wasFinished) {
-            ProcessMatchPoints::dispatch($match->id);
-            return redirect()->route('admin.matches')->with('success', "Match mis à jour. Calcul des points en cours...");
-        }
+        // DÉSACTIVÉ: Le calcul automatique des points est désactivé
+        // L'admin doit utiliser le bouton "Recalculer" manuellement pour chaque match
+        // if ($nowFinished && $request->score_a !== null && $request->score_b !== null && !$wasFinished) {
+        //     ProcessMatchPoints::dispatch($match->id);
+        //     return redirect()->route('admin.matches')->with('success', "Match mis à jour. Calcul des points en cours...");
+        // }
 
         return redirect()->route('admin.matches')->with('success', 'Match mis à jour avec succès.');
     }
@@ -1533,5 +1533,131 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.bar-animations', compact('bar', 'animations'));
+    }
+
+    /**
+     * Get venues for a match (AJAX)
+     */
+    public function getMatchVenues($matchId)
+    {
+        if (!$this->checkAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Accès non autorisé.'], 403);
+        }
+
+        $match = MatchGame::with('animations')->findOrFail($matchId);
+        $venues = Bar::where('is_active', true)->orderBy('zone')->orderBy('name')->get();
+        $assignedVenueIds = $match->animations->pluck('bar_id')->toArray();
+
+        return response()->json([
+            'success' => true,
+            'match' => [
+                'id' => $match->id,
+                'team_a' => $match->team_a,
+                'team_b' => $match->team_b,
+                'match_date' => $match->match_date->format('d/m/Y H:i'),
+            ],
+            'venues' => $venues->map(function ($venue) {
+                return [
+                    'id' => $venue->id,
+                    'name' => $venue->name,
+                    'zone' => $venue->zone,
+                ];
+            }),
+            'assignedVenueIds' => $assignedVenueIds,
+        ]);
+    }
+
+    /**
+     * Assign a venue to a match (AJAX)
+     */
+    public function assignVenueToMatch($matchId, $venueId)
+    {
+        if (!$this->checkAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Accès non autorisé.'], 403);
+        }
+
+        $match = MatchGame::findOrFail($matchId);
+        $venue = Bar::findOrFail($venueId);
+
+        // Check if already assigned
+        $existing = Animation::where('bar_id', $venueId)
+            ->where('match_id', $matchId)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce lieu est déjà assigné à ce match.',
+            ]);
+        }
+
+        // Create animation
+        Animation::create([
+            'bar_id' => $venueId,
+            'match_id' => $matchId,
+            'animation_date' => $match->match_date->format('Y-m-d'),
+            'animation_time' => $match->match_date->format('H:i:s'),
+            'is_active' => true,
+        ]);
+
+        $venueCount = Animation::where('match_id', $matchId)->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lieu assigné avec succès.',
+            'venueCount' => $venueCount,
+        ]);
+    }
+
+    /**
+     * Unassign a venue from a match (AJAX)
+     */
+    public function unassignVenueFromMatch($matchId, $venueId)
+    {
+        if (!$this->checkAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Accès non autorisé.'], 403);
+        }
+
+        $animation = Animation::where('bar_id', $venueId)
+            ->where('match_id', $matchId)
+            ->first();
+
+        if (!$animation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucune assignation trouvée.',
+            ]);
+        }
+
+        $animation->delete();
+
+        $venueCount = Animation::where('match_id', $matchId)->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lieu désassigné avec succès.',
+            'venueCount' => $venueCount,
+        ]);
+    }
+
+    /**
+     * Clear all application cache
+     */
+    public function clearCache()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        try {
+            \Artisan::call('cache:clear');
+            \Artisan::call('config:clear');
+            \Artisan::call('view:clear');
+            \Artisan::call('route:clear');
+
+            return redirect()->back()->with('success', 'Cache vidé avec succès !');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erreur lors du vidage du cache : ' . $e->getMessage());
+        }
     }
 }

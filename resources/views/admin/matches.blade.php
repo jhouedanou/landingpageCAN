@@ -105,101 +105,281 @@
                     </div>
                 </div>
 
-                <!-- Matches Table -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <table class="w-full">
-                        <thead class="bg-soboa-blue text-white">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-sm font-bold w-10">
-                                    <input type="checkbox" id="selectAllMatches" class="cursor-pointer" onchange="toggleAllMatches()">
-                                </th>
-                                <th class="px-4 py-3 text-left text-sm font-bold">Date</th>
-                            <th class="px-4 py-3 text-left text-sm font-bold">Groupe</th>
-                            <th class="px-4 py-3 text-left text-sm font-bold">Match</th>
-                            <th class="px-4 py-3 text-center text-sm font-bold">Score</th>
-                            <th class="px-4 py-3 text-center text-sm font-bold">Statut</th>
-                            <th class="px-4 py-3 text-right text-sm font-bold">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @foreach($matches as $match)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-4 text-center">
-                                <input type="checkbox" name="match_ids[]" value="{{ $match->id }}" class="matchCheckbox cursor-pointer" onchange="updateBulkActionsBar()">
-                            </td>
-                            <td class="px-4 py-4">
-                                <span class="font-medium">{{ $match->match_date->format('d/m/Y') }}</span>
-                                <span class="text-gray-500 text-sm block">{{ $match->match_date->format('H:i') }}</span>
-                            </td>
-                            <td class="px-4 py-4">
-                                <span class="bg-soboa-blue/10 text-soboa-blue font-bold px-2 py-1 rounded text-sm">{{ $match->group_name }}</span>
-                            </td>
-                            <td class="px-4 py-4">
-                                <div class="flex items-center gap-3">
-                                    @if($match->homeTeam)
-                                    <img src="https://flagcdn.com/w40/{{ $match->homeTeam->iso_code }}.png" class="w-8 h-6 rounded shadow">
-                                    @endif
-                                    <span class="font-bold">{{ $match->team_a }}</span>
-                                    <span class="text-gray-400">vs</span>
-                                    <span class="font-bold">{{ $match->team_b }}</span>
-                                    @if($match->awayTeam)
-                                    <img src="https://flagcdn.com/w40/{{ $match->awayTeam->iso_code }}.png" class="w-8 h-6 rounded shadow">
-                                    @endif
+                @php
+                    // Grouper les matches par phase
+                    $matchesByPhase = $matches->groupBy('phase');
+
+                    // Ordre des phases
+                    $phaseOrder = ['group_stage', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
+
+                    // Noms des phases
+                    $phaseNames = [
+                        'group_stage' => '🏁 Phase de Poules',
+                        'round_of_16' => '🔥 Huitièmes de finale',
+                        'quarter_final' => '⚡ Quarts de finale',
+                        'semi_final' => '🌟 Demi-finales',
+                        'third_place' => '🥉 Match pour la 3ème place',
+                        'final' => '🏆 FINALE',
+                    ];
+                @endphp
+
+                @foreach($phaseOrder as $phase)
+                    @if(isset($matchesByPhase[$phase]))
+                        <!-- Phase Section -->
+                        <div class="mb-8">
+                            <div class="bg-gradient-to-r from-soboa-blue to-blue-600 rounded-t-xl px-6 py-4">
+                                <h2 class="text-xl font-black text-white">{{ $phaseNames[$phase] }}</h2>
+                            </div>
+
+                            @if($phase === 'group_stage')
+                                @php
+                                    // Grouper par groupe pour la phase de poules
+                                    $matchesByGroup = $matchesByPhase[$phase]->groupBy('group_name')->sortKeys();
+                                @endphp
+
+                                @foreach($matchesByGroup as $groupName => $groupMatches)
+                                    <div class="bg-white border-x border-b border-gray-200 @if($loop->last) rounded-b-xl @endif">
+                                        <div class="bg-soboa-orange/10 px-6 py-3 border-b border-gray-200">
+                                            <h3 class="text-lg font-bold text-soboa-blue">Groupe {{ $groupName }}</h3>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <table class="w-full">
+                                                <thead class="bg-gray-100 border-b border-gray-200">
+                                                    <tr>
+                                                        <th class="px-4 py-2 text-left text-xs font-bold w-10">
+                                                            <input type="checkbox" class="cursor-pointer selectGroupCheckbox" data-group="{{ $groupName }}" onchange="toggleGroupMatches(this, '{{ $groupName }}')">
+                                                        </th>
+                                                        <th class="px-4 py-2 text-left text-xs font-bold">Date</th>
+                                                        <th class="px-4 py-2 text-left text-xs font-bold">Match</th>
+                                                        <th class="px-4 py-2 text-center text-xs font-bold">Score</th>
+                                                        <th class="px-4 py-2 text-center text-xs font-bold">Statut</th>
+                                                        <th class="px-4 py-2 text-center text-xs font-bold">PDV</th>
+                                                        <th class="px-4 py-2 text-right text-xs font-bold">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-100">
+                                                    @foreach($groupMatches as $match)
+                                                    <tr class="hover:bg-gray-50 group-{{ $groupName }}">
+                                                        <td class="px-4 py-3 text-center">
+                                                            <input type="checkbox" name="match_ids[]" value="{{ $match->id }}" class="matchCheckbox group-{{ $groupName }}-checkbox cursor-pointer" onchange="updateBulkActionsBar()">
+                                                        </td>
+                                                        <td class="px-4 py-3">
+                                                            <span class="font-medium text-sm">{{ $match->match_date->format('d/m/Y') }}</span>
+                                                            <span class="text-gray-500 text-xs block">{{ $match->match_date->format('H:i') }}</span>
+                                                        </td>
+                                                        <td class="px-4 py-3">
+                                                            <div class="flex items-center gap-2">
+                                                                @if($match->homeTeam)
+                                                                <img src="https://flagcdn.com/w40/{{ $match->homeTeam->iso_code }}.png" class="w-6 h-4 rounded shadow">
+                                                                @endif
+                                                                <span class="font-bold text-sm">{{ $match->team_a }}</span>
+                                                                <span class="text-gray-400 text-xs">vs</span>
+                                                                <span class="font-bold text-sm">{{ $match->team_b }}</span>
+                                                                @if($match->awayTeam)
+                                                                <img src="https://flagcdn.com/w40/{{ $match->awayTeam->iso_code }}.png" class="w-6 h-4 rounded shadow">
+                                                                @endif
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-4 py-3 text-center">
+                                                            @if($match->status === 'finished')
+                                                            <span class="font-black text-lg">{{ $match->score_a }} - {{ $match->score_b }}</span>
+                                                            @else
+                                                            <span class="text-gray-400">--</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="px-4 py-3 text-center">
+                                                            @if($match->status === 'finished')
+                                                            <span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded-full text-xs">Terminé</span>
+                                                            @elseif($match->status === 'live')
+                                                            <span class="bg-red-100 text-red-700 font-bold px-2 py-1 rounded-full text-xs animate-pulse">En cours</span>
+                                                            @else
+                                                            <span class="bg-yellow-100 text-yellow-700 font-bold px-2 py-1 rounded-full text-xs">À venir</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="px-4 py-3 text-center">
+                                                            <button onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                📍 <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span>
+                                                            </button>
+                                                        </td>
+                                                        <td class="px-4 py-3 text-right">
+                                                            <div class="flex items-center justify-end gap-1">
+                                                                <a href="{{ route('admin.match-predictions', $match->id) }}"
+                                                                   class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                    📊
+                                                                </a>
+                                                                <a href="{{ route('admin.edit-match', $match->id) }}"
+                                                                   class="bg-soboa-orange hover:bg-soboa-orange/90 text-black font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                    ✏️
+                                                                </a>
+                                                                @if($match->status === 'finished')
+                                                                <form action="{{ route('admin.calculate-points', $match->id) }}" method="POST" class="inline">
+                                                                    @csrf
+                                                                    <button type="submit"
+                                                                            class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                        🔄
+                                                                    </button>
+                                                                </form>
+                                                                @endif
+                                                                <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit"
+                                                                            class="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                        🗑️
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <!-- Autres phases (sans groupes) -->
+                                <div class="bg-white rounded-b-xl shadow-lg overflow-hidden">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-100 border-b border-gray-200">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-sm font-bold w-10">
+                                                    <input type="checkbox" class="cursor-pointer" onchange="togglePhaseMatches(this, '{{ $phase }}')">
+                                                </th>
+                                                <th class="px-4 py-3 text-left text-sm font-bold">Date</th>
+                                                <th class="px-4 py-3 text-left text-sm font-bold">Match</th>
+                                                <th class="px-4 py-3 text-center text-sm font-bold">Score</th>
+                                                <th class="px-4 py-3 text-center text-sm font-bold">Statut</th>
+                                                <th class="px-4 py-3 text-center text-sm font-bold">PDV</th>
+                                                <th class="px-4 py-3 text-right text-sm font-bold">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200">
+                                            @foreach($matchesByPhase[$phase] as $match)
+                                            <tr class="hover:bg-gray-50 phase-{{ $phase }}">
+                                                <td class="px-4 py-4 text-center">
+                                                    <input type="checkbox" name="match_ids[]" value="{{ $match->id }}" class="matchCheckbox phase-{{ $phase }}-checkbox cursor-pointer" onchange="updateBulkActionsBar()">
+                                                </td>
+                                                <td class="px-4 py-4">
+                                                    <span class="font-medium">{{ $match->match_date->format('d/m/Y') }}</span>
+                                                    <span class="text-gray-500 text-sm block">{{ $match->match_date->format('H:i') }}</span>
+                                                </td>
+                                                <td class="px-4 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        @if($match->homeTeam)
+                                                        <img src="https://flagcdn.com/w40/{{ $match->homeTeam->iso_code }}.png" class="w-8 h-6 rounded shadow">
+                                                        @endif
+                                                        <span class="font-bold">{{ $match->team_a }}</span>
+                                                        <span class="text-gray-400">vs</span>
+                                                        <span class="font-bold">{{ $match->team_b }}</span>
+                                                        @if($match->awayTeam)
+                                                        <img src="https://flagcdn.com/w40/{{ $match->awayTeam->iso_code }}.png" class="w-8 h-6 rounded shadow">
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 text-center">
+                                                    @if($match->status === 'finished')
+                                                    <span class="font-black text-xl">{{ $match->score_a }} - {{ $match->score_b }}</span>
+                                                    @else
+                                                    <span class="text-gray-400">--</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-4 text-center">
+                                                    @if($match->status === 'finished')
+                                                    <span class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm">Terminé</span>
+                                                    @elseif($match->status === 'live')
+                                                    <span class="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-full text-sm animate-pulse">En cours</span>
+                                                    @else
+                                                    <span class="bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-full text-sm">À venir</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-4 text-center">
+                                                    <button onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                        📍 <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span> PDV
+                                                    </button>
+                                                </td>
+                                                <td class="px-4 py-4 text-right">
+                                                    <div class="flex items-center justify-end gap-2">
+                                                        <a href="{{ route('admin.match-predictions', $match->id) }}"
+                                                           class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                            📊 Pronostics
+                                                        </a>
+                                                        <a href="{{ route('admin.edit-match', $match->id) }}"
+                                                           class="bg-soboa-orange hover:bg-soboa-orange/90 text-black font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                            ✏️ Modifier
+                                                        </a>
+                                                        @if($match->status === 'finished')
+                                                        <form action="{{ route('admin.calculate-points', $match->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                                🔄 Recalculer
+                                                            </button>
+                                                        </form>
+                                                        @endif
+                                                        <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                    class="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                                🗑️
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </td>
-                            <td class="px-4 py-4 text-center">
-                                @if($match->status === 'finished')
-                                <span class="font-black text-xl">{{ $match->score_a }} - {{ $match->score_b }}</span>
-                                @else
-                                <span class="text-gray-400">--</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-4 text-center">
-                                @if($match->status === 'finished')
-                                <span class="bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-sm">Terminé</span>
-                                @elseif($match->status === 'live')
-                                <span class="bg-red-100 text-red-700 font-bold px-3 py-1 rounded-full text-sm animate-pulse">En cours</span>
-                                @else
-                                <span class="bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-full text-sm">À venir</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-4 text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.match-predictions', $match->id) }}"
-                                       class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                        📊 Pronostics
-                                    </a>
-                                    <a href="{{ route('admin.edit-match', $match->id) }}"
-                                       class="bg-soboa-orange hover:bg-soboa-orange/90 text-black font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                        ✏️ Modifier
-                                    </a>
-                                    @if($match->status === 'finished')
-                                    <form action="{{ route('admin.calculate-points', $match->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                            🔄 Recalculer
-                                        </button>
-                                    </form>
-                                    @endif
-                                    <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                            🗑️
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                            @endif
+                        </div>
+                    @endif
+                @endforeach
+            </form>
+
+            <!-- Modal pour gérer les PDV -->
+            <div id="venueModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-xl font-black text-white">📍 Attribuer des Points de Vente</h3>
+                        <button onclick="closeVenueModal()" class="text-white hover:text-gray-200 text-2xl font-bold">×</button>
                     </div>
-                </form>
+
+                    <!-- Body -->
+                    <div class="p-6 overflow-y-auto max-h-[70vh]">
+                        <div id="venueModalContent" class="space-y-4">
+                            <p class="text-center text-gray-500">Chargement...</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t">
+                        <button onclick="closeVenueModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-6 py-2 rounded-lg transition-colors">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <script>
+                function toggleGroupMatches(checkbox, groupName) {
+                    const groupCheckboxes = document.querySelectorAll('.group-' + groupName + '-checkbox');
+                    groupCheckboxes.forEach(cb => {
+                        cb.checked = checkbox.checked;
+                    });
+                    updateBulkActionsBar();
+                }
+
+                function togglePhaseMatches(checkbox, phase) {
+                    const phaseCheckboxes = document.querySelectorAll('.phase-' + phase + '-checkbox');
+                    phaseCheckboxes.forEach(cb => {
+                        cb.checked = checkbox.checked;
+                    });
+                    updateBulkActionsBar();
+                }
+
                 function toggleAllMatches() {
                     const selectAllCheckbox = document.getElementById('selectAllMatches');
                     const matchCheckboxes = document.querySelectorAll('.matchCheckbox');
@@ -221,12 +401,133 @@
                     } else {
                         bulkActionsBar.classList.add('hidden');
                     }
-
-                    // Update select all checkbox state
-                    const allCheckboxes = document.querySelectorAll('.matchCheckbox');
-                    const selectAllCheckbox = document.getElementById('selectAllMatches');
-                    selectAllCheckbox.checked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
                 }
+
+                // Venue Modal Functions
+                let currentMatchId = null;
+
+                function openVenueModal(matchId) {
+                    currentMatchId = matchId;
+                    document.getElementById('venueModal').classList.remove('hidden');
+                    loadVenues(matchId);
+                }
+
+                function closeVenueModal() {
+                    document.getElementById('venueModal').classList.add('hidden');
+                    currentMatchId = null;
+                }
+
+                async function loadVenues(matchId) {
+                    const content = document.getElementById('venueModalContent');
+                    content.innerHTML = '<p class="text-center text-gray-500">Chargement...</p>';
+
+                    try {
+                        const response = await fetch(`/admin/matches/${matchId}/venues`);
+                        const data = await response.json();
+
+                        if (data.success) {
+                            renderVenues(data.match, data.venues, data.assignedVenueIds);
+                        } else {
+                            content.innerHTML = '<p class="text-center text-red-500">Erreur lors du chargement</p>';
+                        }
+                    } catch (error) {
+                        content.innerHTML = '<p class="text-center text-red-500">Erreur de connexion</p>';
+                    }
+                }
+
+                function renderVenues(match, venues, assignedVenueIds) {
+                    const content = document.getElementById('venueModalContent');
+
+                    let html = `
+                        <div class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                            <h4 class="font-bold text-lg text-indigo-900 mb-1">Match: ${match.team_a} vs ${match.team_b}</h4>
+                            <p class="text-sm text-gray-600">${match.match_date} • ${assignedVenueIds.length} PDV assigné(s)</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <input type="text" id="venueSearch" onkeyup="filterVenues()"
+                                   placeholder="🔍 Rechercher un point de vente..."
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="venuesList">
+                    `;
+
+                    venues.forEach(venue => {
+                        const isAssigned = assignedVenueIds.includes(venue.id);
+                        html += `
+                            <div class="venue-item p-3 border rounded-lg hover:bg-gray-50 transition ${isAssigned ? 'bg-green-50 border-green-300' : 'bg-white border-gray-200'}"
+                                 data-venue-name="${venue.name.toLowerCase()}" data-venue-zone="${(venue.zone || '').toLowerCase()}">
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="checkbox"
+                                           ${isAssigned ? 'checked' : ''}
+                                           onchange="toggleVenue(${venue.id}, this.checked)"
+                                           class="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                                    <div class="flex-1">
+                                        <div class="font-bold text-sm">${venue.name}</div>
+                                        <div class="text-xs text-gray-500">${venue.zone || 'Sans zone'}</div>
+                                    </div>
+                                </label>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    content.innerHTML = html;
+                }
+
+                function filterVenues() {
+                    const search = document.getElementById('venueSearch').value.toLowerCase();
+                    const venues = document.querySelectorAll('.venue-item');
+
+                    venues.forEach(venue => {
+                        const name = venue.dataset.venueName;
+                        const zone = venue.dataset.venueZone;
+
+                        if (name.includes(search) || zone.includes(search)) {
+                            venue.style.display = 'block';
+                        } else {
+                            venue.style.display = 'none';
+                        }
+                    });
+                }
+
+                async function toggleVenue(venueId, isChecked) {
+                    try {
+                        const url = isChecked
+                            ? `/admin/matches/${currentMatchId}/venues/${venueId}/assign`
+                            : `/admin/matches/${currentMatchId}/venues/${venueId}/unassign`;
+
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Update counter
+                            document.querySelector(`.venue-count-${currentMatchId}`).textContent = data.venueCount;
+                        } else {
+                            alert(data.message || 'Erreur lors de la modification');
+                            // Reload to reset checkbox state
+                            loadVenues(currentMatchId);
+                        }
+                    } catch (error) {
+                        alert('Erreur de connexion');
+                        loadVenues(currentMatchId);
+                    }
+                }
+
+                // Close modal on Escape key
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape' && currentMatchId) {
+                        closeVenueModal();
+                    }
+                });
             </script>
 
         </div>

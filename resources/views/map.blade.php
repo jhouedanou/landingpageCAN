@@ -12,21 +12,16 @@
                 'is_active' => $venue->is_active,
                 'animations' => $venue->animations->filter(fn($a) => $a->match)->map(function ($animation) {
                     $match = $animation->match;
-                    $homeTeam = $match->homeTeam;
-                    $awayTeam = $match->awayTeam;
 
-                    $teamA = $homeTeam ? $homeTeam->name : $match->team_a;
-                    $teamB = $awayTeam ? $awayTeam->name : $match->team_b;
-
-                    $isTBD = str_contains(strtolower($teamA), 'déterminer') || str_contains(strtolower($teamB), 'déterminer');
-
-                    $matchLabel = $isTBD ? $match->phase_name : ($teamA . ' vs ' . $teamB);
+                    // Use the model's display_label attribute
+                    $matchLabel = $match->display_label;
+                    $isTBD = $match->is_tbd;
 
                     return [
                         'id' => $animation->id,
                         'match_label' => $matchLabel,
-                        'home_flag' => $homeTeam ? $homeTeam->flag_url : null,
-                        'away_flag' => $awayTeam ? $awayTeam->flag_url : null,
+                        'home_flag' => (!$isTBD && $match->homeTeam) ? $match->homeTeam->flag_url : null,
+                        'away_flag' => (!$isTBD && $match->awayTeam) ? $match->awayTeam->flag_url : null,
                         'score_a' => $match->score_a,
                         'score_b' => $match->score_b,
                         'status' => $match->status,

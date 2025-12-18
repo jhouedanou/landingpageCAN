@@ -1,3 +1,16 @@
+@php
+    // Récupérer les points réels de l'utilisateur depuis la base de données
+    // pour éviter les problèmes de cache de session
+    $userPoints = 0;
+    if (session('user_id')) {
+        $currentUser = \App\Models\User::find(session('user_id'));
+        if ($currentUser) {
+            $userPoints = $currentUser->points_total;
+            // Mettre à jour la session avec les vrais points
+            session(['user_points' => $userPoints]);
+        }
+    }
+@endphp
 <!DOCTYPE html>
 <!--
     Developed with ❤️ by Big Five Abidjan
@@ -304,7 +317,7 @@
                                 <div
                                     class="bg-gradient-to-r from-soboa-orange to-red-500 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-soboa-orange/20 hover:shadow-soboa-orange/40 transition-all transform hover:scale-105 ring-1 ring-black/10">
                                     <span class="text-black font-black text-sm"
-                                        data-user-points>{{ session('user_points', 0) }}</span>
+                                        data-user-points>{{ $userPoints }}</span>
                                     <span class="text-black/90 text-[10px] font-bold uppercase">pts</span>
                                     <div class="bg-black/10 rounded-full w-5 h-5 flex items-center justify-center ml-0.5">
                                         <span class="text-[10px] leading-none">🏆</span>
@@ -371,7 +384,7 @@
                             <div
                                 class="bg-gradient-to-r from-soboa-orange to-red-500 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
                                 <span class="text-black font-black text-sm"
-                                    data-user-points>{{ session('user_points', 0) }}</span>
+                                    data-user-points>{{ $userPoints }}</span>
                                 <span class="text-white/80 text-xs font-bold uppercase">pts</span>
                             </div>
                         </a>

@@ -132,4 +132,30 @@ class MatchGame extends Model
 
         return $phases[$this->phase] ?? $this->phase;
     }
+
+    /**
+     * Check if this is a TBD (to be determined) knockout match.
+     */
+    public function getIsTbdAttribute()
+    {
+        $teamA = strtolower($this->team_a ?? '');
+        $teamB = strtolower($this->team_b ?? '');
+
+        return str_contains($teamA, 'déterminer') || str_contains($teamB, 'déterminer');
+    }
+
+    /**
+     * Get the display label for the match (either team names or phase name for TBD matches).
+     */
+    public function getDisplayLabelAttribute()
+    {
+        if ($this->is_tbd) {
+            return $this->phase_name;
+        }
+
+        $homeTeam = $this->homeTeam ? $this->homeTeam->name : $this->team_a;
+        $awayTeam = $this->awayTeam ? $this->awayTeam->name : $this->team_b;
+
+        return $homeTeam . ' vs ' . $awayTeam;
+    }
 }

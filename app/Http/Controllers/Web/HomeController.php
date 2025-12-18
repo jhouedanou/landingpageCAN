@@ -19,31 +19,77 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Fetch upcoming Senegal matches with team relationships
-        $senegalTeam = Team::where('iso_code', 'sn')->first();
         $upcomingMatches = collect();
 
-        if ($senegalTeam) {
-            $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
-                ->where('status', '!=', 'finished')
-                ->where('match_date', '>=', now())
-                ->where(function ($query) use ($senegalTeam) {
-                    $query->where('home_team_id', $senegalTeam->id)
-                        ->orWhere('away_team_id', $senegalTeam->id);
-                })
-                ->orderBy('match_date', 'asc')
-                ->take(3)
-                ->get();
+        // Récupérer le lieu sélectionné par l'utilisateur
+        $selectedVenueId = session('selected_venue_id');
+        $selectedVenue = null;
+
+        if ($selectedVenueId) {
+            $selectedVenue = Bar::find($selectedVenueId);
         }
 
-        // Fallback: if no Senegal matches, show upcoming tournament matches
-        if ($upcomingMatches->isEmpty()) {
-            $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
-                ->where('status', '!=', 'finished')
-                ->where('match_date', '>=', now())
-                ->orderBy('match_date', 'asc')
-                ->take(3)
-                ->get();
+        // Si un lieu est sélectionné, filtrer les matches disponibles dans ce lieu
+        if ($selectedVenue) {
+            // Récupérer les IDs des matches disponibles dans ce lieu via les animations
+            $availableMatchIds = Animation::where('bar_id', $selectedVenue->id)
+                ->where('is_active', true)
+                ->pluck('match_id')
+                ->toArray();
+
+            // Récupérer les prochains matches du Sénégal disponibles dans ce lieu
+            $senegalTeam = Team::where('iso_code', 'sn')->first();
+
+            if ($senegalTeam && !empty($availableMatchIds)) {
+                $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+                    ->whereIn('id', $availableMatchIds)
+                    ->where('status', '!=', 'finished')
+                    ->where('match_date', '>=', now())
+                    ->where(function ($query) use ($senegalTeam) {
+                        $query->where('home_team_id', $senegalTeam->id)
+                            ->orWhere('away_team_id', $senegalTeam->id);
+                    })
+                    ->orderBy('match_date', 'asc')
+                    ->take(3)
+                    ->get();
+            }
+
+            // Fallback: si pas de matches du Sénégal, afficher les prochains matches du lieu
+            if ($upcomingMatches->isEmpty() && !empty($availableMatchIds)) {
+                $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+                    ->whereIn('id', $availableMatchIds)
+                    ->where('status', '!=', 'finished')
+                    ->where('match_date', '>=', now())
+                    ->orderBy('match_date', 'asc')
+                    ->take(3)
+                    ->get();
+            }
+        } else {
+            // Si pas de lieu sélectionné, afficher les prochains matches généraux
+            $senegalTeam = Team::where('iso_code', 'sn')->first();
+
+            if ($senegalTeam) {
+                $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+                    ->where('status', '!=', 'finished')
+                    ->where('match_date', '>=', now())
+                    ->where(function ($query) use ($senegalTeam) {
+                        $query->where('home_team_id', $senegalTeam->id)
+                            ->orWhere('away_team_id', $senegalTeam->id);
+                    })
+                    ->orderBy('match_date', 'asc')
+                    ->take(3)
+                    ->get();
+            }
+
+            // Fallback: if no Senegal matches, show upcoming tournament matches
+            if ($upcomingMatches->isEmpty()) {
+                $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+                    ->where('status', '!=', 'finished')
+                    ->where('match_date', '>=', now())
+                    ->orderBy('match_date', 'asc')
+                    ->take(3)
+                    ->get();
+            }
         }
 
         // Fetch top 3 users for leaderboard
@@ -52,7 +98,7 @@ class HomeController extends Controller
         // Count venues for stats
         $venueCount = Bar::where('is_active', true)->count();
 
-        return view('welcome', compact('upcomingMatches', 'topUsers', 'venueCount'));
+        return view('welcome', compact('upcomingMatches', 'topUsers', 'venueCount', 'selectedVenue'));
     }
 
     public function venues()

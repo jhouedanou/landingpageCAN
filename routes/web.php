@@ -59,7 +59,15 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::put('/matches/{id}', [AdminController::class, 'updateMatch'])->name('update-match');
     Route::delete('/matches/{id}', [AdminController::class, 'deleteMatch'])->name('delete-match');
     Route::post('/matches/{id}/calculate-points', [AdminController::class, 'calculatePoints'])->name('calculate-points');
-    
+
+    // Match-Venue Management (AJAX)
+    Route::get('/matches/{matchId}/venues', [AdminController::class, 'getMatchVenues'])->name('match-venues');
+    Route::post('/matches/{matchId}/venues/{venueId}/assign', [AdminController::class, 'assignVenueToMatch'])->name('assign-venue-to-match');
+    Route::post('/matches/{matchId}/venues/{venueId}/unassign', [AdminController::class, 'unassignVenueFromMatch'])->name('unassign-venue-from-match');
+
+    // Cache Management
+    Route::post('/cache/clear', [AdminController::class, 'clearCache'])->name('clear-cache');
+
     // Utilisateurs
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('edit-user');
