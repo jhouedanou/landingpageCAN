@@ -356,45 +356,45 @@
             x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-4" x-cloak
-            class="md:hidden bg-white border-t border-gray-100 relative z-[100]">
+            class="md:hidden bg-soboa-orange border-t border-black/10 relative z-[100]">
             <div class="px-4 py-4 space-y-2">
                 <a href="/"
-                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
                     Accueil</a>
                 <a href="/matches"
-                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
                     Pronostics</a>
                 <a href="/leaderboard"
-                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
                     Classement</a>
                 <a href="/map"
-                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
                     Lieux partenaires</a>
 
                 @if(session('user_id'))
-                    <div class="pt-4 border-t border-gray-100">
+                    <div class="pt-4 border-t border-black/10">
                         <a href="/mes-pronostics"
-                            class="block px-4 py-3 text-soboa-orange hover:bg-gray-50 rounded-lg font-semibold transition-colors">
+                            class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
                             📋 Mes Pronostics
                         </a>
                         <a href="/dashboard"
-                            class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 rounded-lg transition-colors group">
+                            class="px-4 py-3 flex items-center justify-between hover:bg-black/10 rounded-lg transition-colors group">
                             <span
-                                class="text-black group-hover:text-soboa-orange font-bold transition-colors">{{ session('predictor_name') }}</span>
+                                class="text-black group-hover:text-white font-bold transition-colors">{{ session('predictor_name') }}</span>
                             <div
-                                class="bg-gradient-to-r from-soboa-orange to-red-500 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                <span class="text-black font-black text-sm"
+                                class="bg-gradient-to-r from-black to-gray-800 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                <span class="text-white font-black text-sm"
                                     data-user-points>{{ $userPoints }}</span>
                                 <span class="text-white/80 text-xs font-bold uppercase">pts</span>
                             </div>
                         </a>
                         <a href="/logout"
-                            class="block px-4 py-3 text-red-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors">Déconnexion</a>
+                            class="block px-4 py-3 text-red-600 hover:bg-black/10 rounded-lg font-semibold transition-colors">Déconnexion</a>
                     </div>
                 @else
                     <div class="pt-4">
                         <a href="/login"
-                            class="block w-full bg-soboa-orange hover:bg-soboa-orange-dark text-black font-bold py-3 px-4 rounded-lg text-center shadow-lg transition-colors">
+                            class="block w-full bg-black hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg text-center shadow-lg transition-colors">
                             Jouer maintenant
                         </a>
                     </div>
