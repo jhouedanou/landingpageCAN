@@ -12,186 +12,190 @@ class BarSeeder extends Seeder
      */
     public function run(): void
     {
+        // Supprimer tous les points de vente existants
+        Bar::truncate();
+
         $venues = [
-            // Cocody
+            // Dakar - Plateau
             [
-                'name' => 'Maquis La Terrasse - Cocody',
-                'address' => 'Cocody Riviera 2, près du carrefour Palmeraie, Abidjan',
-                'latitude' => 5.35837443273195,
-                'longitude' => -3.9439878409347893,
+                'name' => 'Bar Le Central - Plateau',
+                'address' => 'Avenue Georges Pompidou, Plateau, Dakar',
+                'latitude' => 14.6937,
+                'longitude' => -17.4441,
                 'is_active' => true,
             ],
             [
-                'name' => 'Bar Restaurant Chez Amani',
-                'address' => 'Cocody Angré 8ème Tranche, Abidjan',
-                'latitude' => 5.3738,
-                'longitude' => -3.9892,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Le Petit Jardin - Cocody',
-                'address' => 'Cocody II Plateaux Vallon, Abidjan',
-                'latitude' => 5.3621,
-                'longitude' => -4.0012,
+                'name' => 'Brasserie du Port',
+                'address' => 'Près du Port de Dakar, Plateau',
+                'latitude' => 14.6928,
+                'longitude' => -17.4467,
                 'is_active' => true,
             ],
 
-            // Plateau
+            // Dakar - Medina
             [
-                'name' => 'Brasserie du Plateau',
-                'address' => 'Boulevard de la République, Plateau, Abidjan',
-                'latitude' => 5.3167,
-                'longitude' => -4.0167,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Le Central - Plateau',
-                'address' => 'Avenue Franchet d\'Esperey, Plateau, Abidjan',
-                'latitude' => 5.3201,
-                'longitude' => -4.0189,
+                'name' => 'Maquis Teranga - Medina',
+                'address' => 'Medina, Dakar',
+                'latitude' => 14.6812,
+                'longitude' => -17.4534,
                 'is_active' => true,
             ],
 
-            // Marcory
+            // Dakar - HLM
             [
-                'name' => 'Maquis Le Baobab - Marcory',
-                'address' => 'Zone 4, Marcory, Abidjan',
-                'latitude' => 5.3012,
-                'longitude' => -3.9834,
+                'name' => 'Espace Foot HLM',
+                'address' => 'HLM Grand Yoff, Dakar',
+                'latitude' => 14.7456,
+                'longitude' => -17.4534,
                 'is_active' => true,
             ],
             [
-                'name' => 'Espace Détente Marcory',
-                'address' => 'Boulevard VGE, Marcory, Abidjan',
-                'latitude' => 5.2987,
-                'longitude' => -3.9756,
-                'is_active' => true,
-            ],
-
-            // Yopougon
-            [
-                'name' => 'Le Grand Maquis - Yopougon',
-                'address' => 'Yopougon Maroc, près du CHU, Abidjan',
-                'latitude' => 5.3589,
-                'longitude' => -4.0834,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Bar La Joie - Yopougon',
-                'address' => 'Yopougon Selmer, Abidjan',
-                'latitude' => 5.3456,
-                'longitude' => -4.0712,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Chez Dago - Yopougon',
-                'address' => 'Yopougon Siporex, Abidjan',
-                'latitude' => 5.3523,
-                'longitude' => -4.0923,
+                'name' => 'Le Stade - HLM',
+                'address' => 'HLM 5, Dakar',
+                'latitude' => 14.7234,
+                'longitude' => -17.4623,
                 'is_active' => true,
             ],
 
-            // Treichville
+            // Dakar - Parcelles Assainies
             [
-                'name' => 'Maquis Bord de Lagune',
-                'address' => 'Avenue 12, Treichville, Abidjan',
-                'latitude' => 5.2934,
-                'longitude' => -4.0023,
+                'name' => 'Bar Le Lion - Parcelles',
+                'address' => 'Parcelles Assainies Unité 15, Dakar',
+                'latitude' => 14.7789,
+                'longitude' => -17.4323,
                 'is_active' => true,
             ],
             [
-                'name' => 'Le Terminus - Treichville',
-                'address' => 'Près de la Gare de Treichville, Abidjan',
-                'latitude' => 5.2912,
-                'longitude' => -3.9967,
-                'is_active' => true,
-            ],
-
-            // Adjamé
-            [
-                'name' => 'Espace CAN - Adjamé',
-                'address' => 'Adjamé Liberté, près du marché, Abidjan',
-                'latitude' => 5.3423,
-                'longitude' => -4.0234,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Le Carrefour - Adjamé',
-                'address' => 'Adjamé 220 Logements, Abidjan',
-                'latitude' => 5.3512,
-                'longitude' => -4.0312,
+                'name' => 'Maquis CAN 2025',
+                'address' => 'Parcelles Assainies Unité 25, Dakar',
+                'latitude' => 14.7834,
+                'longitude' => -17.4289,
                 'is_active' => true,
             ],
 
-            // Koumassi
+            // Dakar - Ouakam
             [
-                'name' => 'Maquis du Port - Koumassi',
-                'address' => 'Koumassi Remblais, Abidjan',
-                'latitude' => 5.2823,
-                'longitude' => -3.9512,
+                'name' => 'Beach Bar Ouakam',
+                'address' => 'Plage de Ouakam, Dakar',
+                'latitude' => 14.7234,
+                'longitude' => -17.4912,
                 'is_active' => true,
             ],
 
-            // Abobo
+            // Dakar - Almadies
             [
-                'name' => 'Le Populaire - Abobo',
-                'address' => 'Abobo Baoulé, Abidjan',
-                'latitude' => 5.4234,
-                'longitude' => -4.0156,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Chez Koffi - Abobo',
-                'address' => 'Abobo Gare, près du marché, Abidjan',
-                'latitude' => 5.4312,
-                'longitude' => -4.0234,
+                'name' => 'Le Phare des Mamelles',
+                'address' => 'Les Almadies, Dakar',
+                'latitude' => 14.7423,
+                'longitude' => -17.5134,
                 'is_active' => true,
             ],
 
-            // Port-Bouët
+            // Dakar - Point E
             [
-                'name' => 'Beach Bar - Port-Bouët',
-                'address' => 'Plage de Port-Bouët, Abidjan',
-                'latitude' => 5.2534,
-                'longitude' => -3.9234,
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Le Phare - Port-Bouët',
-                'address' => 'Près de l\'aéroport, Port-Bouët, Abidjan',
-                'latitude' => 5.2612,
-                'longitude' => -3.9345,
+                'name' => 'Brasserie Point E',
+                'address' => 'Point E, Dakar',
+                'latitude' => 14.7112,
+                'longitude' => -17.4534,
                 'is_active' => true,
             ],
 
-            // Bingerville
+            // Dakar - Fann
             [
-                'name' => 'Maquis Colonial - Bingerville',
-                'address' => 'Centre-ville, Bingerville',
-                'latitude' => 5.3534,
-                'longitude' => -3.8912,
+                'name' => 'Maquis Fann Résidence',
+                'address' => 'Fann Résidence, Dakar',
+                'latitude' => 14.7045,
+                'longitude' => -17.4634,
                 'is_active' => true,
             ],
 
-            // Big Five Abidjan
+            // Pikine
             [
-                'name' => 'Big Five Abidjan',
-                'address' => 'Abidjan, Côte d\'Ivoire',
-                'latitude' => 5.294918911991902,
-                'longitude' => -3.99670027907965,
+                'name' => 'Le Populaire - Pikine',
+                'address' => 'Pikine Guédiawaye, Dakar',
+                'latitude' => 14.7589,
+                'longitude' => -17.3923,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Espace Teranga Pikine',
+                'address' => 'Pikine Tally Bou Bess',
+                'latitude' => 14.7512,
+                'longitude' => -17.4012,
+                'is_active' => true,
+            ],
+
+            // Rufisque
+            [
+                'name' => 'Bar du Marché - Rufisque',
+                'address' => 'Centre-ville, Rufisque',
+                'latitude' => 14.7134,
+                'longitude' => -17.2712,
+                'is_active' => true,
+            ],
+
+            // Thiaroye
+            [
+                'name' => 'Maquis Thiaroye',
+                'address' => 'Thiaroye sur Mer, Dakar',
+                'latitude' => 14.7623,
+                'longitude' => -17.3234,
+                'is_active' => true,
+            ],
+
+            // Mbour
+            [
+                'name' => 'Beach Bar Saly',
+                'address' => 'Saly, Mbour',
+                'latitude' => 14.4534,
+                'longitude' => -16.9923,
+                'is_active' => true,
+            ],
+
+            // Thiès
+            [
+                'name' => 'Maquis Escale - Thiès',
+                'address' => 'Centre-ville, Thiès',
+                'latitude' => 14.7889,
+                'longitude' => -16.9262,
+                'is_active' => true,
+            ],
+
+            // Saint-Louis
+            [
+                'name' => 'Bar de l\'Île - Saint-Louis',
+                'address' => 'Île de Saint-Louis',
+                'latitude' => 16.0178,
+                'longitude' => -16.5089,
+                'is_active' => true,
+            ],
+
+            // Ziguinchor
+            [
+                'name' => 'Maquis Casamance',
+                'address' => 'Centre-ville, Ziguinchor',
+                'latitude' => 12.5833,
+                'longitude' => -16.2667,
+                'is_active' => true,
+            ],
+
+            // Kaolack
+            [
+                'name' => 'Espace CAN Kaolack',
+                'address' => 'Kaolack Centre',
+                'latitude' => 14.1333,
+                'longitude' => -16.0667,
                 'is_active' => true,
             ],
         ];
 
         foreach ($venues as $venue) {
-            Bar::updateOrCreate(
-                ['name' => $venue['name']],
-                $venue
-            );
+            Bar::create($venue);
         }
 
         $this->command->info('✅ ' . count($venues) . ' points de vente créés/mis à jour avec succès!');
-        $this->command->info('📍 Zones couvertes: Cocody, Plateau, Marcory, Yopougon, Treichville, Adjamé, Koumassi, Abobo, Port-Bouët, Bingerville');
+        $this->command->info('📍 Zones couvertes: Dakar (Plateau, Medina, HLM, Parcelles, Ouakam, Almadies, Point E, Fann), Pikine, Rufisque, Thiaroye, Mbour, Thiès, Saint-Louis, Ziguinchor, Kaolack');
+        $this->command->info('🇸🇳 Tous les points de vente sont au Sénégal');
         $this->command->info('📏 Rayon de geofencing: 200 mètres');
     }
 }

@@ -11,14 +11,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seeders de données essentielles (toujours exécutés)
         $this->call([
-            TeamSeeder::class,
-            StadiumSeeder::class,
-            MatchSeeder::class,
-            UserSeeder::class,
-            BarSeeder::class,
-            PredictionSeeder::class,
-            AdminUserSeeder::class, // Assure que l'admin existe
+            TeamSeeder::class,           // ✅ Équipes CAN
+            StadiumSeeder::class,        // ✅ Stades
+            MatchSeeder::class,          // ✅ Matchs
+            BarSeeder::class,            // ✅ Points de vente
+            AdminUserSeeder::class,      // ✅ Admin
         ]);
+
+        // Seeders de test (uniquement en développement)
+        if (app()->environment('local', 'development')) {
+            $this->call([
+                UserSeeder::class,       // 🧪 Utilisateurs de test
+                PredictionSeeder::class, // 🧪 Prédictions de test
+            ]);
+            $this->command->info('🧪 Données de test ajoutées (environnement local)');
+        }
     }
 }

@@ -12,6 +12,9 @@ class StadiumSeeder extends Seeder
      */
     public function run(): void
     {
+        // Supprimer tous les stades existants
+        Stadium::truncate();
+
         $stadiums = [
             [
                 'name' => 'Complexe Sportif Moulay Abdellah',
@@ -64,12 +67,9 @@ class StadiumSeeder extends Seeder
         ];
 
         foreach ($stadiums as $stadium) {
-            Stadium::updateOrCreate(
-                ['name' => $stadium['name']],
-                $stadium
-            );
+            Stadium::create($stadium);
         }
 
-        $this->command->info('✅ 6 stadiums seeded successfully!');
+        $this->command->info('✅ 6 stades créés avec succès!');
     }
 }

@@ -14,6 +14,9 @@ class MatchSeeder extends Seeder
      */
     public function run(): void
     {
+        // Supprimer tous les matchs existants
+        MatchGame::truncate();
+
         $matches = [
             // Group Stage Matches from Animation Data
             ['home' => 'Sénégal', 'away' => 'Botswana', 'date' => '2025-12-23 15:00:00', 'phase' => 'group_stage', 'grp' => 'A', 'stadium' => 'Stade de Rabat'],
@@ -48,7 +51,6 @@ class MatchSeeder extends Seeder
         ];
 
         $created = 0;
-        $skipped = 0;
 
         foreach ($matches as $matchData) {
             $homeTeamId = null;
@@ -63,8 +65,7 @@ class MatchSeeder extends Seeder
                     $homeTeamId = $homeTeam->id;
                     $teamA = $homeTeam->name;
                 } else {
-                    $this->command->warn("⚠️ Home team not found: {$matchData['home']}");
-                    $skipped++;
+                    $this->command->warn("⚠️ Équipe domicile non trouvée: {$matchData['home']}");
                     continue;
                 }
             }
@@ -75,24 +76,7 @@ class MatchSeeder extends Seeder
                     $awayTeamId = $awayTeam->id;
                     $teamB = $awayTeam->name;
                 } else {
-                    $this->command->warn("⚠️ Away team not found: {$matchData['away']}");
-                    $skipped++;
-                    continue;
-                }
-            }
-
-            // Check if match already exists (for matches with defined teams)
-            if ($homeTeamId && $awayTeamId) {
-                $existing = MatchGame::where(function ($query) use ($homeTeamId, $awayTeamId) {
-                    $query->where('home_team_id', $homeTeamId)
-                          ->where('away_team_id', $awayTeamId);
-                })->orWhere(function ($query) use ($homeTeamId, $awayTeamId) {
-                    $query->where('home_team_id', $awayTeamId)
-                          ->where('away_team_id', $homeTeamId);
-                })->first();
-
-                if ($existing) {
-                    $skipped++;
+                    $this->command->warn("⚠️ Équipe extérieur non trouvée: {$matchData['away']}");
                     continue;
                 }
             }
@@ -114,6 +98,6 @@ class MatchSeeder extends Seeder
             $created++;
         }
 
-        $this->command->info("✅ {$created} matches seeded successfully! ({$skipped} skipped as duplicates)");
+        $this->command->info("✅ {$created} matchs créés avec succès!");
     }
 }

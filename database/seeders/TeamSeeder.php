@@ -12,6 +12,9 @@ class TeamSeeder extends Seeder
      */
     public function run(): void
     {
+        // Supprimer toutes les équipes existantes
+        Team::truncate();
+
         $teams = [
             // Group A
             ['name' => 'Maroc', 'iso_code' => 'ma', 'group' => 'A'],
@@ -51,12 +54,9 @@ class TeamSeeder extends Seeder
         ];
 
         foreach ($teams as $team) {
-            Team::updateOrCreate(
-                ['iso_code' => $team['iso_code']],
-                $team
-            );
+            Team::create($team);
         }
 
-        $this->command->info('✅ 24 Grande Fête du Foot Africain teams seeded successfully!');
+        $this->command->info('✅ 24 équipes de la CAN créées avec succès!');
     }
 }
