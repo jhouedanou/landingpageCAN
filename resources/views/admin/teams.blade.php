@@ -37,9 +37,12 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 p-6">
                     @forelse($teams as $team)
                     <div class="bg-gray-50 rounded-xl p-4 text-center hover:shadow-lg transition group">
-                        <img src="https://flagcdn.com/w80/{{ $team->iso_code }}.png" 
-                             alt="{{ $team->name }}"
-                             class="w-16 h-12 object-cover rounded mx-auto mb-3 shadow">
+                        <div class="flag-container mx-auto mb-3">
+                            <img src="https://flagcdn.com/w80/{{ $team->iso_code }}.png"
+                                 alt="{{ $team->name }}"
+                                 class="w-16 h-12 object-cover rounded shadow"
+                                 onerror="this.parentElement.innerHTML='<div class=\'w-16 h-12 bg-gradient-to-br from-soboa-blue to-blue-600 rounded shadow flex items-center justify-center\'><span class=\'text-white text-xs font-black\'>{{ mb_substr($team->iso_code, 0, 2) }}</span></div>'">
+                        </div>
                         <p class="font-bold text-gray-800">{{ $team->name }}</p>
                         <p class="text-xs text-gray-500 uppercase">{{ $team->iso_code }}</p>
                         @if($team->group_name)

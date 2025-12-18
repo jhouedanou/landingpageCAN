@@ -290,26 +290,6 @@
                         <h2 class="text-3xl md:text-4xl font-black text-soboa-blue">Prochains matchs</h2>
                         <span class="text-3xl md:text-4xl">⚽</span>
                     </div>
-                    @if($selectedVenue)
-                        <div class="mt-3 inline-flex items-center gap-2 bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded-lg">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            <span class="text-sm font-bold">{{ $selectedVenue->name }}</span>
-                            @if($selectedVenue->zone)
-                                <span class="text-xs text-green-600">• {{ $selectedVenue->zone }}</span>
-                            @endif
-                        </div>
-                    @else
-                        <div class="mt-3 inline-flex items-center gap-2 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-lg">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                            <span class="text-sm font-semibold">Aucun lieu sélectionné</span>
-                            <a href="/map" class="text-xs underline hover:no-underline">Sélectionner un lieu</a>
-                        </div>
-                    @endif
                 </div>
                 <a href="/matches"
                     class="text-soboa-orange font-bold hover:underline mt-4 md:mt-0 flex items-center gap-2">

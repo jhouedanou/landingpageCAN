@@ -104,8 +104,11 @@
                 <div class="flex-1 text-center group/team">
                     <div class="relative inline-block mb-3">
                         @if($homeFlag)
-                            <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
-                                <img src="{{ $homeFlag }}" alt="{{ $match->team_a }}" class="w-full h-full object-cover">
+                            <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110 home-flag-container">
+                                <img src="{{ $homeFlag }}"
+                                     alt="{{ $match->team_a }}"
+                                     class="w-full h-full object-cover home-flag-img"
+                                     onerror="this.parentElement.outerHTML='<div class=\'w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110\'><span class=\'text-2xl font-black text-white\'>{{ mb_substr($match->team_a, 0, 2) }}</span></div>'">
                             </div>
                         @else
                             <div class="w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
@@ -144,8 +147,11 @@
                 <div class="flex-1 text-center group/team">
                     <div class="relative inline-block mb-3">
                         @if($awayFlag)
-                            <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
-                                <img src="{{ $awayFlag }}" alt="{{ $match->team_b }}" class="w-full h-full object-cover">
+                            <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110 away-flag-container">
+                                <img src="{{ $awayFlag }}"
+                                     alt="{{ $match->team_b }}"
+                                     class="w-full h-full object-cover away-flag-img"
+                                     onerror="this.parentElement.outerHTML='<div class=\'w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110\'><span class=\'text-2xl font-black text-white\'>{{ mb_substr($match->team_b, 0, 2) }}</span></div>'">
                             </div>
                         @else
                             <div class="w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
