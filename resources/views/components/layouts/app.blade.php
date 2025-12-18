@@ -276,7 +276,7 @@
                 <!-- Logo -->
                 <a href="/" class="flex items-center gap-3 group">
                     <div
-                        class="w-[100px] h-[100px] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform overflow-hidden bg-white">
+                        class="w-[85px] h-[85px] rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform overflow-hidden bg-white">
                         <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-full h-full object-contain p-1">
                     </div>
                     <div class="text-black">
