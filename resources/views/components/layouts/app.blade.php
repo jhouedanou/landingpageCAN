@@ -11,20 +11,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SOBOA FOOT TIME | {{ $title ?? 'Accueil' }}</title>
-    <meta name="description" content="Le jeu commence ici ! Pronostiquez les matchs, gagnez des points et devenez le meilleur pronostiqueur !">
+    <meta name="description"
+        content="Le jeu commence ici ! Pronostiquez les matchs, gagnez des points et devenez le meilleur pronostiqueur !">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="SOBOA FOOT TIME | {{ $title ?? 'Accueil' }}">
-    <meta property="og:description" content="Le jeu commence ici ! Pronostiquez les matchs, visitez nos lieux partenaires et gagnez des récompenses exclusives.">
+    <meta property="og:description"
+        content="Le jeu commence ici ! Pronostiquez les matchs, visitez nos lieux partenaires et gagnez des récompenses exclusives.">
     <meta property="og:image" content="{{ asset('images/sen.webp') }}">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url()->current() }}">
     <meta property="twitter:title" content="SOBOA FOOT TIME | {{ $title ?? 'Accueil' }}">
-    <meta property="twitter:description" content="Le jeu commence ici ! Pronostiquez les matchs et gagnez des récompenses.">
+    <meta property="twitter:description"
+        content="Le jeu commence ici ! Pronostiquez les matchs et gagnez des récompenses.">
     <meta property="twitter:image" content="{{ asset('images/sen.webp') }}">
 
     <!-- Google tag (gtag.js) -->
@@ -36,6 +39,7 @@
         gtag('config', 'G-RZTW4S7F3H');
     </script>
 
+    <link rel="icon" type="image/jpeg" href="/images/logoGazelle.jpeg">
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#121212">
@@ -143,73 +147,73 @@
 
     <!-- Fonction d'initialisation Swiper pour Alpine.js -->
     <script>
-    function initUpcomingMatchesSwiper() {
-        // Utiliser setTimeout avec 0ms pour s'assurer que le DOM est complètement rendu
-        setTimeout(() => {
-            // Vérifier si le container existe
-            const swiperContainer = document.querySelector('.upcomingMatchesSwiper');
-            if (!swiperContainer) {
-                console.warn('Swiper container not found');
-                return;
+        function initUpcomingMatchesSwiper() {
+            // Utiliser setTimeout avec 0ms pour s'assurer que le DOM est complètement rendu
+            setTimeout(() => {
+                // Vérifier si le container existe
+                const swiperContainer = document.querySelector('.upcomingMatchesSwiper');
+                if (!swiperContainer) {
+                    console.warn('Swiper container not found');
+                    return;
+                }
+
+                // Initialiser Swiper - toujours 1 seul item visible
+                const swiper = new Swiper('.upcomingMatchesSwiper', {
+                    slidesPerView: 1,
+                    spaceBetween: 20,
+                    loop: true,
+                    centeredSlides: true,
+                    autoplay: {
+                        delay: 5000,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                    },
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    // Pas de breakpoints - toujours 1 seul item
+                });
+            }, 0);
+        }
+
+        // Fonction pour scroller vers un match spécifique
+        function scrollToMatch(matchId) {
+            const matchElement = document.querySelector(`[data-match-id="${matchId}"]`);
+            if (matchElement) {
+                matchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Effet highlight
+                matchElement.classList.add('ring-4', 'ring-soboa-orange', 'ring-opacity-50');
+                setTimeout(() => {
+                    matchElement.classList.remove('ring-4', 'ring-soboa-orange', 'ring-opacity-50');
+                }, 2000);
             }
+        }
 
-            // Initialiser Swiper - toujours 1 seul item visible
-            const swiper = new Swiper('.upcomingMatchesSwiper', {
-                slidesPerView: 1,
-                spaceBetween: 20,
-                loop: true,
-                centeredSlides: true,
-                autoplay: {
-                    delay: 5000,
-                    disableOnInteraction: false,
-                    pauseOnMouseEnter: true,
-                },
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-                // Pas de breakpoints - toujours 1 seul item
+        // Fonction pour mettre à jour les points du header
+        function updateHeaderPoints(newPoints) {
+            // Sélectionner tous les éléments affichant les points
+            const pointsElements = document.querySelectorAll('[data-user-points]');
+            pointsElements.forEach(el => {
+                el.textContent = newPoints;
+                // Ajouter une animation
+                el.classList.add('animate-pulse');
+                setTimeout(() => {
+                    el.classList.remove('animate-pulse');
+                }, 1000);
             });
-        }, 0);
-    }
-
-    // Fonction pour scroller vers un match spécifique
-    function scrollToMatch(matchId) {
-        const matchElement = document.querySelector(`[data-match-id="${matchId}"]`);
-        if (matchElement) {
-            matchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Effet highlight
-            matchElement.classList.add('ring-4', 'ring-soboa-orange', 'ring-opacity-50');
-            setTimeout(() => {
-                matchElement.classList.remove('ring-4', 'ring-soboa-orange', 'ring-opacity-50');
-            }, 2000);
         }
-    }
 
-    // Fonction pour mettre à jour les points du header
-    function updateHeaderPoints(newPoints) {
-        // Sélectionner tous les éléments affichant les points
-        const pointsElements = document.querySelectorAll('[data-user-points]');
-        pointsElements.forEach(el => {
-            el.textContent = newPoints;
-            // Ajouter une animation
-            el.classList.add('animate-pulse');
-            setTimeout(() => {
-                el.classList.remove('animate-pulse');
-            }, 1000);
+        // Écouter les événements de mise à jour des points
+        window.addEventListener('update-points', (e) => {
+            if (e.detail && e.detail.points) {
+                updateHeaderPoints(e.detail.points);
+            }
         });
-    }
-
-    // Écouter les événements de mise à jour des points
-    window.addEventListener('update-points', (e) => {
-        if (e.detail && e.detail.points) {
-            updateHeaderPoints(e.detail.points);
-        }
-    });
     </script>
 </head>
 
@@ -263,7 +267,8 @@
                     </div>
                     <div class="text-white">
                         <span class="font-black text-lg md:text-xl tracking-tight">SOBOA FOOT TIME</span>
-                        <span class="text-soboa-orange font-bold text-xs md:text-sm block -mt-1">Le jeu commence ici</span>
+                        <span class="text-soboa-orange font-bold text-xs md:text-sm block -mt-1">Le jeu commence
+                            ici</span>
                     </div>
                 </a>
 
@@ -287,13 +292,18 @@
                                 class="px-3 py-1.5 bg-soboa-orange/20 text-soboa-orange hover:bg-soboa-orange hover:text-black rounded-lg font-bold text-sm transition-all">
                                 📋 Mes Pronostics
                             </a>
-                            <a href="/dashboard" class="group flex items-center gap-3 pl-2 lg:pl-4 lg:border-l border-white/10">
+                            <a href="/dashboard"
+                                class="group flex items-center gap-3 pl-2 lg:pl-4 lg:border-l border-white/10">
                                 <div class="text-right hidden lg:block">
-                                    <span class="text-white group-hover:text-soboa-orange font-bold text-sm block leading-tight transition-colors">{{ session('predictor_name') }}</span>
-                                    <span class="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Mon Compte</span>
+                                    <span
+                                        class="text-white group-hover:text-soboa-orange font-bold text-sm block leading-tight transition-colors">{{ session('predictor_name') }}</span>
+                                    <span class="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Mon
+                                        Compte</span>
                                 </div>
-                                <div class="bg-gradient-to-r from-soboa-orange to-red-500 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-soboa-orange/20 hover:shadow-soboa-orange/40 transition-all transform hover:scale-105 ring-1 ring-white/10">
-                                    <span class="text-white font-black text-sm" data-user-points>{{ session('user_points', 0) }}</span>
+                                <div
+                                    class="bg-gradient-to-r from-soboa-orange to-red-500 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-soboa-orange/20 hover:shadow-soboa-orange/40 transition-all transform hover:scale-105 ring-1 ring-white/10">
+                                    <span class="text-white font-black text-sm"
+                                        data-user-points>{{ session('user_points', 0) }}</span>
                                     <span class="text-white/90 text-[10px] font-bold uppercase">pts</span>
                                     <div class="bg-black/10 rounded-full w-5 h-5 flex items-center justify-center ml-0.5">
                                         <span class="text-[10px] leading-none">🏆</span>
@@ -355,9 +365,12 @@
                         </a>
                         <a href="/dashboard"
                             class="px-4 py-3 flex items-center justify-between hover:bg-white/10 rounded-lg transition-colors group">
-                            <span class="text-white group-hover:text-soboa-orange font-bold transition-colors">{{ session('predictor_name') }}</span>
-                            <div class="bg-gradient-to-r from-soboa-orange to-red-500 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                <span class="text-white font-black text-sm" data-user-points>{{ session('user_points', 0) }}</span>
+                            <span
+                                class="text-white group-hover:text-soboa-orange font-bold transition-colors">{{ session('predictor_name') }}</span>
+                            <div
+                                class="bg-gradient-to-r from-soboa-orange to-red-500 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                <span class="text-white font-black text-sm"
+                                    data-user-points>{{ session('user_points', 0) }}</span>
                                 <span class="text-white/80 text-xs font-bold uppercase">pts</span>
                             </div>
                         </a>
@@ -424,7 +437,8 @@
 
 
     <!-- Page Loader -->
-    <div id="page-loader" class="fixed inset-0 z-[9999] bg-white flex items-center justify-center transition-opacity duration-500">
+    <div id="page-loader"
+        class="fixed inset-0 z-[9999] bg-white flex items-center justify-center transition-opacity duration-500">
         <div class="relative flex flex-col items-center">
             <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-24 h-24 object-contain animate-pulse">
             <div class="mt-4 flex gap-1">
@@ -439,7 +453,7 @@
         // Page Transitions Logic
         document.addEventListener('DOMContentLoaded', () => {
             const loader = document.getElementById('page-loader');
-            
+
             // Hide loader after a short delay
             setTimeout(() => {
                 loader.classList.add('opacity-0', 'pointer-events-none');
@@ -469,6 +483,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
