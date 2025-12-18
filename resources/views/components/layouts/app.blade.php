@@ -44,12 +44,12 @@
     <meta property="twitter:image" content="{{ asset('images/sen.webp') }}">
 
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RZTW4S7F3H"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZ3EWMZ408"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-RZTW4S7F3H');
+        gtag('config', 'G-PZ3EWMZ408');
     </script>
 
     <link rel="icon" type="image/jpeg" href="/images/logoGazelle.jpeg">
@@ -316,8 +316,7 @@
                                 </div>
                                 <div
                                     class="bg-gradient-to-r from-black to-gray-800 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-black/20 hover:shadow-black/40 transition-all transform hover:scale-105 ring-1 ring-black/10">
-                                    <span class="text-white font-black text-sm"
-                                        data-user-points>{{ $userPoints }}</span>
+                                    <span class="text-white font-black text-sm" data-user-points>{{ $userPoints }}</span>
                                     <span class="text-white/90 text-[10px] font-bold uppercase">pts</span>
                                     <div class="bg-white/10 rounded-full w-5 h-5 flex items-center justify-center ml-0.5">
                                         <span class="text-[10px] leading-none">🏆</span>
@@ -383,8 +382,7 @@
                                 class="text-black group-hover:text-white font-bold transition-colors">{{ session('predictor_name') }}</span>
                             <div
                                 class="bg-gradient-to-r from-black to-gray-800 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                <span class="text-white font-black text-sm"
-                                    data-user-points>{{ $userPoints }}</span>
+                                <span class="text-white font-black text-sm" data-user-points>{{ $userPoints }}</span>
                                 <span class="text-white/80 text-xs font-bold uppercase">pts</span>
                             </div>
                         </a>
