@@ -187,10 +187,9 @@
 
                 <!-- Error Message -->
                 <div class="border rounded-xl p-4 mb-6"
-                     :class="permissionDenied ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'">
-                    <p class="font-medium"
-                       :class="permissionDenied ? 'text-red-800' : 'text-yellow-800'"
-                       x-text="locationError"></p>
+                    :class="permissionDenied ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'">
+                    <p class="font-medium" :class="permissionDenied ? 'text-red-800' : 'text-yellow-800'"
+                        x-text="locationError"></p>
                 </div>
 
                 <!-- Instructions -->
@@ -230,11 +229,18 @@
         </div>
 
         <!-- Header -->
-        <div class="bg-soboa-blue py-12 px-4">
-            <div class="max-w-7xl mx-auto text-center">
-                <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">Gagnez +4 points</span>
-                <h1 class="text-3xl md:text-5xl font-black text-white mt-2">Points de vente partenaires</h1>
-                <p class="text-white/70 mt-4 max-w-2xl mx-auto">
+        <div class="relative py-12 px-4 overflow-hidden mb-8 shadow-2xl">
+            <!-- Background Image with Overlay -->
+            <div class="absolute inset-0 z-0">
+                <img src="/images/sen.webp" class="w-full h-full object-cover" alt="Background">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-[1px]"></div>
+            </div>
+            <div class="relative z-10 max-w-7xl mx-auto text-center">
+                <span class="text-soboa-orange font-black text-sm uppercase tracking-widest drop-shadow-md">Gagnez +4
+                    points</span>
+                <h1 class="text-4xl md:text-5xl font-black text-white mt-2 drop-shadow-2xl">Points de vente partenaires
+                </h1>
+                <p class="text-white/80 mt-4 max-w-2xl mx-auto font-medium drop-shadow-lg">
                     Visitez nos lieux partenaires et gagnez 4 points bonus par jour !
                 </p>
             </div>
@@ -264,7 +270,8 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            <span x-text="isChecking ? 'Vérification...' : 'Voir les lieux proches'">Voir les lieux proches</span>
+                            <span x-text="isChecking ? 'Vérification...' : 'Voir les lieux proches'">Voir les lieux
+                                proches</span>
                         </button>
                     @else
                         <a href="/login"
@@ -283,7 +290,8 @@
                             <div>
                                 <p class="font-bold text-lg" x-text="checkInResult?.message"></p>
                                 <p class="text-sm text-green-600 mt-1">
-                                    +<span x-text="checkInResult?.points_awarded"></span> points • Total: <span x-text="checkInResult?.total_points"></span> pts
+                                    +<span x-text="checkInResult?.points_awarded"></span> points • Total: <span
+                                        x-text="checkInResult?.total_points"></span> pts
                                 </p>
                             </div>
                         </div>
@@ -304,7 +312,8 @@
                             </p>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <template x-for="venue in nearbyVenues" :key="venue.id">
-                                    <div class="bg-gradient-to-br from-soboa-orange/5 to-soboa-blue/5 rounded-xl p-4 border border-soboa-orange/20 hover:border-soboa-orange/50 transition">
+                                    <div
+                                        class="bg-gradient-to-br from-soboa-orange/5 to-soboa-blue/5 rounded-xl p-4 border border-soboa-orange/20 hover:border-soboa-orange/50 transition">
                                         <div class="flex items-start gap-3 mb-3">
                                             <span class="text-2xl">📍</span>
                                             <div class="flex-1">
@@ -316,7 +325,8 @@
                                             <span class="text-soboa-orange font-bold text-lg">
                                                 <span x-text="venue.distance.toFixed(1)"></span> km
                                             </span>
-                                            <a href="#" @click.prevent="document.querySelector('[id=map]').scrollIntoView({ behavior: 'smooth' })"
+                                            <a href="#"
+                                                @click.prevent="document.querySelector('[id=map]').scrollIntoView({ behavior: 'smooth' })"
                                                 class="bg-soboa-blue hover:bg-soboa-blue-dark text-white font-bold py-2 px-4 rounded-lg transition text-sm">
                                                 Voir sur la carte →
                                             </a>
@@ -332,7 +342,8 @@
                             <p class="text-yellow-700 font-medium">
                                 <span class="text-2xl">📍</span> Aucun lieu partenaire à proximité (rayon: 10 km)
                             </p>
-                            <p class="text-yellow-600 text-sm mt-2">Consultez la carte ou la liste complète ci-dessous pour voir tous les lieux partenaires.</p>
+                            <p class="text-yellow-600 text-sm mt-2">Consultez la carte ou la liste complète ci-dessous
+                                pour voir tous les lieux partenaires.</p>
                         </div>
                     </template>
                 </div>

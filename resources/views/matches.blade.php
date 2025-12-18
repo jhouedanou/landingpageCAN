@@ -62,14 +62,14 @@
         <div class="bg-white rounded-xl shadow-sm p-4 sticky top-[64px] md:top-[80px] z-40 border border-gray-200">
             <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <button @click="activePhase = 'all'; activeGroup = 'all'"
-                    :class="activePhase === 'all' ? 'bg-soboa-blue text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activePhase === 'all' ? 'bg-soboa-blue text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">
                     Tous
                 </button>
 
                 @php $hasMatches = ($phaseCounts['group_stage'] ?? 0) > 0; @endphp
                 <button @click="activePhase = 'group_stage'; activeGroup = 'all'"
-                    :class="activePhase === 'group_stage' ? 'bg-soboa-blue text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activePhase === 'group_stage' ? 'bg-soboa-blue text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition {{ !$hasMatches ? 'opacity-50 cursor-not-allowed' : '' }}"
                     {{ !$hasMatches ? 'disabled' : '' }}>
                     Poules
@@ -81,7 +81,7 @@
 
                 @php $hasMatches = ($phaseCounts['round_of_16'] ?? 0) > 0; @endphp
                 <button @click="activePhase = 'round_of_16'; activeGroup = 'all'"
-                    :class="activePhase === 'round_of_16' ? 'bg-soboa-orange text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activePhase === 'round_of_16' ? 'bg-soboa-orange text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition {{ !$hasMatches ? 'opacity-50 cursor-not-allowed' : '' }}"
                     {{ !$hasMatches ? 'disabled' : '' }}>
                     1/8e finale
@@ -93,7 +93,7 @@
 
                 @php $hasMatches = ($phaseCounts['quarter_final'] ?? 0) > 0; @endphp
                 <button @click="activePhase = 'quarter_final'; activeGroup = 'all'"
-                    :class="activePhase === 'quarter_final' ? 'bg-soboa-orange text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activePhase === 'quarter_final' ? 'bg-soboa-orange text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition {{ !$hasMatches ? 'opacity-50 cursor-not-allowed' : '' }}"
                     {{ !$hasMatches ? 'disabled' : '' }}>
                     1/4 finale
@@ -105,7 +105,7 @@
 
                 @php $hasMatches = ($phaseCounts['semi_final'] ?? 0) > 0; @endphp
                 <button @click="activePhase = 'semi_final'; activeGroup = 'all'"
-                    :class="activePhase === 'semi_final' ? 'bg-soboa-orange text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activePhase === 'semi_final' ? 'bg-soboa-orange text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition {{ !$hasMatches ? 'opacity-50 cursor-not-allowed' : '' }}"
                     {{ !$hasMatches ? 'disabled' : '' }}>
                     Demi-finales
@@ -117,7 +117,7 @@
 
                 @php $hasMatches = ($phaseCounts['third_place'] ?? 0) > 0; @endphp
                 <button @click="activePhase = 'third_place'; activeGroup = 'all'"
-                    :class="activePhase === 'third_place' ? 'bg-soboa-orange text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activePhase === 'third_place' ? 'bg-soboa-orange text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition {{ !$hasMatches ? 'opacity-50 cursor-not-allowed' : '' }}"
                     {{ !$hasMatches ? 'disabled' : '' }}>
                     3e place
@@ -145,14 +145,14 @@
             x-show="activePhase === 'all' || activePhase === 'group_stage'" x-transition>
             <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <button @click="activeGroup = 'all'"
-                    :class="activeGroup === 'all' ? 'bg-soboa-blue text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                    :class="activeGroup === 'all' ? 'bg-soboa-blue text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                     class="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition">
                     Tous les groupes
                 </button>
                 @foreach(['A', 'B', 'C', 'D', 'E', 'F'] as $group)
                     @php $hasMatches = ($groupCounts[$group] ?? 0) > 0; @endphp
                     <button @click="activeGroup = '{{ $group }}'"
-                        :class="activeGroup === '{{ $group }}' ? 'bg-soboa-blue text-black' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
+                        :class="activeGroup === '{{ $group }}' ? 'bg-soboa-blue text-white shadow-lg' : 'bg-gray-100 text-gray-600 hover:bg-soboa-orange hover:text-black'"
                         class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition {{ !$hasMatches ? 'opacity-50 cursor-not-allowed' : '' }}"
                         {{ !$hasMatches ? 'disabled' : '' }}>
                         Groupe {{ $group }}
@@ -228,8 +228,8 @@
 
                         <!-- Navigation -->
                         <!-- <div class="swiper-button-next"></div>
-                        <div class="swiper-button-prev"></div>
-                        <div class="swiper-pagination"></div> -->
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-pagination"></div> -->
                     </div>
                 </div>
             </div>
