@@ -1,8 +1,16 @@
 <x-layouts.app title="Classement">
     <div class="space-y-6">
-        <div class="text-center py-6">
-            <h1 class="text-3xl font-bold text-gray-800">Classement Général</h1>
-            <p class="text-gray-500 mt-2">Les meilleurs experts du football africain</p>
+        <div class="relative py-12 px-8 rounded-2xl overflow-hidden mb-8 shadow-2xl text-center">
+            <!-- Background Image with Overlay -->
+            <div class="absolute inset-0 z-0">
+                <img src="/images/sen.webp" class="w-full h-full object-cover" alt="Background">
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10">
+                <h1 class="text-5xl font-black text-white drop-shadow-2xl">Classement Général</h1>
+                <p class="text-white/90 font-bold mt-2 uppercase tracking-widest text-sm drop-shadow-lg">Les meilleurs
+                    experts du football africain</p>
+            </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">

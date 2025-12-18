@@ -34,26 +34,39 @@
     </style>
 
     <div class="space-y-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h1 class="text-3xl font-bold text-soboa-blue">Mes Pronostics</h1>
-            @if(isset($user))
-                <div
-                    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 flex items-center gap-3 pr-6 self-start md:self-auto">
-                    <div
-                        class="bg-gradient-to-br from-soboa-blue to-blue-800 w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
-                        {{ substr($user->name, 0, 1) }}
-                    </div>
-                    <div class="text-left">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Joueur</p>
-                        <p class="font-black text-gray-800 leading-none text-sm md:text-base">{{ $user->name }}</p>
-                    </div>
-                    <div class="ml-2 pl-4 border-l border-gray-100 text-center min-w-[60px]">
-                        <span
-                            class="block font-black text-soboa-orange text-xl leading-none">{{ $user->points_total }}</span>
-                        <span class="text-[10px] text-gray-400 font-bold uppercase">pts</span>
-                    </div>
+        <div class="relative py-12 px-8 rounded-2xl overflow-hidden mb-8 shadow-2xl">
+            <!-- Background Image with Overlay -->
+            <div class="absolute inset-0 z-0">
+                <img src="/images/sen.webp" class="w-full h-full object-cover" alt="Background">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-[1px]"></div>
+            </div>
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-black text-white drop-shadow-2xl">Mes Pronostics</h1>
+                    <p class="text-white/80 font-bold uppercase tracking-widest text-xs mt-1 drop-shadow-lg">Suivez vos
+                        performances en direct</p>
                 </div>
-            @endif
+                @if(isset($user))
+                    <div
+                        class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-2 flex items-center gap-4 pr-8 self-start md:self-auto transition-transform hover:scale-105">
+                        <div
+                            class="bg-gradient-to-br from-soboa-orange to-yellow-500 w-14 h-14 rounded-2xl flex items-center justify-center text-black font-black text-2xl shadow-xl">
+                            {{ substr($user->name, 0, 1) }}
+                        </div>
+                        <div class="text-left">
+                            <p class="text-[10px] text-white/70 uppercase font-black tracking-widest mb-0.5 drop-shadow-sm">
+                                Joueur</p>
+                            <p class="font-black text-white leading-none text-lg md:text-xl drop-shadow-md">
+                                {{ $user->name }}</p>
+                        </div>
+                        <div class="ml-2 pl-6 border-l border-white/20 text-center min-w-[80px]">
+                            <span
+                                class="block font-black text-soboa-orange text-3xl leading-none drop-shadow-xl">{{ $user->points_total }}</span>
+                            <span class="text-[10px] text-white/70 font-black uppercase tracking-wider">pts</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
 
         @if(session('success'))
