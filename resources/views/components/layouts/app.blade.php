@@ -256,7 +256,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-[100] transition-all duration-300 glass-dark shadow-xl">
+    <nav class="fixed top-0 left-0 right-0 z-[100] transition-all duration-300 bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16 md:h-20">
                 <!-- Logo -->
@@ -265,7 +265,7 @@
                         class="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform overflow-hidden bg-white">
                         <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-full h-full object-contain p-1">
                     </div>
-                    <div class="text-white">
+                    <div class="text-black">
                         <span class="font-black text-lg md:text-xl tracking-tight">SOBOA FOOT TIME</span>
                         <span class="text-soboa-orange font-bold text-xs md:text-sm block -mt-1">Le jeu commence
                             ici</span>
@@ -275,13 +275,13 @@
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center gap-1">
                     <a href="/"
-                        class="px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg font-semibold text-sm transition-all">Accueil</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-gray-100 rounded-lg font-semibold text-sm transition-all">Accueil</a>
                     <a href="/matches"
-                        class="px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg font-semibold text-sm transition-all">Pronostics</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-gray-100 rounded-lg font-semibold text-sm transition-all">Pronostics</a>
                     <a href="/leaderboard"
-                        class="px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg font-semibold text-sm transition-all">Classement</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-gray-100 rounded-lg font-semibold text-sm transition-all">Classement</a>
                     <a href="/map"
-                        class="px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg font-semibold text-sm transition-all">Lieux</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-gray-100 rounded-lg font-semibold text-sm transition-all">Lieux</a>
                 </div>
 
                 <!-- User Actions -->
@@ -293,24 +293,24 @@
                                 📋 Mes Pronostics
                             </a>
                             <a href="/dashboard"
-                                class="group flex items-center gap-3 pl-2 lg:pl-4 lg:border-l border-white/10">
+                                class="group flex items-center gap-3 pl-2 lg:pl-4 lg:border-l border-gray-200">
                                 <div class="text-right hidden lg:block">
                                     <span
-                                        class="text-white group-hover:text-soboa-orange font-bold text-sm block leading-tight transition-colors">{{ session('predictor_name') }}</span>
-                                    <span class="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Mon
+                                        class="text-black group-hover:text-soboa-orange font-bold text-sm block leading-tight transition-colors">{{ session('predictor_name') }}</span>
+                                    <span class="text-[10px] text-black/50 uppercase tracking-wider font-semibold">Mon
                                         Compte</span>
                                 </div>
                                 <div
-                                    class="bg-gradient-to-r from-soboa-orange to-red-500 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-soboa-orange/20 hover:shadow-soboa-orange/40 transition-all transform hover:scale-105 ring-1 ring-white/10">
-                                    <span class="text-white font-black text-sm"
+                                    class="bg-gradient-to-r from-soboa-orange to-red-500 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-soboa-orange/20 hover:shadow-soboa-orange/40 transition-all transform hover:scale-105 ring-1 ring-black/10">
+                                    <span class="text-black font-black text-sm"
                                         data-user-points>{{ session('user_points', 0) }}</span>
-                                    <span class="text-white/90 text-[10px] font-bold uppercase">pts</span>
+                                    <span class="text-black/90 text-[10px] font-bold uppercase">pts</span>
                                     <div class="bg-black/10 rounded-full w-5 h-5 flex items-center justify-center ml-0.5">
                                         <span class="text-[10px] leading-none">🏆</span>
                                     </div>
                                 </div>
                             </a>
-                            <a href="/logout" class="text-white/70 hover:text-white text-xs font-medium">Déconnexion</a>
+                            <a href="/logout" class="text-black/60 hover:text-black text-xs font-medium">Déconnexion</a>
                         </div>
                     @else
                         <a href="/login"
@@ -321,7 +321,7 @@
 
                     <!-- Mobile Menu Button -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen"
-                        class="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors">
+                        class="md:hidden p-2 text-black hover:bg-gray-100 rounded-lg transition-colors">
                         <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -342,40 +342,40 @@
             x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-4" x-cloak
-            class="md:hidden glass-dark border-t border-white/10 relative z-[100]">
+            class="md:hidden bg-white border-t border-gray-100 relative z-[100]">
             <div class="px-4 py-4 space-y-2">
                 <a href="/"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
                     Accueil</a>
                 <a href="/matches"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
                     Pronostics</a>
                 <a href="/leaderboard"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
                     Classement</a>
                 <a href="/map"
-                    class="block px-4 py-3 text-white hover:bg-white/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-gray-50 rounded-lg font-semibold transition-colors">
                     Lieux partenaires</a>
 
                 @if(session('user_id'))
-                    <div class="pt-4 border-t border-white/10">
+                    <div class="pt-4 border-t border-gray-100">
                         <a href="/mes-pronostics"
-                            class="block px-4 py-3 text-soboa-orange hover:bg-white/10 rounded-lg font-semibold transition-colors">
+                            class="block px-4 py-3 text-soboa-orange hover:bg-gray-50 rounded-lg font-semibold transition-colors">
                             📋 Mes Pronostics
                         </a>
                         <a href="/dashboard"
-                            class="px-4 py-3 flex items-center justify-between hover:bg-white/10 rounded-lg transition-colors group">
+                            class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 rounded-lg transition-colors group">
                             <span
-                                class="text-white group-hover:text-soboa-orange font-bold transition-colors">{{ session('predictor_name') }}</span>
+                                class="text-black group-hover:text-soboa-orange font-bold transition-colors">{{ session('predictor_name') }}</span>
                             <div
                                 class="bg-gradient-to-r from-soboa-orange to-red-500 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                                <span class="text-white font-black text-sm"
+                                <span class="text-black font-black text-sm"
                                     data-user-points>{{ session('user_points', 0) }}</span>
                                 <span class="text-white/80 text-xs font-bold uppercase">pts</span>
                             </div>
                         </a>
                         <a href="/logout"
-                            class="block px-4 py-3 text-red-400 hover:bg-white/10 rounded-lg font-semibold transition-colors">Déconnexion</a>
+                            class="block px-4 py-3 text-red-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors">Déconnexion</a>
                     </div>
                 @else
                     <div class="pt-4">
