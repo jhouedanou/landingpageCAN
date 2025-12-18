@@ -12,8 +12,14 @@ class StadiumSeeder extends Seeder
      */
     public function run(): void
     {
+        // Désactiver les contraintes de clés étrangères
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
         // Supprimer tous les stades existants
         Stadium::truncate();
+
+        // Réactiver les contraintes de clés étrangères
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $stadiums = [
             [

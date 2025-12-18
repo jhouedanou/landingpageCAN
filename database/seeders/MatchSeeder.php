@@ -14,8 +14,14 @@ class MatchSeeder extends Seeder
      */
     public function run(): void
     {
+        // Désactiver les contraintes de clés étrangères
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
         // Supprimer tous les matchs existants
         MatchGame::truncate();
+
+        // Réactiver les contraintes de clés étrangères
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $matches = [
             // Group Stage Matches from Animation Data
