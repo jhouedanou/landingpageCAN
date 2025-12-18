@@ -412,8 +412,8 @@
     <footer class="bg-soboa-blue text-white py-8 mt-auto">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="text-center md:text-left">
+                    <div class="flex items-center gap-3 mb-4 justify-center md:justify-start">
                         <div class="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white">
                             <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-full h-full object-contain p-1">
                         </div>
@@ -424,7 +424,7 @@
                     </div>
                     <p class="text-white/60 text-sm">Pronostiquez, jouez et gagnez avec SOBOA FOOT TIME !</p>
                 </div>
-                <div>
+                <div class="text-center md:text-left">
                     <h4 class="font-bold text-soboa-orange mb-4">Liens rapides</h4>
                     <ul class="space-y-2 text-white/70 text-sm">
                         <li><a href="/matches" class="hover:text-white transition-colors">Faire un pronostic</a></li>
@@ -433,7 +433,7 @@
                         <li><a href="/map" class="hover:text-white transition-colors">Lieux partenaires</a></li>
                     </ul>
                 </div>
-                <div>
+                <div class="text-center md:text-left">
                     <h4 class="font-bold text-soboa-orange mb-4">Système de points</h4>
                     <ul class="space-y-2 text-white/70 text-sm">
                         <li>⚽ +1 pt / pronostic</li>
