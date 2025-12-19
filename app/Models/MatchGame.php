@@ -30,6 +30,7 @@ class MatchGame extends Model
         'status',
         'score_a',
         'score_b',
+        'winner',  // Ajouté pour gérer les tirs au but
     ];
 
     protected $casts = [
