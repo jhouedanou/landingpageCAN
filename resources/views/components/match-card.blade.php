@@ -11,7 +11,7 @@
     $isFinished = $match->status === 'finished';
     $isUpcoming = !$isLive && !$isFinished;
 
-    // Check if this is a TBD knockout match
+    // Vérifier si c'est un match de phase finale à déterminer
     $isTbd = $match->is_tbd;
 @endphp
 
@@ -88,7 +88,7 @@
 
         <!-- Teams Display -->
         @if($isTbd)
-            <!-- TBD Knockout Match - Show Phase Name -->
+            <!-- Match de phase finale à déterminer - Afficher le nom de la phase -->
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center w-28 h-28 fold:w-32 fold:h-32 bg-gradient-to-br from-soboa-blue to-blue-600 rounded-full shadow-xl mb-4">
                     <span class="text-4xl fold:text-5xl">🏆</span>

@@ -17,17 +17,17 @@
 
                     // Use the model's display_label attribute
                     $matchLabel = $match->display_label;
-                    $isTBD = $match->is_tbd;
+                    $isADeterminer = $match->is_tbd;
 
                     return [
                         'id' => $animation->id,
                         'match_label' => $matchLabel,
-                        'home_flag' => (!$isTBD && $match->homeTeam) ? $match->homeTeam->flag_url : null,
-                        'away_flag' => (!$isTBD && $match->awayTeam) ? $match->awayTeam->flag_url : null,
+                        'home_flag' => (!$isADeterminer && $match->homeTeam) ? $match->homeTeam->flag_url : null,
+                        'away_flag' => (!$isADeterminer && $match->awayTeam) ? $match->awayTeam->flag_url : null,
                         'score_a' => $match->score_a,
                         'score_b' => $match->score_b,
                         'status' => $match->status,
-                        'is_tbd' => $isTBD,
+                        'is_tbd' => $isADeterminer,
                         'date' => \Carbon\Carbon::parse($animation->animation_date)->format('d/m'),
                         'time' => $animation->animation_time,
                     ];

@@ -142,7 +142,7 @@ class MatchGame extends Model
     }
 
     /**
-     * Check if this is a TBD (to be determined) knockout match.
+     * Check if this is a knockout match à déterminer (teams to be determined).
      */
     public function getIsTbdAttribute()
     {
@@ -153,7 +153,7 @@ class MatchGame extends Model
     }
 
     /**
-     * Get the display label for the match (either team names or phase name for TBD matches).
+     * Get the display label for the match (either team names or phase name for matches à déterminer).
      */
     public function getDisplayLabelAttribute()
     {

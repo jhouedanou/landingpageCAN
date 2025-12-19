@@ -38,7 +38,7 @@ class MatchSeeder extends Seeder
             ['home' => 'Maroc', 'away' => 'Zambie', 'date' => '2025-12-29 20:00:00', 'phase' => 'group_stage', 'grp' => 'D', 'stadium' => 'Stade de Rabat'],
             ['home' => 'Côte d\'Ivoire', 'away' => 'Gabon', 'date' => '2025-12-31 20:00:00', 'phase' => 'group_stage', 'grp' => 'C', 'stadium' => 'Stade de Marrakech'],
 
-            // Knockout Stage Matches (TBD teams)
+            // Matches de phase finale (équipes à déterminer)
             ['home' => null, 'away' => null, 'date' => '2026-01-03 16:00:00', 'phase' => 'round_of_16', 'grp' => null, 'stadium' => 'Stade de Rabat'],
             ['home' => null, 'away' => null, 'date' => '2026-01-04 16:00:00', 'phase' => 'round_of_16', 'grp' => null, 'stadium' => 'Stade de Tanger'],
             ['home' => null, 'away' => null, 'date' => '2026-01-05 16:00:00', 'phase' => 'round_of_16', 'grp' => null, 'stadium' => 'Stade de Fès'],
@@ -60,7 +60,7 @@ class MatchSeeder extends Seeder
             $teamA = 'À déterminer';
             $teamB = 'À déterminer';
 
-            // Find teams if specified (null for TBD knockout matches)
+            // Trouver les équipes si spécifiées (null pour les matchs de phase finale à déterminer)
             if ($matchData['home']) {
                 $homeTeam = Team::where('name', $matchData['home'])->first();
                 if ($homeTeam) {
@@ -86,7 +86,7 @@ class MatchSeeder extends Seeder
             $matchDate = Carbon::parse($matchData['date']);
 
             // Composite unique key to prevent duplicates
-            // For TBD matches (null teams): use date + phase
+            // Pour les matchs à déterminer (équipes null): utiliser date + phase
             // For known matches: use home_team_id + away_team_id + match_date
             $uniqueKey = [];
             if ($homeTeamId && $awayTeamId) {
@@ -96,7 +96,7 @@ class MatchSeeder extends Seeder
                     'match_date' => $matchDate,
                 ];
             } else {
-                // TBD knockout matches: unique by date + phase
+                // Matchs de phase finale à déterminer: uniques par date + phase
                 $uniqueKey = [
                     'match_date' => $matchDate,
                     'phase' => $matchData['phase'] ?? 'group_stage',

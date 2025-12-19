@@ -128,7 +128,7 @@ class NewMatchesSeeder extends Seeder
             // Parser la date et l'heure
             $dateString = $this->parseDateString($matchInfo['date'], $matchInfo['time']);
             
-            // Déterminer si c'est un match TBD (phase de knockout)
+            // Déterminer si c'est un match à déterminer (phase de knockout)
             $isTbd = empty($matchInfo['team_2']);
             $phaseName = $isTbd ? $matchInfo['team_1'] : null;
             

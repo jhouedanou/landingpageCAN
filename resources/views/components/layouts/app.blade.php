@@ -109,6 +109,28 @@
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23121212' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
+        /* Force hide/show navigation elements at correct breakpoints */
+        @media (min-width: 1024px) {
+            /* Desktop: HIDE hamburger button and mobile menu */
+            nav button.lg\:\!hidden {
+                display: none !important;
+            }
+            nav .lg\:hidden {
+                display: none !important;
+            }
+            /* Desktop: SHOW desktop menu */
+            nav .lg\:flex {
+                display: flex !important;
+            }
+        }
+        
+        @media (max-width: 1023px) {
+            /* Mobile: HIDE desktop menu */
+            nav .lg\:flex {
+                display: none !important;
+            }
+        }
+
         /* Landscape mode optimizations for navigation */
         @media (max-height: 600px) and (orientation: landscape) {
             nav {
@@ -325,7 +347,7 @@
     <nav
         class="fixed top-0 left-0 right-0 z-[1001] transition-all duration-300 bg-soboa-orange backdrop-blur-md shadow-xl border-b border-black/10">
         <div class="max-w-7xl mx-auto px-3 fold:px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-wrap items-center justify-between py-3 fold:py-4 gap-2">
+            <div class="flex items-center justify-between py-3 fold:py-4 gap-2 lg:gap-4">
                 <!-- Logo -->
                 <a href="/" class="flex items-center gap-3 group">
                     <div
@@ -341,8 +363,8 @@
                     </div>
                 </a>
 
-                <!-- Desktop Navigation -->
-                <div class="hidden lg:flex items-center gap-1">
+                <!-- Desktop Navigation (visible ≥ 1024px) -->
+                <div class="hidden lg:flex items-center gap-1 flex-grow justify-center">
                     <a href="/"
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Accueil</a>
                     <a href="/matches"
@@ -356,7 +378,7 @@
                 <!-- User Actions -->
                 <div class="flex items-center gap-3">
                     @if(session('user_id'))
-                        <div class="hidden lg:flex items-center gap-3">
+                        <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
                             <a href="/mes-pronostics"
                                 class="px-3 py-1.5 bg-soboa-blue/10 text-black hover:bg-soboa-blue/20 hover:text-black rounded-lg font-bold text-sm transition-all">
                                 📋 Mes Pronostics
@@ -387,9 +409,9 @@
                         </a>
                     @endif
 
-                    <!-- Mobile Menu Button (shows below 1024px) -->
+                    <!-- Mobile Menu Button (VISIBLE < 1024px, HIDDEN ≥ 1024px) -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen"
-                        class="lg:hidden p-2 text-black hover:bg-soboa-blue/10 rounded-lg transition-colors">
+                        class="lg:!hidden p-2 text-black hover:bg-soboa-blue/10 rounded-lg transition-colors flex-shrink-0">
                         <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

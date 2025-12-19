@@ -188,7 +188,7 @@ class AnimationSeeder extends Seeder
     {
         $matchName = strtoupper(trim($matchName));
 
-        // Handle generic phase names (TBD matches)
+        // Gérer les noms de phase génériques (matchs à déterminer)
         $phaseMap = [
             'HUITIEME DE FINALE' => 'round_of_16',
             'QUART DE FINALE' => 'quarter_final',
