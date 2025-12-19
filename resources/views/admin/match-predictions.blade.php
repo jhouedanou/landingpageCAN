@@ -150,15 +150,15 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <span class="text-xl font-black text-soboa-blue">
-                                        {{ $prediction->predicted_score_a }} - {{ $prediction->predicted_score_b }}
+                                        {{ $prediction->score_a ?? '-' }} - {{ $prediction->score_b ?? '-' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         {{ $prediction->predicted_winner === 'draw' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800' }}">
                                         {{ match($prediction->predicted_winner) {
-                                            'team_a' => $match->team_a,
-                                            'team_b' => $match->team_b,
+                                            'home' => $match->team_a,
+                                            'away' => $match->team_b,
                                             'draw' => 'Match nul',
                                             default => '-'
                                         } }}
@@ -202,7 +202,7 @@
                         <div>
                             <p class="text-gray-500">Scores exacts</p>
                             <p class="text-lg font-bold text-blue-600">
-                                {{ $predictions->where('predicted_score_a', $match->score_a)->where('predicted_score_b', $match->score_b)->count() }}
+                                {{ $predictions->where('score_a', $match->score_a)->where('score_b', $match->score_b)->count() }}
                             </p>
                         </div>
                         <div>

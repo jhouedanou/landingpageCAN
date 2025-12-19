@@ -95,10 +95,10 @@ class PredictionController extends Controller
 
         $isNewPrediction = $prediction->wasRecentlyCreated;
 
-        // Award bonus points if prediction made from a venue (optional)
+        // Award bonus points ONLY if the match is being shown at this venue
         $venuePointsAwarded = 0;
         if ($nearbyVenue) {
-            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $nearbyVenue->id);
+            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $match->id, $nearbyVenue->id);
         }
 
         // Refresh user to get updated points_total

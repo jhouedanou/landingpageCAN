@@ -55,6 +55,13 @@ class ProcessMatchPoints implements ShouldQueue
 
         // Determine actual match result
         $actualWinner = $this->determineWinner($match->score_a, $match->score_b);
+        
+        // Vérifier si le match réel a eu des tirs au but
+        // Un match a des TAB si le score est égal ET qu'il y a un vainqueur défini
+        $matchHadPenalties = ($match->score_a == $match->score_b) && !empty($match->winner);
+        if ($matchHadPenalties) {
+            $actualWinner = $match->winner; // home, away
+        }
 
         // Get all predictions for this match
         $predictions = Prediction::with('user')
@@ -81,15 +88,25 @@ class ProcessMatchPoints implements ShouldQueue
                 ]);
             }
 
-            // Vérifier si c'est un pronostic avec tirs au but
-            $isPenaltyPrediction = $prediction->predict_draw && $prediction->penalty_winner;
+            // Vérifier si l'utilisateur a prédit des tirs au but
+            $userPredictedPenalties = $prediction->predict_draw && $prediction->penalty_winner;
 
             // 2. Correct Winner (+3 points)
-            // Pour les TAB: comparer penalty_winner avec actualWinner
-            // Pour les matchs normaux: comparer le vainqueur des scores
-            if ($isPenaltyPrediction) {
+            // Si le match a eu des TAB: comparer avec penalty_winner de l'utilisateur
+            // Sinon: comparer avec le vainqueur des scores
+            if ($matchHadPenalties && $userPredictedPenalties) {
+                // Match réel avec TAB + utilisateur a prédit TAB
+                $predictedWinner = $prediction->penalty_winner;
+            } elseif ($matchHadPenalties && !$userPredictedPenalties) {
+                // Match réel avec TAB mais utilisateur n'a pas prédit TAB
+                // On prend le vainqueur de son score prédit
+                $predictedWinner = $this->determineWinner($prediction->score_a, $prediction->score_b);
+            } elseif (!$matchHadPenalties && $userPredictedPenalties) {
+                // Match sans TAB mais utilisateur a prédit TAB
+                // On prend son penalty_winner comme vainqueur prédit
                 $predictedWinner = $prediction->penalty_winner;
             } else {
+                // Match sans TAB et utilisateur n'a pas prédit TAB
                 $predictedWinner = $this->determineWinner($prediction->score_a, $prediction->score_b);
             }
             
@@ -130,8 +147,9 @@ class ProcessMatchPoints implements ShouldQueue
             }
 
             // 3. Exact Score (+3 points extra)
-            // PAS de points pour score exact si c'est un pronostic TAB (car c'est une égalité)
-            if (!$isPenaltyPrediction && $prediction->score_a == $match->score_a && $prediction->score_b == $match->score_b) {
+            // Donner les points si le score est exact, même si l'utilisateur a prédit des TAB
+            // (car un match nul 2-2 reste un score exact même s'il n'y a pas eu de TAB)
+            if ($prediction->score_a == $match->score_a && $prediction->score_b == $match->score_b) {
                 $alreadyExact = \App\Models\PointLog::where('user_id', $prediction->user_id)
                     ->where('source', 'prediction_exact')
                     ->where('match_id', $this->matchId)

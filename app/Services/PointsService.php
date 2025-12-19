@@ -71,13 +71,29 @@ class PointsService
 
     /**
      * Award points for prediction made in a venue (geofencing).
-     * Limit 1x/day. User gets 4 points for making a prediction from a partner venue.
+     * Limit 1x/day. User gets 4 points ONLY if the match is actually being shown at this venue.
      *
+     * @param int $matchId The ID of the match being predicted
      * @param int|null $barId The ID of the bar where prediction was made
-     * @return int Points awarded (0 if already awarded today)
+     * @return int Points awarded (0 if already awarded today or match not at this venue)
      */
-    public function awardPredictionVenuePoints(User $user, ?int $barId = null): int
+    public function awardPredictionVenuePoints(User $user, int $matchId, ?int $barId = null): int
     {
+        if (!$barId) {
+            return 0;
+        }
+
+        // Vérifier que le match a bien lieu dans ce bar (via table animations)
+        $matchAtVenue = \App\Models\Animation::where('match_id', $matchId)
+            ->where('bar_id', $barId)
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$matchAtVenue) {
+            // Le match n'a pas lieu dans ce bar, pas de bonus
+            return 0;
+        }
+
         $today = Carbon::today();
 
         $alreadyAwarded = PointLog::where('user_id', $user->id)
@@ -86,11 +102,12 @@ class PointsService
             ->exists();
 
         if (!$alreadyAwarded) {
-            DB::transaction(function () use ($user, $barId) {
+            DB::transaction(function () use ($user, $barId, $matchId) {
                 $user->increment('points_total', 4);
                 PointLog::create([
                     'user_id' => $user->id,
                     'bar_id' => $barId,
+                    'match_id' => $matchId,
                     'source' => 'venue_visit',
                     'points' => 4,
                 ]);
