@@ -197,7 +197,7 @@
                                                             @endif
                                                         </td>
                                                         <td class="px-4 py-3 text-center">
-                                                            <button onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                            <button type="button" onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
                                                                 📍 <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span>
                                                             </button>
                                                         </td>
@@ -212,22 +212,15 @@
                                                                     ✏️
                                                                 </a>
                                                                 @if($match->status === 'finished')
-                                                                <form action="{{ route('admin.calculate-points', $match->id) }}" method="POST" class="inline">
-                                                                    @csrf
-                                                                    <button type="submit"
-                                                                            class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
-                                                                        🔄
-                                                                    </button>
-                                                                </form>
+                                                                <button type="button" onclick="calculatePoints({{ $match->id }})"
+                                                                        class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                    🔄
+                                                                </button>
                                                                 @endif
-                                                                <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                    <button type="submit"
-                                                                            class="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
-                                                                        🗑️
-                                                                    </button>
-                                                                </form>
+                                                                <button type="button" onclick="deleteMatch({{ $match->id }})"
+                                                                        class="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
+                                                                    🗑️
+                                                                </button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -294,7 +287,7 @@
                                                     @endif
                                                 </td>
                                                 <td class="px-4 py-4 text-center">
-                                                    <button onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                    <button type="button" onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
                                                         📍 <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span> PDV
                                                     </button>
                                                 </td>
@@ -309,22 +302,15 @@
                                                             ✏️ Modifier
                                                         </a>
                                                         @if($match->status === 'finished')
-                                                        <form action="{{ route('admin.calculate-points', $match->id) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            <button type="submit"
-                                                                    class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                                                🔄 Recalculer
-                                                            </button>
-                                                        </form>
+                                                        <button type="button" onclick="calculatePoints({{ $match->id }})"
+                                                                class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                            🔄 Recalculer
+                                                        </button>
                                                         @endif
-                                                        <form action="{{ route('admin.delete-match', $match->id) }}" method="POST" class="inline" onsubmit="return confirm('Supprimer ce match et tous ses pronostics ?')">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit"
-                                                                    class="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                                                🗑️
-                                                            </button>
-                                                        </form>
+                                                        <button type="button" onclick="deleteMatch({{ $match->id }})"
+                                                                class="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
+                                                            🗑️
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -339,12 +325,12 @@
             </form>
 
             <!-- Modal pour gérer les PDV -->
-            <div id="venueModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div id="venueModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
                 <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
                     <!-- Header -->
                     <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
                         <h3 class="text-xl font-black text-white">📍 Attribuer des Points de Vente</h3>
-                        <button onclick="closeVenueModal()" class="text-white hover:text-gray-200 text-2xl font-bold">×</button>
+                        <button type="button" onclick="closeVenueModal()" class="text-white hover:text-gray-200 text-2xl font-bold">×</button>
                     </div>
 
                     <!-- Body -->
@@ -356,7 +342,7 @@
 
                     <!-- Footer -->
                     <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t">
-                        <button onclick="closeVenueModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-6 py-2 rounded-lg transition-colors">
+                        <button type="button" onclick="closeVenueModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-6 py-2 rounded-lg transition-colors">
                             Fermer
                         </button>
                     </div>
@@ -528,6 +514,50 @@
                         closeVenueModal();
                     }
                 });
+
+                // Delete match function
+                function deleteMatch(matchId) {
+                    if (!confirm('Supprimer ce match et tous ses pronostics ?')) {
+                        return;
+                    }
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/admin/matches/${matchId}`;
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+
+                    form.appendChild(csrfInput);
+                    form.appendChild(methodInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+                // Calculate points function
+                function calculatePoints(matchId) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/admin/matches/${matchId}/calculate-points`;
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+
+                    form.appendChild(csrfInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
             </script>
 
         </div>

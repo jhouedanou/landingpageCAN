@@ -107,11 +107,12 @@ class AdminController extends Controller
 
         $teams = Team::orderBy('name')->get();
         $stadiums = Stadium::where('is_active', true)->orderBy('city')->get();
+        $bars = Bar::where('is_active', true)->orderBy('zone')->orderBy('name')->get();
 
         // Liste des groupes disponibles pour la CAN
         $groups = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-        return view('admin.create-match', compact('teams', 'stadiums', 'groups'));
+        return view('admin.create-match', compact('teams', 'stadiums', 'bars', 'groups'));
     }
 
     /**
@@ -131,12 +132,14 @@ class AdminController extends Controller
             'group_name' => 'nullable|string|max:50',
             'stadium' => 'nullable|string|max:255',
             'status' => 'required|in:scheduled,live,finished',
+            'venues' => 'nullable|array',
+            'venues.*' => 'exists:bars,id',
         ]);
 
         $homeTeam = Team::find($request->home_team_id);
         $awayTeam = Team::find($request->away_team_id);
 
-        MatchGame::create([
+        $match = MatchGame::create([
             'team_a' => $homeTeam->name,
             'team_b' => $awayTeam->name,
             'home_team_id' => $request->home_team_id,
@@ -147,6 +150,19 @@ class AdminController extends Controller
             'stadium' => $request->stadium,
             'status' => $request->status,
         ]);
+
+        // Assign venues to the match
+        if ($request->has('venues') && is_array($request->venues)) {
+            foreach ($request->venues as $venueId) {
+                Animation::create([
+                    'bar_id' => $venueId,
+                    'match_id' => $match->id,
+                    'animation_date' => \Carbon\Carbon::parse($request->match_date)->format('Y-m-d'),
+                    'animation_time' => \Carbon\Carbon::parse($request->match_date)->format('H:i:s'),
+                    'is_active' => true,
+                ]);
+            }
+        }
 
         return redirect()->route('admin.matches')->with('success', 'Match créé avec succès.');
     }

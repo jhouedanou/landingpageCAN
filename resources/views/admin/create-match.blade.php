@@ -105,6 +105,54 @@
                             </select>
                         </div>
 
+                        <!-- Points de Vente (Venues) -->
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-3">📍 Points de Vente pour la diffusion</label>
+                            <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                                <div class="mb-3">
+                                    <input type="text" id="venueSearch" onkeyup="filterVenues()"
+                                           placeholder="🔍 Rechercher un point de vente..."
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                                </div>
+
+                                @php
+                                    $barsByZone = $bars->groupBy('zone')->sortKeys();
+                                @endphp
+
+                                <div class="space-y-4">
+                                    @foreach($barsByZone as $zone => $zoneBars)
+                                        <div class="venue-zone-group">
+                                            <div class="bg-white rounded-lg p-3 shadow-sm">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <h3 class="font-bold text-gray-700 text-sm">{{ $zone ?: 'Sans zone' }}</h3>
+                                                    <label class="flex items-center gap-2 text-xs text-indigo-600 cursor-pointer">
+                                                        <input type="checkbox" onchange="toggleZone(this, '{{ $zone }}')"
+                                                               class="w-4 h-4 text-indigo-600 rounded">
+                                                        <span class="font-medium">Tout sélectionner</span>
+                                                    </label>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-2">
+                                                    @foreach($zoneBars as $bar)
+                                                        <label class="venue-item flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer transition"
+                                                               data-venue-name="{{ strtolower($bar->name) }}"
+                                                               data-venue-zone="{{ strtolower($zone) }}">
+                                                            <input type="checkbox"
+                                                                   name="venues[]"
+                                                                   value="{{ $bar->id }}"
+                                                                   {{ is_array(old('venues')) && in_array($bar->id, old('venues')) ? 'checked' : '' }}
+                                                                   class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 venue-checkbox zone-{{ Str::slug($zone) }}">
+                                                            <span class="text-sm text-gray-700">{{ $bar->name }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Sélectionnez les bars où le match sera diffusé</p>
+                        </div>
+
                         <div class="flex justify-end gap-4 pt-4 border-t">
                             <a href="{{ route('admin.matches') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition">
                                 Annuler
@@ -119,4 +167,32 @@
 
         </div>
     </div>
+
+    <script>
+        // Filter venues by search term
+        function filterVenues() {
+            const search = document.getElementById('venueSearch').value.toLowerCase();
+            const venues = document.querySelectorAll('.venue-item');
+
+            venues.forEach(venue => {
+                const name = venue.dataset.venueName;
+                const zone = venue.dataset.venueZone;
+
+                if (name.includes(search) || zone.includes(search)) {
+                    venue.style.display = 'flex';
+                } else {
+                    venue.style.display = 'none';
+                }
+            });
+        }
+
+        // Toggle all venues in a zone
+        function toggleZone(checkbox, zone) {
+            const zoneSlug = zone.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const checkboxes = document.querySelectorAll('.zone-' + zoneSlug);
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+        }
+    </script>
 </x-layouts.app>
