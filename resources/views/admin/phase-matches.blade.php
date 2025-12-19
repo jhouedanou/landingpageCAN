@@ -74,7 +74,7 @@
                                     <!-- Équipe à domicile -->
                                     <div class="text-center">
                                         @if($match->homeTeam && $match->homeTeam->iso_code)
-                                            <img src="https://flagcdn.com/w80/{{ $match->homeTeam->iso_code }}.png"
+                                            <img src="https://flagicons.lipis.dev/flags/4x3/{{ $match->homeTeam->iso_code }}.svg"
                                                  alt="{{ $match->team_a }}"
                                                  class="w-20 h-14 object-cover rounded shadow mx-auto mb-3">
                                         @endif
@@ -99,7 +99,7 @@
                                     <!-- Équipe extérieure -->
                                     <div class="text-center">
                                         @if($match->awayTeam && $match->awayTeam->iso_code)
-                                            <img src="https://flagcdn.com/w80/{{ $match->awayTeam->iso_code }}.png"
+                                            <img src="https://flagicons.lipis.dev/flags/4x3/{{ $match->awayTeam->iso_code }}.svg"
                                                  alt="{{ $match->team_b }}"
                                                  class="w-20 h-14 object-cover rounded shadow mx-auto mb-3">
                                         @endif

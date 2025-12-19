@@ -85,7 +85,7 @@ class HomeController extends Controller
     {
         // Afficher TOUS les matchs (accès universel)
         // La géolocalisation sera détectée automatiquement en arrière-plan pour le bonus
-        $allMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+        $allMatches = MatchGame::with(['homeTeam', 'awayTeam', 'animations.bar'])
             ->where('match_date', '>=', now()->subDays(1)) // Matchs d'hier à aujourd'hui et futurs
             ->orderBy('phase', 'asc')
             ->orderBy('match_date', 'asc')

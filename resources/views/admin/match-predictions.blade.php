@@ -18,7 +18,15 @@
                     <div class="flex items-center gap-4">
                         @if($match->homeTeam)
                         <div class="flex items-center gap-2">
-                            <img src="{{ $match->homeTeam->flag_url_80 }}" alt="{{ $match->homeTeam->name }}" class="w-12 h-8 object-cover rounded shadow">
+                            @if($match->homeTeam->iso_code)
+                                <img src="https://flagicons.lipis.dev/flags/4x3/{{ strtolower($match->homeTeam->iso_code) }}.svg"
+                                     alt="{{ $match->homeTeam->name }}"
+                                     class="w-12 h-8 object-cover rounded shadow"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                <span class="text-xl" style="display:none;">🏴</span>
+                            @else
+                                <span class="text-xl">🏴</span>
+                            @endif
                             <span class="font-bold text-lg">{{ $match->homeTeam->name }}</span>
                         </div>
                         @else
@@ -29,7 +37,15 @@
 
                         @if($match->awayTeam)
                         <div class="flex items-center gap-2">
-                            <img src="{{ $match->awayTeam->flag_url_80 }}" alt="{{ $match->awayTeam->name }}" class="w-12 h-8 object-cover rounded shadow">
+                            @if($match->awayTeam->iso_code)
+                                <img src="https://flagicons.lipis.dev/flags/4x3/{{ strtolower($match->awayTeam->iso_code) }}.svg"
+                                     alt="{{ $match->awayTeam->name }}"
+                                     class="w-12 h-8 object-cover rounded shadow"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                <span class="text-xl" style="display:none;">🏴</span>
+                            @else
+                                <span class="text-xl">🏴</span>
+                            @endif
                             <span class="font-bold text-lg">{{ $match->awayTeam->name }}</span>
                         </div>
                         @else

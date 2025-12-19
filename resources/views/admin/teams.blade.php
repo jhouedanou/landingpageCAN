@@ -38,7 +38,7 @@
                     @forelse($teams as $team)
                     <div class="bg-gray-50 rounded-xl p-4 text-center hover:shadow-lg transition group">
                         <div class="flag-container mx-auto mb-3">
-                            <img src="https://flagcdn.com/w80/{{ $team->iso_code }}.png"
+                            <img src="https://flagicons.lipis.dev/flags/4x3/{{ $team->iso_code }}.svg"
                                  alt="{{ $team->name }}"
                                  class="w-16 h-12 object-cover rounded shadow"
                                  onerror="this.parentElement.innerHTML='<div class=\'w-16 h-12 bg-gradient-to-br from-soboa-blue to-blue-600 rounded shadow flex items-center justify-center\'><span class=\'text-white text-xs font-black\'>{{ mb_substr($team->iso_code, 0, 2) }}</span></div>'">

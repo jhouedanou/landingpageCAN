@@ -19,7 +19,7 @@
 
 <div class="flag-container inline-block {{ $containerClass }}">
     @if($isoCode)
-        <img src="https://flagcdn.com/w80/{{ $isoCode }}.png"
+        <img src="https://flagicons.lipis.dev/flags/4x3/{{ $isoCode }}.svg"
              alt="{{ $teamName }}"
              class="{{ $containerClass }} object-cover rounded shadow"
              onerror="this.parentElement.innerHTML='<div class=\'{{ $containerClass }} bg-gradient-to-br from-soboa-blue to-blue-600 rounded shadow flex items-center justify-center\'><span class=\'text-white {{ $textClass }} font-black\'>{{ $initials }}</span></div>'">

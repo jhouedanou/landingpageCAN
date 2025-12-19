@@ -91,9 +91,9 @@ Le script `forge-deployment-script.sh` est configuré pour utiliser `FreshDeploy
 Le fichier `venues.csv` doit être à la racine du projet avec le format suivant:
 
 ```csv
-venue_name,zone,date,time,match_name,latitude,longitude,TYPE_PDV
-CHEZ JEAN,THIAROYE,23/12/2025,15 H,SENEGAL VS BOTSWANA,14.7517342,-17.381228,dakar
-BAR ALLIANCE,KEUR MBAYE FALL,03/01/2026,16 H,HUITIEME DE FINALE,14.7407892,-17.3234235,
+venue_name,zone,date,time,team_1,team_2,latitude,longitude,TYPE_PDV
+CHEZ JEAN,THIAROYE,23/12/2025,15 H,SENEGAL,BOTSWANA,14.7517342,-17.381228,dakar
+BAR ALLIANCE,KEUR MBAYE FALL,03/01/2026,16 H,HUITIEME DE FINALE,,14.7407892,-17.3234235,
 ```
 
 ### Colonnes:
@@ -101,9 +101,8 @@ BAR ALLIANCE,KEUR MBAYE FALL,03/01/2026,16 H,HUITIEME DE FINALE,14.7407892,-17.3
 - **zone:** Zone géographique
 - **date:** Date du match (format: DD/MM/YYYY)
 - **time:** Heure du match (format: HH H)
-- **match_name:**
-  - Pour matchs réguliers: "EQUIPE1 VS EQUIPE2"
-  - Pour playoffs: "HUITIEME DE FINALE", "QUART DE FINALE", etc.
+- **team_1:** Nom de l'équipe 1 OU nom de la phase playoff (HUITIEME DE FINALE, etc.)
+- **team_2:** Nom de l'équipe 2 (vide pour les matchs playoff)
 - **latitude:** Coordonnée GPS latitude
 - **longitude:** Coordonnée GPS longitude
 - **TYPE_PDV:** Type de point de vente (dakar, regions, chr, fanzone) - optionnel, par défaut "dakar"

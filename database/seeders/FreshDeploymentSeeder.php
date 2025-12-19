@@ -139,19 +139,19 @@ class FreshDeploymentSeeder extends Seeder
                 continue;
             }
 
-            // Parse the match name to extract teams
-            $matchName = trim($data[4] ?? '');
-            $isPlayoff = !str_contains($matchName, ' VS ');
+            // New CSV format: venue_name,zone,date,time,team_1,team_2,latitude,longitude,TYPE_PDV
+            $team1 = trim($data[4] ?? '');
+            $team2 = trim($data[5] ?? '');
+
+            // Check if it's a playoff match (team_2 is empty)
+            $isPlayoff = empty($team2);
 
             if ($isPlayoff) {
-                // Playoff match
-                $team1 = $matchName;
-                $team2 = '';
+                // Playoff match: team_1 contains the playoff stage name
+                $matchName = $team1;
             } else {
-                // Regular match
-                $teams = explode(' VS ', $matchName);
-                $team1 = trim($teams[0] ?? '');
-                $team2 = trim($teams[1] ?? '');
+                // Regular match: construct match_name from teams
+                $matchName = $team1 . ' VS ' . $team2;
             }
 
             $rows[] = [
@@ -162,9 +162,9 @@ class FreshDeploymentSeeder extends Seeder
                 'match_name' => $matchName,
                 'team_1' => $team1,
                 'team_2' => $team2,
-                'latitude' => trim($data[5] ?? ''),
-                'longitude' => trim($data[6] ?? ''),
-                'type_pdv' => !empty(trim($data[7] ?? '')) ? trim($data[7]) : 'dakar',
+                'latitude' => trim($data[6] ?? ''),
+                'longitude' => trim($data[7] ?? ''),
+                'type_pdv' => !empty(trim($data[8] ?? '')) ? trim($data[8]) : 'dakar',
             ];
         }
 

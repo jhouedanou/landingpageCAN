@@ -4,6 +4,7 @@
     "scripts": {
         "dev": "vite",
         "hot": "vite --host",
+        "mobile": "node scripts/show-mobile-url.js && vite --host",
         "build": "vite build",
         "watch": "vite build --watch",
         "preview": "vite preview"

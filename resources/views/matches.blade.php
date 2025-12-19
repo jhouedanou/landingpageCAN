@@ -286,7 +286,7 @@
 
                                     <!-- Contenu des groupes -->
                                     @foreach($groupStageByGroup as $groupName => $groupMatches)
-                                        <div x-show="activeGroup === '{{ $groupName }}'" class="space-y-6">
+                                        <div x-show="activeGroup === '{{ $groupName }}'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                             @foreach($groupMatches as $match)
             <div id="match-{{ $match->id }}"
                 class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all border-2 border-gray-100
@@ -317,6 +317,14 @@
                             </span>
                         @endif
                     </div>
+                    @if($match->stadium)
+                        <div class="px-6 pt-2 pb-1">
+                            <p class="text-xs text-white/80 flex items-center gap-1">
+                                <span>🏟️</span>
+                                <span>{{ $match->stadium }}</span>
+                            </p>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Corps du match -->
@@ -325,17 +333,18 @@
                     <div class="flex items-center justify-between mb-6">
                         <!-- Équipe domicile -->
                         <div class="flex-1 text-center">
-                            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
-                                @if($match->homeTeam && $match->homeTeam->iso_code)
-                                    <img src="https://flagcdn.com/w80/{{ strtolower($match->homeTeam->iso_code) }}.png"
+                            @if($match->homeTeam && $match->homeTeam->iso_code)
+                                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
+                                    <img src="https://flagicons.lipis.dev/flags/4x3/{{ strtolower($match->homeTeam->iso_code) }}.svg"
                                          alt="{{ $match->homeTeam->name }}"
                                          class="w-12 h-12 object-contain rounded"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                                    <span class="text-2xl" style="display:none;">🏴</span>
-                                @else
-                                    <span class="text-2xl">🏴</span>
-                                @endif
-                            </div>
+                                         onerror="this.style.display='none'; this.parentElement.classList.add('bg-soboa-blue'); this.parentElement.innerHTML='<span class=\'text-3xl\'>\uD83C\uDFC1</span>';">
+                                </div>
+                            @else
+                                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-2 shadow-md">
+                                    <span class="text-3xl">🏁</span>
+                                </div>
+                            @endif
                             <h3 class="font-black text-lg text-gray-800">
                                 {{ $match->homeTeam ? $match->homeTeam->name : $match->team_a }}
                             </h3>
@@ -363,22 +372,60 @@
 
                         <!-- Équipe extérieure -->
                         <div class="flex-1 text-center">
-                            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
-                                @if($match->awayTeam && $match->awayTeam->iso_code)
-                                    <img src="https://flagcdn.com/w80/{{ strtolower($match->awayTeam->iso_code) }}.png"
+                            @if($match->awayTeam && $match->awayTeam->iso_code)
+                                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
+                                    <img src="https://flagicons.lipis.dev/flags/4x3/{{ strtolower($match->awayTeam->iso_code) }}.svg"
                                          alt="{{ $match->awayTeam->name }}"
                                          class="w-12 h-12 object-contain rounded"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                                    <span class="text-2xl" style="display:none;">🏴</span>
-                                @else
-                                    <span class="text-2xl">🏴</span>
-                                @endif
-                            </div>
+                                         onerror="this.style.display='none'; this.parentElement.classList.add('bg-soboa-blue'); this.parentElement.innerHTML='<span class=\'text-3xl\'>\uD83C\uDFC1</span>';">
+                                </div>
+                            @else
+                                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-2 shadow-md">
+                                    <span class="text-3xl">🏁</span>
+                                </div>
+                            @endif
                             <h3 class="font-black text-lg text-gray-800">
                                 {{ $match->awayTeam ? $match->awayTeam->name : $match->team_b }}
                             </h3>
                         </div>
                     </div>
+
+                    <!-- Points de vente où le match sera diffusé -->
+                    @if($match->animations && $match->animations->count() > 0)
+                        <div class="mb-6 pb-6 border-b">
+                            <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                <span>📍</span>
+                                <span>Diffusé dans {{ $match->animations->count() }} PDV</span>
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($match->animations->take(10) as $animation)
+                                    @php
+                                        $bar = $animation->bar;
+                                        $typeColors = [
+                                            'dakar' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'border' => 'border-blue-300', 'icon' => '🏙️'],
+                                            'regions' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'border' => 'border-green-300', 'icon' => '🗺️'],
+                                            'chr' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'border' => 'border-orange-300', 'icon' => '🍽️'],
+                                            'fanzone' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-800', 'border' => 'border-purple-300', 'icon' => '🎉'],
+                                        ];
+                                        $colors = $typeColors[$bar->type_pdv ?? 'dakar'] ?? $typeColors['dakar'];
+                                    @endphp
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border {{ $colors['bg'] }} {{ $colors['text'] }} {{ $colors['border'] }}">
+                                        <span>{{ $colors['icon'] }}</span>
+                                        <span>{{ $bar->name }}</span>
+                                        @if($bar->zone)
+                                            <span class="opacity-75">• {{ $bar->zone }}</span>
+                                        @endif
+                                    </span>
+                                @endforeach
+                                @if($match->animations->count() > 10)
+                                    <a href="/map" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition">
+                                        <span>+{{ $match->animations->count() - 10 }} autres</span>
+                                        <span>→</span>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Formulaire de pronostic -->
                     @if($match->status !== 'finished')
@@ -522,7 +569,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <div class="space-y-6">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     @foreach($matchesByPhase[$phaseKey] as $match)
                                         <div id="match-{{ $match->id }}"
                                             class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all border-2 border-gray-100
@@ -553,6 +600,14 @@
                                                         </span>
                                                     @endif
                                                 </div>
+                                                @if($match->stadium)
+                                                    <div class="px-6 pt-2 pb-1">
+                                                        <p class="text-xs text-white/80 flex items-center gap-1">
+                                                            <span>🏟️</span>
+                                                            <span>{{ $match->stadium }}</span>
+                                                        </p>
+                                                    </div>
+                                                @endif
                                             </div>
 
                                             <!-- Corps du match -->
@@ -561,14 +616,18 @@
                                                 <div class="flex items-center justify-between mb-6">
                                                     <!-- Équipe domicile -->
                                                     <div class="flex-1 text-center">
-                                                        <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
-                                                            @if($match->homeTeam && $match->homeTeam->flag_url)
-                                                                <img src="{{ $match->homeTeam->flag_url }}" alt="{{ $match->homeTeam->name }}"
-                                                                    class="w-12 h-12 object-contain">
-                                                            @else
-                                                                <span class="text-2xl">🏴</span>
-                                                            @endif
-                                                        </div>
+                                                        @if($match->homeTeam && $match->homeTeam->iso_code)
+                                                            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
+                                                                <img src="https://flagicons.lipis.dev/flags/4x3/{{ strtolower($match->homeTeam->iso_code) }}.svg"
+                                                                     alt="{{ $match->homeTeam->name }}"
+                                                                     class="w-12 h-12 object-contain rounded"
+                                                                     onerror="this.style.display='none'; this.parentElement.classList.add('bg-soboa-blue'); this.parentElement.innerHTML='<span class=\'text-3xl\'>\uD83C\uDFC1</span>';">
+                                                            </div>
+                                                        @else
+                                                            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-2 shadow-md">
+                                                                <span class="text-3xl">🏁</span>
+                                                            </div>
+                                                        @endif
                                                         <h3 class="font-black text-lg text-gray-800">
                                                             {{ $match->homeTeam ? $match->homeTeam->name : $match->team_a }}
                                                         </h3>
@@ -596,19 +655,60 @@
 
                                                     <!-- Équipe extérieure -->
                                                     <div class="flex-1 text-center">
-                                                        <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
-                                                            @if($match->awayTeam && $match->awayTeam->flag_url)
-                                                                <img src="{{ $match->awayTeam->flag_url }}" alt="{{ $match->awayTeam->name }}"
-                                                                    class="w-12 h-12 object-contain">
-                                                            @else
-                                                                <span class="text-2xl">🏴</span>
-                                                            @endif
-                                                        </div>
+                                                        @if($match->awayTeam && $match->awayTeam->iso_code)
+                                                            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-2">
+                                                                <img src="https://flagicons.lipis.dev/flags/4x3/{{ strtolower($match->awayTeam->iso_code) }}.svg"
+                                                                     alt="{{ $match->awayTeam->name }}"
+                                                                     class="w-12 h-12 object-contain rounded"
+                                                                     onerror="this.style.display='none'; this.parentElement.classList.add('bg-soboa-blue'); this.parentElement.innerHTML='<span class=\'text-3xl\'>\uD83C\uDFC1</span>';">
+                                                            </div>
+                                                        @else
+                                                            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-2 shadow-md">
+                                                                <span class="text-3xl">🏁</span>
+                                                            </div>
+                                                        @endif
                                                         <h3 class="font-black text-lg text-gray-800">
                                                             {{ $match->awayTeam ? $match->awayTeam->name : $match->team_b }}
                                                         </h3>
                                                     </div>
                                                 </div>
+
+                                                <!-- Points de vente où le match sera diffusé -->
+                                                @if($match->animations && $match->animations->count() > 0)
+                                                    <div class="mb-6 pb-6 border-b">
+                                                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                                            <span>📍</span>
+                                                            <span>Diffusé dans {{ $match->animations->count() }} PDV</span>
+                                                        </h4>
+                                                        <div class="flex flex-wrap gap-2">
+                                                            @foreach($match->animations->take(10) as $animation)
+                                                                @php
+                                                                    $bar = $animation->bar;
+                                                                    $typeColors = [
+                                                                        'dakar' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'border' => 'border-blue-300', 'icon' => '🏙️'],
+                                                                        'regions' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'border' => 'border-green-300', 'icon' => '🗺️'],
+                                                                        'chr' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'border' => 'border-orange-300', 'icon' => '🍽️'],
+                                                                        'fanzone' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-800', 'border' => 'border-purple-300', 'icon' => '🎉'],
+                                                                    ];
+                                                                    $colors = $typeColors[$bar->type_pdv ?? 'dakar'] ?? $typeColors['dakar'];
+                                                                @endphp
+                                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border {{ $colors['bg'] }} {{ $colors['text'] }} {{ $colors['border'] }}">
+                                                                    <span>{{ $colors['icon'] }}</span>
+                                                                    <span>{{ $bar->name }}</span>
+                                                                    @if($bar->zone)
+                                                                        <span class="opacity-75">• {{ $bar->zone }}</span>
+                                                                    @endif
+                                                                </span>
+                                                            @endforeach
+                                                            @if($match->animations->count() > 10)
+                                                                <a href="/map" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition">
+                                                                    <span>+{{ $match->animations->count() - 10 }} autres</span>
+                                                                    <span>→</span>
+                                                                </a>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endif
 
                                                 <!-- Formulaire de pronostic -->
                                                 @if($match->status !== 'finished')

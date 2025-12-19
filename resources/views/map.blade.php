@@ -466,7 +466,46 @@
                 </div>
 
                 <!-- Leaflet Map -->
-                <div id="map" class="h-[500px] w-full bg-gray-100"></div>
+                <div id="map" class="h-[500px] w-full bg-gray-100 rounded-t-lg"></div>
+
+                <!-- Légende -->
+                <div class="bg-white border-t-2 border-gray-200 rounded-b-lg p-4 shadow-lg">
+                    <div class="flex items-center justify-center gap-6 flex-wrap">
+                        <div class="text-sm font-bold text-gray-700 mr-2">Légende:</div>
+
+                        <!-- Dakar -->
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #3b82f6; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                <span class="text-base">🏙️</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">Points de vente Dakar</span>
+                        </div>
+
+                        <!-- Régions -->
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #22c55e; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                <span class="text-base">🗺️</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">Points de vente Régions</span>
+                        </div>
+
+                        <!-- CHR -->
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #f97316; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                <span class="text-base">🍽️</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">Cafés-Hôtel-Restaurants</span>
+                        </div>
+
+                        <!-- Fanzone -->
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #a855f7; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                <span class="text-base">🎉</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">Fanzones</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -486,14 +525,38 @@
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            // Custom marker icon using Gazelle logo
-            const venueIcon = L.icon({
-                iconUrl: '/images/logoGazelle.jpeg',
-                iconSize: [40, 40],
-                iconAnchor: [20, 40],
-                popupAnchor: [0, -40],
-                className: 'gazelle-marker'
-            });
+            // Function to create custom marker icon based on PDV type
+            function getVenueIcon(type) {
+                const iconConfig = {
+                    'dakar': { emoji: '🏙️', color: '#3b82f6' },      // Blue
+                    'regions': { emoji: '🗺️', color: '#22c55e' },   // Green
+                    'chr': { emoji: '🍽️', color: '#f97316' },       // Orange
+                    'fanzone': { emoji: '🎉', color: '#a855f7' }    // Purple
+                };
+
+                const config = iconConfig[type] || iconConfig['dakar'];
+
+                return L.divIcon({
+                    html: `
+                        <div style="background: ${config.color};
+                                    width: 40px;
+                                    height: 40px;
+                                    border-radius: 50% 50% 50% 0;
+                                    transform: rotate(-45deg);
+                                    border: 3px solid white;
+                                    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;">
+                            <span style="transform: rotate(45deg); font-size: 20px;">${config.emoji}</span>
+                        </div>
+                    `,
+                    className: 'custom-venue-marker',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    popupAnchor: [0, -40]
+                });
+            }
 
             // Add venue markers
             @foreach($venues as $venue)
@@ -506,7 +569,9 @@
                     ];
                     $badge = $typeBadges[$venue->type_pdv ?? 'dakar'] ?? $typeBadges['dakar'];
                 @endphp
-                L.marker([{{ $venue->latitude }}, {{ $venue->longitude }}], { icon: venueIcon })
+                L.marker([{{ $venue->latitude }}, {{ $venue->longitude }}], {
+                    icon: getVenueIcon('{{ $venue->type_pdv ?? "dakar" }}')
+                })
                     .addTo(map)
                     .bindPopup(`
                         <div style="min-width: 200px;">
@@ -536,7 +601,21 @@
             display: none !important;
         }
 
-        /* Style for Gazelle logo markers */
+        /* Style for custom venue markers */
+        .custom-venue-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .custom-venue-marker div {
+            transition: transform 0.2s ease;
+        }
+
+        .custom-venue-marker:hover div {
+            transform: rotate(-45deg) scale(1.1);
+        }
+
+        /* Old style for Gazelle logo markers (kept for compatibility) */
         .gazelle-marker {
             border-radius: 50%;
             border: 3px solid #E96611;

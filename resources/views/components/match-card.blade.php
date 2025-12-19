@@ -3,8 +3,8 @@
 @php
     $homeTeam = $match->homeTeam ?? null;
     $awayTeam = $match->awayTeam ?? null;
-    $homeFlag = $homeTeam ? "https://flagcdn.com/w80/{$homeTeam->iso_code}.png" : null;
-    $awayFlag = $awayTeam ? "https://flagcdn.com/w80/{$awayTeam->iso_code}.png" : null;
+    $homeFlag = $homeTeam ? "https://flagicons.lipis.dev/flags/4x3/{$homeTeam->iso_code}.svg" : null;
+    $awayFlag = $awayTeam ? "https://flagicons.lipis.dev/flags/4x3/{$awayTeam->iso_code}.svg" : null;
 
     // Determine if match is live, upcoming, or finished
     $isLive = $match->status === 'live';

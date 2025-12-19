@@ -91,7 +91,7 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $matches = $query->orderBy('match_date', 'asc')->get();
+        $matches = $query->orderBy('match_date', 'asc')->paginate(30)->withQueryString();
 
         return view('admin.matches', compact('matches'));
     }

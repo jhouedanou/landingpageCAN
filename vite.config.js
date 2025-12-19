@@ -1,5 +1,22 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import os from 'os';
+
+// Get local IP address for mobile testing
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            // Skip internal (loopback) and non-IPv4 addresses
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+
+const host = getLocalIP();
 
 export default defineConfig({
     plugins: [
@@ -19,8 +36,9 @@ export default defineConfig({
         port: 5173,
         strictPort: false,
         hmr: {
-            host: 'localhost',
+            host: host, // Dynamic IP for mobile access
             protocol: 'ws',
+            port: 5173,
         },
         watch: {
             usePolling: true,
