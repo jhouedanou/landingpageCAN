@@ -69,15 +69,20 @@ echo "✅ Deployment completed!"
 
 ## 📊 Résultats Attendus
 
-Après déploiement, vous devriez avoir:
+Après déploiement, vous devriez avoir **EXACTEMENT**:
 
 | Ressource | Quantité | Description |
 |-----------|----------|-------------|
 | **Teams** | 24 | Équipes nationales africaines |
 | **Stadiums** | 6+ | Stades de la CAN |
 | **Matches** | 25+ | Matchs de poules + knockout |
-| **Venues** | 60 | Points de vente avec coordonnées |
+| **Venues** | 60 | Points de vente avec coordonnées (cleanup activé) |
 | **Animations** | 62 | Liens venue-match valides |
+
+⚠️ **IMPORTANT - Option B activée** :
+- Le seeder va **supprimer** les venues qui ne sont pas dans le JSON
+- Si vous aviez 80 venues en production → Il restera **exactement 60** après déploiement
+- Les 20 venues supplémentaires seront **supprimés** ainsi que leurs animations liées
 
 ---
 
@@ -124,9 +129,10 @@ docker exec -w /app landingpagecan-laravel.test-1 php artisan tinker --execute="
     echo 'Teams: ' . \App\Models\Team::count() . ' (expected: 24)' . PHP_EOL;
     echo 'Stadiums: ' . \App\Models\Stadium::count() . PHP_EOL;
     echo 'Matches: ' . \App\Models\MatchGame::count() . ' (expected: 25+)' . PHP_EOL;
-    echo 'Venues: ' . \App\Models\Bar::count() . ' (expected: 60)' . PHP_EOL;
+    echo 'Venues: ' . \App\Models\Bar::count() . ' (expected: EXACTLY 60)' . PHP_EOL;
     echo 'Venues with coords: ' . \App\Models\Bar::whereNotNull('latitude')->count() . ' (expected: 60)' . PHP_EOL;
     echo 'Animations: ' . \App\Models\Animation::count() . ' (expected: 62+)' . PHP_EOL;
+    echo PHP_EOL . '⚠️  OPTION B: Cleanup enabled - Extra venues deleted' . PHP_EOL;
     echo PHP_EOL . '🔒 CRITICAL - User Data:' . PHP_EOL;
     echo 'Users: ' . \App\Models\User::count() . ' (MUST BE PRESERVED!)' . PHP_EOL;
     echo 'Predictions: ' . \App\Models\Prediction::count() . ' (MUST BE PRESERVED!)' . PHP_EOL;

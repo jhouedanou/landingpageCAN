@@ -200,14 +200,51 @@ class FixAnimationsSeeder extends Seeder
                 }
             }
 
+            // ==========================================
+            // CLEANUP: Remove venues NOT in JSON (Option B)
+            // ==========================================
+            $this->command->info("\n🧹 Cleaning up venues not in JSON...");
+
+            // Build list of venue names from JSON
+            $jsonVenueNames = array_map(function($item) {
+                return trim($item['venue_name']);
+            }, $data);
+
+            // Find venues NOT in JSON
+            $venuesToDelete = Bar::whereNotIn('name', $jsonVenueNames)->get();
+            $venuesDeleted = 0;
+            $animationsDeleted = 0;
+
+            if ($venuesToDelete->count() > 0) {
+                $this->command->warn("   Found {$venuesToDelete->count()} venues to delete:");
+
+                foreach ($venuesToDelete as $venue) {
+                    // Delete animations linked to this venue first
+                    $animCount = Animation::where('bar_id', $venue->id)->count();
+                    Animation::where('bar_id', $venue->id)->delete();
+                    $animationsDeleted += $animCount;
+
+                    $this->command->warn("   ❌ Deleting: {$venue->name} ({$animCount} animations)");
+
+                    // Delete the venue
+                    $venue->delete();
+                    $venuesDeleted++;
+                }
+
+                $this->command->info("   ✅ Deleted {$venuesDeleted} venues and {$animationsDeleted} animations");
+            } else {
+                $this->command->info("   ✅ No venues to delete (all venues match JSON)");
+            }
+
             DB::commit();
 
             // Summary
             $this->command->info("\n✅ FixAnimationsSeeder completed successfully!");
             $this->command->info("✨ Venues created: {$venuesCreated}");
             $this->command->info("📍 Venues updated: {$venuesUpdated}");
+            $this->command->info("❌ Venues deleted: {$venuesDeleted}");
             $this->command->info("🔗 Animations created/updated: {$animationsCreated}");
-            $this->command->info("📊 Total venues processed: " . ($venuesCreated + $venuesUpdated));
+            $this->command->info("📊 Final venue count: " . Bar::count() . " (expected: 60)");
 
             if (count($matchesNotFound) > 0) {
                 $this->command->warn("\n⚠️  Matches not found (" . count(array_unique($matchesNotFound)) . "):");
