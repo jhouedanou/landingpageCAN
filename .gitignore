@@ -13,3 +13,10 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 Thumbs.db
+
+# Fichiers de synchronisation et production
+.env.production
+/storage/backups/*.sql
+/storage/app/production_sync.json
+/storage/app/*_export_*.sql
+/storage/app/*_backup_*.sql
