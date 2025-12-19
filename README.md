@@ -89,8 +89,17 @@ UPDATE users SET role = 'admin' WHERE phone_number = '+225XXXXXXXXXX';
 - MySQL
 
 
-# Sur production
+# Sur Production
+cd /home/forge/landingpagecan-qlrx6mvs.on-forge.com/current && \
+php artisan db:backup && \
 php artisan migrate --force && \
-php artisan db:seed --class=ProductionSyncSeeder --import --force && \
+php artisan tinker --execute="DB::statement('SET FOREIGN_KEY_CHECKS=0');DB::table('animations')->truncate();DB::table('matches')->truncate();DB::table('bars')->truncate();DB::table('stadiums')->truncate();DB::table('teams')->truncate();DB::statement('SET FOREIGN_KEY_CHECKS=1');" && \
+php artisan db:seed --class=AllCANTeamsSeeder --force && \
+php artisan db:seed --class=StadiumSeeder --force && \
+php artisan db:seed --class=BarSeeder --force && \
+php artisan db:seed --class=MatchSeeder --force && \
+php artisan db:seed --class=AnimationSeeder --force && \
 php artisan cache:clear && \
-php artisan config:clear
+php artisan config:clear && \
+php artisan tinker --execute="echo 'Teams: '.\App\Models\Team::count().' | Venues: '.\App\Models\Bar::count().' | Matches: '.\App\Models\MatchGame::count();" && \
+echo "✅ Synchronisation terminée!"

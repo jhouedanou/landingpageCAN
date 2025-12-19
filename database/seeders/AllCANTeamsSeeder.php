@@ -64,6 +64,7 @@ class AllCANTeamsSeeder extends Seeder
                     [
                         'name' => $teamData['name'],
                         'iso_code' => $teamData['iso_code'],
+                        'group' => $teamData['group'] ?? null,
                     ]
                 );
 
