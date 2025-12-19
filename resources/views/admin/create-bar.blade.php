@@ -41,6 +41,33 @@
                                 </div>
 
                                 <div>
+                                    <label class="block text-gray-700 font-bold mb-2">Type de PDV *</label>
+                                    <select name="type_pdv" required
+                                            class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
+                                        <option value="dakar" {{ old('type_pdv', 'dakar') === 'dakar' ? 'selected' : '' }}>
+                                            🏙️ Points de vente Dakar
+                                        </option>
+                                        <option value="regions" {{ old('type_pdv') === 'regions' ? 'selected' : '' }}>
+                                            🗺️ Points de vente Régions
+                                        </option>
+                                        <option value="chr" {{ old('type_pdv') === 'chr' ? 'selected' : '' }}>
+                                            🍽️ Cafés-Hôtel-Restaurants (CHR)
+                                        </option>
+                                        <option value="fanzone" {{ old('type_pdv') === 'fanzone' ? 'selected' : '' }}>
+                                            🎉 Fanzones
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-gray-700 font-bold mb-2">Zone géographique</label>
+                                    <input type="text" name="zone" value="{{ old('zone') }}"
+                                           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue"
+                                           placeholder="Ex: Plateau, Almadies, Thiès...">
+                                    <p class="text-gray-500 text-xs mt-2">Quartier, ville ou région spécifique</p>
+                                </div>
+
+                                <div>
                                     <label class="block text-gray-700 font-bold mb-2">Adresse complète *</label>
                                     <div class="flex gap-2">
                                         <input type="text" name="address" value="{{ old('address') }}" required

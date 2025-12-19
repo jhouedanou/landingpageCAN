@@ -6,9 +6,10 @@ use App\Http\Controllers\Web\PredictionController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\AdminAuthController;
+use App\Http\Controllers\Admin\VenueController;
 
 // Pages publiques
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/venues', [HomeController::class, 'venues'])->name('venues');
 Route::get('/matches', [HomeController::class, 'matches'])->name('matches');
 Route::get('/leaderboard', [HomeController::class, 'leaderboard'])->name('leaderboard');
@@ -89,6 +90,11 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/bars/template/download', [AdminController::class, 'downloadBarsTemplate'])->name('download-bars-template');
     Route::post('/bars/import', [AdminController::class, 'importBars'])->name('import-bars');
     Route::get('/bars/{barId}/animations', [AdminController::class, 'barAnimations'])->name('bar-animations');
+
+    // Gestion segmentation PDV (nouvelle interface)
+    Route::resource('venues', VenueController::class);
+    Route::post('/venues/bulk-update-type', [VenueController::class, 'bulkUpdateType'])->name('venues.bulk-update-type');
+    Route::post('/venues/bulk-update-zone', [VenueController::class, 'bulkUpdateZone'])->name('venues.bulk-update-zone');
 
     // Animations (Venue-Match Links)
     Route::get('/animations', [AdminController::class, 'animations'])->name('animations');

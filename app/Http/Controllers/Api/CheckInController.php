@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bar;
+use App\Models\PointLog;
 use App\Services\PointsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class CheckInController extends Controller
 {
@@ -48,14 +50,43 @@ class CheckInController extends Controller
                 : "Bienvenue à {$foundBar->name} ! (Points déjà réclamés aujourd'hui)";
 
             return response()->json([
+                'success' => true,
                 'message' => $message,
                 'points_awarded' => $pointsAwarded,
-                'total_points' => $user->points_total,
-                'bar_name' => $foundBar->name
+                'user_points_total' => $user->points_total,
+                'bar_name' => $foundBar->name,
+                'venue_id' => $foundBar->id
             ]);
         }
 
-        return response()->json(['message' => 'No bar found nearby'], 404);
+        return response()->json([
+            'success' => false,
+            'message' => 'Aucun PDV trouvé à proximité'
+        ], 404);
+    }
+
+    /**
+     * Vérifier si l'utilisateur a déjà fait son check-in aujourd'hui pour ce venue
+     */
+    public function checkStatus(Request $request)
+    {
+        $request->validate([
+            'venue_id' => 'required|exists:bars,id',
+        ]);
+
+        $user = Auth::user();
+        
+        // Vérifier si un check-in existe aujourd'hui pour ce venue
+        $todayCheckIn = PointLog::where('user_id', $user->id)
+            ->where('bar_id', $request->venue_id)
+            ->where('source', 'venue_visit')
+            ->whereDate('created_at', Carbon::today())
+            ->first();
+
+        return response()->json([
+            'already_checked_in' => $todayCheckIn !== null,
+            'venue_id' => $request->venue_id,
+        ]);
     }
 
     /**

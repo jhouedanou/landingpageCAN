@@ -199,23 +199,23 @@
 
         <!-- Content -->
         <div class="relative z-[10] text-center px-4 max-w-5xl mx-auto">
-            <!-- Branding Badge -->
+            <!-- Branding Badge with Animation -->
             <div
-                class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 mb-8 border border-white/20 shadow-2xl">
-                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center p-2 mb-3 shadow-inner">
-                    <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-contain">
+                class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 mb-8 border border-white/20 shadow-2xl animate-fade-in-down">
+                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3 mb-3 shadow-inner overflow-hidden">
+                    <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
                 </div>
                 <span
-                    class="text-white font-black text-2xl md:text-3xl tracking-tighter uppercase leading-none">GAZELLE</span>
+                    class="text-white font-black text-3xl md:text-4xl tracking-tighter uppercase leading-none animate-glow hero-title">GAZELLE</span>
                 <span
-                    class="text-soboa-orange font-bold text-xs md:text-sm tracking-[0.2em] uppercase mt-1 opacity-90">Le
+                    class="text-soboa-orange font-bold text-sm md:text-base tracking-[0.3em] uppercase mt-2 opacity-90 animate-pulse-soft">Le
                     goût de notre victoire</span>
             </div>
 
-            <!-- Main Heading -->
-            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-tight uppercase">
-                Pronostiquez<br>
-                <span class="gradient-text">& Gagnez!</span>
+            <!-- Main Heading with Impact Typography -->
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight uppercase animate-fade-in-up" style="font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em;">
+                <span class="inline-block animate-slide-right">Pronostiquez</span><br>
+                <span class="gradient-text inline-block animate-slide-left text-6xl md:text-8xl lg:text-9xl" style="text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);">& Gagnez!</span>
             </h1>
 
             <p class="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">

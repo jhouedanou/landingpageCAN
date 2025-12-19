@@ -15,7 +15,13 @@ class Prediction extends Model
         'predicted_winner',
         'score_a',
         'score_b',
+        'predict_draw',
+        'penalty_winner',
         'points_earned',
+    ];
+
+    protected $casts = [
+        'predict_draw' => 'boolean',
     ];
 
     public function user()

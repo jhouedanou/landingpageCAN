@@ -10,6 +10,8 @@
                 'latitude' => $venue->latitude,
                 'longitude' => $venue->longitude,
                 'is_active' => $venue->is_active,
+                'type_pdv' => $venue->type_pdv ?? 'dakar',
+                'type_pdv_name' => $venue->type_pdv_name ?? 'Points de vente Dakar',
                 'animations' => $venue->animations->filter(fn($a) => $a->match)->map(function ($animation) {
                     $match = $animation->match;
 
@@ -349,9 +351,26 @@
                                     <div
                                         class="bg-gradient-to-br from-soboa-orange/5 to-soboa-blue/5 rounded-xl p-4 border border-soboa-orange/20 hover:border-soboa-orange/50 transition">
                                         <div class="flex items-start gap-3 mb-3">
-                                            <span class="text-2xl">📍</span>
+                                            <span class="text-2xl" x-text="
+                                                venue.type_pdv === 'dakar' ? '🏙️' :
+                                                venue.type_pdv === 'regions' ? '🗺️' :
+                                                venue.type_pdv === 'chr' ? '🍽️' :
+                                                venue.type_pdv === 'fanzone' ? '🎉' : '📍'
+                                            "></span>
                                             <div class="flex-1">
-                                                <h3 class="font-bold text-soboa-blue" x-text="venue.name"></h3>
+                                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                                    <h3 class="font-bold text-soboa-blue" x-text="venue.name"></h3>
+                                                    <span 
+                                                        class="text-xs font-bold px-2 py-0.5 rounded-full"
+                                                        :class="{
+                                                            'bg-blue-100 text-blue-800': venue.type_pdv === 'dakar',
+                                                            'bg-green-100 text-green-800': venue.type_pdv === 'regions',
+                                                            'bg-orange-100 text-orange-800': venue.type_pdv === 'chr',
+                                                            'bg-purple-100 text-purple-800': venue.type_pdv === 'fanzone'
+                                                        }"
+                                                        x-text="venue.type_pdv_name">
+                                                    </span>
+                                                </div>
                                                 <p class="text-gray-600 text-sm" x-text="venue.zone || venue.address">
                                                 </p>
 
@@ -478,9 +497,36 @@
 
             // Add venue markers
             @foreach($venues as $venue)
+                @php
+                    $typeBadges = [
+                        'dakar' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'icon' => '🏙️', 'label' => 'Dakar'],
+                        'regions' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => '🗺️', 'label' => 'Régions'],
+                        'chr' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'icon' => '🍽️', 'label' => 'CHR'],
+                        'fanzone' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-800', 'icon' => '🎉', 'label' => 'Fanzone'],
+                    ];
+                    $badge = $typeBadges[$venue->type_pdv ?? 'dakar'] ?? $typeBadges['dakar'];
+                @endphp
                 L.marker([{{ $venue->latitude }}, {{ $venue->longitude }}], { icon: venueIcon })
                     .addTo(map)
-                    .bindPopup('<strong>{{ $venue->name }}</strong><br>{{ $venue->address }}');
+                    .bindPopup(`
+                        <div style="min-width: 200px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <span style="font-size: 20px;">{{ $badge['icon'] }}</span>
+                                <strong style="font-size: 16px; color: #003399;">{{ $venue->name }}</strong>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <span style="display: inline-block; background-color: {{ $badge['bg'] === 'bg-blue-100' ? '#dbeafe' : ($badge['bg'] === 'bg-green-100' ? '#dcfce7' : ($badge['bg'] === 'bg-orange-100' ? '#ffedd5' : '#f3e8ff')) }}; 
+                                       color: {{ $badge['text'] === 'text-blue-800' ? '#1e40af' : ($badge['text'] === 'text-green-800' ? '#166534' : ($badge['text'] === 'text-orange-800' ? '#9a3412' : '#6b21a8')) }}; 
+                                       padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">
+                                    {{ $badge['label'] }}
+                                </span>
+                            </div>
+                            @if($venue->zone)
+                                <p style="color: #666; font-size: 13px; margin: 4px 0;">📍 {{ $venue->zone }}</p>
+                            @endif
+                            <p style="color: #666; font-size: 13px; margin: 4px 0;">{{ $venue->address }}</p>
+                        </div>
+                    `);
             @endforeach
         });
     </script>

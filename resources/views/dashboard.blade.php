@@ -33,7 +33,7 @@
 
         <!-- Stats Cards -->
         <div class="max-w-7xl mx-auto px-4 -mt-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 fold:grid-cols-2 md:grid-cols-4 gap-3 fold:gap-4">
                 <div class="bg-white rounded-xl p-4 shadow-lg text-center">
                     <span class="text-3xl">🏆</span>
                     <p class="text-2xl font-black text-soboa-blue mt-2">{{ $rank ?? '--' }}</p>

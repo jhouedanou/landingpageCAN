@@ -21,8 +21,31 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Cache Control optimisé pour bfcache et performance -->
+    <meta http-equiv="Cache-Control" content="public, max-age=600, stale-while-revalidate=300">
+    
+    <!-- Prefetch DNS pour ressources externes -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    
+    <!-- Preconnect pour ressources critiques -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Prefetch des pages principales pour navigation rapide -->
+    @if(request()->route()->getName() !== 'home')
+        <link rel="prefetch" href="{{ route('home') }}" as="document">
+    @endif
+    @if(request()->route()->getName() !== 'matches')
+        <link rel="prefetch" href="{{ route('matches') }}" as="document">
+    @endif
+    @if(request()->route()->getName() !== 'leaderboard')
+        <link rel="prefetch" href="{{ route('leaderboard') }}" as="document">
+    @endif
+    
     <title>SOBOA FOOT TIME | {{ $title ?? 'Accueil' }}</title>
     <meta name="description"
         content="Le jeu commence ici ! Pronostiquez les matchs, gagnez des points et devenez le meilleur pronostiqueur !">
@@ -84,6 +107,36 @@
 
         .bg-pattern {
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23121212' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Landscape mode optimizations for navigation */
+        @media (max-height: 600px) and (orientation: landscape) {
+            nav {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            
+            nav .w-12, nav .h-12 {
+                width: 2.5rem !important;
+                height: 2.5rem !important;
+            }
+            
+            nav .w-16, nav .h-16 {
+                width: 3rem !important;
+                height: 3rem !important;
+            }
+            
+            nav .text-xl {
+                font-size: 1rem !important;
+            }
+            
+            nav .text-2xl {
+                font-size: 1.25rem !important;
+            }
+            
+            main {
+                padding-top: 70px !important;
+            }
         }
 
         .glass {
@@ -271,8 +324,8 @@
     <!-- Navigation -->
     <nav
         class="fixed top-0 left-0 right-0 z-[1001] transition-all duration-300 bg-soboa-orange backdrop-blur-md shadow-xl border-b border-black/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between py-4">
+        <div class="max-w-7xl mx-auto px-3 fold:px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between py-3 fold:py-4 gap-2">
                 <!-- Logo -->
                 <a href="/" class="flex items-center gap-3 group">
                     <div
@@ -291,13 +344,13 @@
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center gap-1">
                     <a href="/"
-                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-black/10 rounded-lg font-semibold text-sm transition-all">Accueil</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Accueil</a>
                     <a href="/matches"
-                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-black/10 rounded-lg font-semibold text-sm transition-all">Pronostics</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Pronostics</a>
                     <a href="/leaderboard"
-                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-black/10 rounded-lg font-semibold text-sm transition-all">Classement</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Classement</a>
                     <a href="/map"
-                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-black/10 rounded-lg font-semibold text-sm transition-all">Lieux</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Lieux</a>
                 </div>
 
                 <!-- User Actions -->
@@ -305,7 +358,7 @@
                     @if(session('user_id'))
                         <div class="hidden md:flex items-center gap-3">
                             <a href="/mes-pronostics"
-                                class="px-3 py-1.5 bg-black/10 text-black hover:bg-black/20 hover:text-black rounded-lg font-bold text-sm transition-all">
+                                class="px-3 py-1.5 bg-soboa-blue/10 text-black hover:bg-soboa-blue/20 hover:text-black rounded-lg font-bold text-sm transition-all">
                                 📋 Mes Pronostics
                             </a>
                             <a href="/dashboard"
@@ -317,7 +370,7 @@
                                         Compte</span>
                                 </div>
                                 <div
-                                    class="bg-gradient-to-r from-black to-gray-800 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-black/20 hover:shadow-black/40 transition-all transform hover:scale-105 ring-1 ring-black/10">
+                                    class="bg-gradient-to-r from-soboa-blue to-gray-800 pl-3 pr-2 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-black/20 hover:shadow-black/40 transition-all transform hover:scale-105 ring-1 ring-black/10">
                                     <span class="text-white font-black text-sm" data-user-points>{{ $userPoints }}</span>
                                     <span class="text-white/90 text-[10px] font-bold uppercase">pts</span>
                                     <div class="bg-white/10 rounded-full w-5 h-5 flex items-center justify-center ml-0.5">
@@ -329,14 +382,14 @@
                         </div>
                     @else
                         <a href="/login"
-                            class="hidden md:inline-flex bg-black hover:bg-gray-800 text-white font-bold py-2.5 px-6 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            class="hidden md:inline-flex bg-soboa-blue hover:bg-gray-800 text-white font-bold py-2.5 px-6 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
                             Jouer maintenant
                         </a>
                     @endif
 
                     <!-- Mobile Menu Button -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen"
-                        class="md:hidden p-2 text-black hover:bg-black/10 rounded-lg transition-colors">
+                        class="md:hidden p-2 text-black hover:bg-soboa-blue/10 rounded-lg transition-colors">
                         <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -360,41 +413,41 @@
             class="md:hidden bg-soboa-orange border-t border-black/10 relative z-[100]">
             <div class="px-4 py-4 space-y-2">
                 <a href="/"
-                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                     Accueil</a>
                 <a href="/matches"
-                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                     Pronostics</a>
                 <a href="/leaderboard"
-                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                     Classement</a>
                 <a href="/map"
-                    class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
+                    class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                     Lieux partenaires</a>
 
                 @if(session('user_id'))
                     <div class="pt-4 border-t border-black/10">
                         <a href="/mes-pronostics"
-                            class="block px-4 py-3 text-black hover:bg-black/10 rounded-lg font-semibold transition-colors">
+                            class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                             📋 Mes Pronostics
                         </a>
                         <a href="/dashboard"
-                            class="px-4 py-3 flex items-center justify-between hover:bg-black/10 rounded-lg transition-colors group">
+                            class="px-4 py-3 flex items-center justify-between hover:bg-soboa-blue/10 rounded-lg transition-colors group">
                             <span
                                 class="text-black group-hover:text-white font-bold transition-colors">{{ session('predictor_name') }}</span>
                             <div
-                                class="bg-gradient-to-r from-black to-gray-800 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                class="bg-gradient-to-r from-soboa-blue to-gray-800 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
                                 <span class="text-white font-black text-sm" data-user-points>{{ $userPoints }}</span>
                                 <span class="text-white/80 text-xs font-bold uppercase">pts</span>
                             </div>
                         </a>
                         <a href="/logout"
-                            class="block px-4 py-3 text-red-600 hover:bg-black/10 rounded-lg font-semibold transition-colors">Déconnexion</a>
+                            class="block px-4 py-3 text-red-600 hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">Déconnexion</a>
                     </div>
                 @else
                     <div class="pt-4">
                         <a href="/login"
-                            class="block w-full bg-black hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg text-center shadow-lg transition-colors">
+                            class="block w-full bg-soboa-blue hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg text-center shadow-lg transition-colors">
                             Jouer maintenant
                         </a>
                     </div>
@@ -404,9 +457,19 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-[120px]">
+    <main class="flex-grow pt-[100px]">
         {{ $slot }}
     </main>
+
+    <!-- Geolocation Banner (Auto-detect) -->
+    @if(session('user_id'))
+        @php
+            $activeVenues = \App\Models\Bar::where('is_active', true)
+                ->select(['id', 'name', 'zone', 'latitude', 'longitude', 'type_pdv'])
+                ->get();
+        @endphp
+        <x-geolocation-banner :venues="$activeVenues" />
+    @endif
 
     <!-- Footer -->
     <footer class="bg-soboa-blue text-white py-8 mt-auto">
@@ -466,9 +529,12 @@
     </div>
 
     <script>
-        // Optimized Page Transitions Logic
-        window.addEventListener('DOMContentLoaded', () => {
+        // Optimized Page Transitions Logic with Better Back Button Handling
+        (function() {
             const loader = document.getElementById('page-loader');
+            
+            // Performance optimization: Store initial state
+            const initialLoadTime = performance.now();
 
             // Function to hide loader with a slight fade
             const hideLoader = () => {
@@ -476,46 +542,109 @@
                     loader.classList.add('opacity-0');
                     setTimeout(() => {
                         loader.classList.add('pointer-events-none');
-                    }, 300); // Wait for transition
+                    }, 300);
                 }
             };
 
-            // Hide loader immediately (bfcache handle will cover back nav)
-            hideLoader();
+            // Function to show loader
+            const showLoader = () => {
+                if (loader) {
+                    loader.classList.remove('opacity-0', 'pointer-events-none');
+                }
+            };
 
-            // Handle browser back/forward cache (bfcache)
+            // Hide loader on initial load
+            if (document.readyState === 'loading') {
+                window.addEventListener('DOMContentLoaded', hideLoader);
+            } else {
+                hideLoader();
+            }
+
+            // Handle browser back/forward cache (bfcache) - CRITICAL for back button
             window.addEventListener('pageshow', (event) => {
                 if (event.persisted) {
-                    // Page was restored from cache (User hit "Back")
+                    // Page was restored from bfcache (User hit "Back" or "Forward")
+                    console.log('[GAZELLE] Page restored from bfcache - Instant load!');
                     hideLoader();
+                    
+                    // Restore dynamic content from sessionStorage
+                    try {
+                        const cachedPoints = sessionStorage.getItem('user_points');
+                        if (cachedPoints) {
+                            document.querySelectorAll('[data-user-points]').forEach(el => {
+                                el.textContent = cachedPoints;
+                            });
+                        }
+                        
+                        // Restaurer l'état de la bulle géo si elle existe
+                        const geoState = sessionStorage.getItem('geo_state');
+                        if (geoState && typeof window.showGeoState === 'function') {
+                            window.showGeoState(geoState);
+                        }
+                    } catch (e) {
+                        console.warn('[GAZELLE] Erreur restauration cache:', e);
+                    }
+                    
+                    // Force scroll restoration
+                    if (history.scrollRestoration) {
+                        history.scrollRestoration = 'auto';
+                    }
                 }
             });
 
-            // Show loader on link click for better "perceived" speed on slow connections
-            document.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    const href = link.getAttribute('href');
-
-                    // Conditions to show loader:
-                    // 1. Internal link (starts with / or current domain)
-                    // 2. Not an anchor (#)
-                    // 3. Not a JS action (javascript:)
-                    // 4. Not opening in a new tab (_blank)
-                    // 5. Not a download link
-                    if (href && href.startsWith('/') &&
-                        !href.startsWith('#') &&
-                        !href.includes(':') &&
-                        !link.hasAttribute('target') &&
-                        !link.hasAttribute('download')) {
-
-                        // Check if it's the same URL (no need to show loader)
-                        if (href === window.location.pathname) return;
-
-                        loader.classList.remove('opacity-0', 'pointer-events-none');
+            // Handle page hide (before unload) - Prepare for bfcache
+            window.addEventListener('pagehide', () => {
+                // Store current state in sessionStorage for bfcache restore
+                try {
+                    const pointsElement = document.querySelector('[data-user-points]');
+                    if (pointsElement) {
+                        sessionStorage.setItem('user_points', pointsElement.textContent);
                     }
-                });
+                    
+                    // Stocker l'état de la géolocalisation
+                    if (window.currentGeoState) {
+                        sessionStorage.setItem('geo_state', window.currentGeoState);
+                    }
+                } catch (e) {
+                    console.warn('[GAZELLE] Erreur sauvegarde cache:', e);
+                }
             });
-        });
+            
+            // Optimisation: Passive event listeners pour meilleure performance
+            document.addEventListener('touchstart', () => {}, { passive: true });
+            document.addEventListener('touchmove', () => {}, { passive: true });
+
+            // Show loader on link click for better "perceived" speed
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!link) return;
+
+                const href = link.getAttribute('href');
+
+                // Conditions to show loader:
+                // 1. Internal link (starts with / or current domain)
+                // 2. Not an anchor (#)
+                // 3. Not a JS action (javascript:)
+                // 4. Not opening in a new tab (_blank)
+                // 5. Not a download link
+                // 6. Not a form submit button
+                if (href && href.startsWith('/') &&
+                    !href.startsWith('#') &&
+                    !href.includes(':') &&
+                    !link.hasAttribute('target') &&
+                    !link.hasAttribute('download') &&
+                    !link.closest('form')) {
+
+                    // Check if it's the same URL (no need to show loader)
+                    if (href === window.location.pathname) return;
+
+                    // Only show loader if initial load completed (avoid flash on fast loads)
+                    if (performance.now() - initialLoadTime > 500) {
+                        showLoader();
+                    }
+                }
+            }, true); // Use capture phase for better performance
+        })();
     </script>
 
     <style>

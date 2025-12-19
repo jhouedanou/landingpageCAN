@@ -28,16 +28,23 @@ class PredictionController extends Controller
             'match_id' => 'required|exists:matches,id',
             'score_a' => 'required|integer|min:0|max:20',
             'score_b' => 'required|integer|min:0|max:20',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        // Vérification du geofencing - L'utilisateur doit être à moins de 50m d'un point de vente
-        $userLat = (float) $request->latitude;
-        $userLng = (float) $request->longitude;
-        $nearbyVenue = $this->geolocationService->findNearbyVenue($userLat, $userLng);
+        // Check if venue geofencing is required
+        $requireVenue = config('game.require_venue_geofencing', false);
+        $nearbyVenue = null;
 
-        if (!$nearbyVenue) {
+        // Check for nearby venue if coordinates provided
+        if ($request->latitude && $request->longitude) {
+            $userLat = (float) $request->latitude;
+            $userLng = (float) $request->longitude;
+            $nearbyVenue = $this->geolocationService->findNearbyVenue($userLat, $userLng);
+        }
+
+        // If venue is required but not found, return error
+        if ($requireVenue && !$nearbyVenue) {
             return response()->json([
                 'error' => 'Vous devez être à moins de 200 mètres d\'un point de vente pour faire un pronostic.',
                 'geofencing_required' => true,
@@ -88,8 +95,11 @@ class PredictionController extends Controller
 
         $isNewPrediction = $prediction->wasRecentlyCreated;
 
-        // Award 4 points for making a prediction in a venue (1x/day)
-        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $nearbyVenue->id);
+        // Award bonus points if prediction made from a venue (optional)
+        $venuePointsAwarded = 0;
+        if ($nearbyVenue) {
+            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $nearbyVenue->id);
+        }
 
         // Refresh user to get updated points_total
         $user->refresh();

@@ -83,33 +83,22 @@ class HomeController extends Controller
 
     public function matches(Request $request)
     {
-        // Vérifier si un point de vente est sélectionné
-        $venueId = $request->query('venue') ?? session('selected_venue_id');
-        $selectedVenue = null;
-
-        if ($venueId) {
-            $selectedVenue = Bar::find($venueId);
-            if ($selectedVenue) {
-                session(['selected_venue_id' => $venueId]);
-            }
-        }
-
-        // Si pas de point de vente sélectionné, rediriger vers la sélection
-        if (!$selectedVenue) {
-            return redirect()->route('venues')->with('error', 'Veuillez d\'abord sélectionner un point de vente.');
-        }
-
-        // Récupérer uniquement les matchs assignés à ce lieu via les animations
-        $animations = Animation::where('bar_id', $selectedVenue->id)
-            ->where('is_active', true)
-            ->with(['match.homeTeam', 'match.awayTeam'])
-            ->orderBy('animation_date', 'asc')
+        // Afficher TOUS les matchs (accès universel)
+        // La géolocalisation sera détectée automatiquement en arrière-plan pour le bonus
+        $allMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->where('match_date', '>=', now()->subDays(1)) // Matchs d'hier à aujourd'hui et futurs
+            ->orderBy('phase', 'asc')
+            ->orderBy('match_date', 'asc')
             ->get();
 
-        // Extraire les matchs des animations
-        $venueMatches = $animations->map(function ($animation) {
-            return $animation->match;
-        })->unique('id');
+        // Grouper les matchs par phase
+        $matchesByPhase = $allMatches->groupBy('phase');
+
+        // Pour la phase de poules, grouper aussi par groupe
+        $groupStageByGroup = collect();
+        if (isset($matchesByPhase['group_stage'])) {
+            $groupStageByGroup = $matchesByPhase['group_stage']->groupBy('group_name')->sortKeys();
+        }
 
         // Récupérer les pronostics de l'utilisateur connecté
         $userPredictions = [];
@@ -124,7 +113,20 @@ class HomeController extends Controller
         $settings = SiteSetting::with('favoriteTeam')->first();
         $favoriteTeamId = $settings?->favorite_team_id;
 
-        return view('matches', compact('venueMatches', 'userPredictions', 'selectedVenue', 'favoriteTeamId'));
+        // Récupérer tous les PDVs actifs pour la détection géo
+        $activeVenues = Bar::where('is_active', true)->get();
+
+        // Définir l'ordre et les noms des phases
+        $phaseOrder = [
+            'group_stage' => 'Phase de Poules',
+            'round_of_16' => '1/8e de Finale',
+            'quarter_final' => 'Quarts de Finale',
+            'semi_final' => 'Demi-Finales',
+            'third_place' => 'Match pour la 3e Place',
+            'final' => 'Finale',
+        ];
+
+        return view('matches', compact('matchesByPhase', 'groupStageByGroup', 'userPredictions', 'favoriteTeamId', 'activeVenues', 'phaseOrder'));
     }
 
     public function leaderboard()

@@ -33,25 +33,31 @@ class PredictionController extends Controller
             'match_id' => 'required|exists:matches,id',
             'score_a' => 'required|integer|min:0|max:20',
             'score_b' => 'required|integer|min:0|max:20',
-            'venue_id' => 'required|exists:bars,id',
+            'venue_id' => 'nullable|exists:bars,id', // Venue is now optional
+            'predict_draw' => 'nullable|boolean',
+            'penalty_winner' => 'nullable|in:home,away',
         ]);
 
-        // Vérifier que le point de vente est valide et actif
-        $venue = Bar::where('id', $request->venue_id)->where('is_active', true)->first();
+        // Check if venue geofencing is required
+        $requireVenue = config('game.require_venue_geofencing', false);
+        $venue = null;
 
-        if (!$venue) {
-            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json(['message' => 'Veuillez sélectionner un point de vente valide.'], 422);
-            }
-            return redirect()->route('venues')->with('error', 'Veuillez sélectionner un point de vente valide.');
-        }
+        if ($request->venue_id) {
+            // User provided a venue - validate it
+            $venue = Bar::where('id', $request->venue_id)->where('is_active', true)->first();
 
-        // Vérifier que le point de vente en session correspond
-        if (session('selected_venue_id') != $request->venue_id) {
-            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json(['message' => 'Veuillez vérifier votre position au point de vente.'], 422);
+            if (!$venue) {
+                if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                    return response()->json(['message' => 'Le point de vente sélectionné n\'est pas valide.'], 422);
+                }
+                return back()->with('error', 'Le point de vente sélectionné n\'est pas valide.');
             }
-            return redirect()->route('venues')->with('error', 'Veuillez vérifier votre position au point de vente.');
+        } elseif ($requireVenue) {
+            // Venue is required but not provided
+            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['message' => 'Veuillez sélectionner un point de vente.'], 422);
+            }
+            return redirect()->route('venues')->with('error', 'Veuillez sélectionner un point de vente pour pronostiquer.');
         }
 
         $match = MatchGame::findOrFail($request->match_id);
@@ -72,21 +78,27 @@ class PredictionController extends Controller
             return back()->with('error', 'Ce match est en cours. Les pronostics sont fermés.');
         }
 
-        // Lock predictions 5 minutes before match starts
-        $lockTime = $match->match_date->copy()->subMinutes(5);
+        // Lock predictions 15 minutes before match starts
+        $lockTime = $match->match_date->copy()->subMinutes(15);
         if (now()->gte($lockTime)) {
             if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json(['message' => 'Les pronostics sont fermés 5 minutes avant le début du match.'], 422);
+                return response()->json(['message' => 'Les pronostics sont fermés 15 minutes avant le début du match.'], 422);
             }
-            return back()->with('error', 'Les pronostics sont fermés 5 minutes avant le début du match.');
+            return back()->with('error', 'Les pronostics sont fermés 15 minutes avant le début du match.');
         }
 
         // Déterminer le gagnant prédit
         $predictedWinner = 'draw';
+        $predictDraw = $request->predict_draw ?? false;
+        $penaltyWinner = $request->penalty_winner;
+
         if ($request->score_a > $request->score_b) {
             $predictedWinner = 'home';
         } elseif ($request->score_b > $request->score_a) {
             $predictedWinner = 'away';
+        } elseif ($predictDraw && $penaltyWinner) {
+            // Égalité avec tirs au but - utiliser le vainqueur TAB
+            $predictedWinner = $penaltyWinner;
         }
 
         // Vérifier si l'utilisateur a déjà pronostiqué sur ce match
@@ -100,12 +112,17 @@ class PredictionController extends Controller
                 'predicted_winner' => $predictedWinner,
                 'score_a' => $request->score_a,
                 'score_b' => $request->score_b,
+                'predict_draw' => $predictDraw,
+                'penalty_winner' => $penaltyWinner,
             ]);
 
             $user = User::find($userId);
 
-            // Award 4 points for making a prediction in a venue (1x/day)
-            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $venue->id);
+            // Award bonus points if prediction made from a venue (optional)
+            $venuePointsAwarded = 0;
+            if ($venue) {
+                $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $venue->id);
+            }
 
             // Refresh user to get updated points_total
             $user->refresh();
@@ -123,16 +140,25 @@ class PredictionController extends Controller
                     'message' => $successMessage,
                     'whatsapp_sent' => $whatsappResult['success'] ?? false,
                     'teams' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b,
-                    'venue' => $venue->name,
+                    'venue' => $venue ? $venue->name : null,
                     'venue_bonus_points' => $venuePointsAwarded,
                     'user_points_total' => $user->points_total
                 ], 200);
             }
 
+            $description = $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b;
+            if ($venue) {
+                $description .= ' (depuis ' . $venue->name . ')';
+            }
+            $description .= ' • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !';
+            if ($venuePointsAwarded > 0) {
+                $description .= ' + ' . $venuePointsAwarded . ' pts venue bonus 🎉';
+            }
+
             return back()->with('toast', json_encode([
                 'type' => 'success',
                 'message' => 'Pronostic modifié ! ✏️',
-                'description' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b . ' (depuis ' . $venue->name . ') • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !' . ($venuePointsAwarded > 0 ? ' + ' . $venuePointsAwarded . ' pts venue' : '')
+                'description' => $description
             ]));
         }
 
@@ -143,12 +169,17 @@ class PredictionController extends Controller
             'predicted_winner' => $predictedWinner,
             'score_a' => $request->score_a,
             'score_b' => $request->score_b,
+            'predict_draw' => $predictDraw,
+            'penalty_winner' => $penaltyWinner,
         ]);
 
         $user = User::find($userId);
 
-        // Award 4 points for making a prediction in a venue (1x/day)
-        $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $venue->id);
+        // Award bonus points if prediction made from a venue (optional)
+        $venuePointsAwarded = 0;
+        if ($venue) {
+            $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $venue->id);
+        }
 
         // Refresh user to get updated points_total
         $user->refresh();
@@ -166,16 +197,25 @@ class PredictionController extends Controller
                 'message' => $successMessage,
                 'whatsapp_sent' => $whatsappResult['success'] ?? false,
                 'teams' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b,
-                'venue' => $venue->name,
+                'venue' => $venue ? $venue->name : null,
                 'venue_bonus_points' => $venuePointsAwarded,
                 'user_points_total' => $user->points_total
             ], 200);
         }
 
+        $description = $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b;
+        if ($venue) {
+            $description .= ' (depuis ' . $venue->name . ')';
+        }
+        $description .= ' • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !';
+        if ($venuePointsAwarded > 0) {
+            $description .= ' + ' . $venuePointsAwarded . ' pts venue bonus 🎉';
+        }
+
         return back()->with('toast', json_encode([
             'type' => 'success',
             'message' => 'Pronostic enregistré ! 🎯',
-            'description' => $match->team_a . ' ' . $request->score_a . ' - ' . $request->score_b . ' ' . $match->team_b . ' (depuis ' . $venue->name . ') • +1 pt participation garanti + jusqu\'à 6 pts bonus si exact !' . ($venuePointsAwarded > 0 ? ' + ' . $venuePointsAwarded . ' pts venue' : '')
+            'description' => $description
         ]));
     }
 

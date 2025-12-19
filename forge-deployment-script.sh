@@ -2,16 +2,17 @@
 
 # ==========================================
 # SCRIPT DE DÉPLOIEMENT FORGE - PRODUCTION
+# GAZELLE - Le goût de notre victoire
 # ==========================================
 
 $CREATE_RELEASE()
 
 cd $FORGE_RELEASE_DIRECTORY
 
-# Installation des dépendances PHP
+echo "📦 Installation des dépendances PHP..."
 $FORGE_COMPOSER install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-# Installation et build du frontend
+echo "🎨 Installation et build du frontend (avec responsive fixes)..."
 npm ci
 npm run build
 
@@ -23,13 +24,15 @@ echo "🔄 Running migrations..."
 $FORGE_PHP artisan migrate --force
 
 # ==========================================
-# PRODUCTION-SAFE SEEDING
+# FRESH DEPLOYMENT SEEDING (WITH CSV DATA)
 # ==========================================
-# Uses ProductionSafeSeeder instead of individual seeders
-# CRITICAL: Preserves users and predictions (no truncate!)
+# Uses FreshDeploymentSeeder to import fresh data from venues.csv
+# ✅ Preserves: users (user data intact)
+# 🔄 Refreshes: teams, matches, venues, animations from CSV
+# ⚠️  Note: Predictions will be reset for new matches
 
-echo "🌱 Running PRODUCTION-SAFE seeders..."
-$FORGE_PHP artisan db:seed --class=ProductionSafeSeeder --force
+echo "🌱 Running FRESH DEPLOYMENT seeders (with CSV import)..."
+$FORGE_PHP artisan db:seed --class=FreshDeploymentSeeder --force
 
 echo "🔧 Optimizing application..."
 $FORGE_PHP artisan optimize

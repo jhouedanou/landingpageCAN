@@ -25,5 +25,6 @@ Route::get('/matches', [MatchController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/predictions', [PredictionController::class, 'store']);
     Route::post('/check-in', [CheckInController::class, 'store']);
+    Route::post('/check-in/status', [CheckInController::class, 'checkStatus']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
 });

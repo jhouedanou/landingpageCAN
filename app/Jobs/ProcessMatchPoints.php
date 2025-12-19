@@ -81,8 +81,18 @@ class ProcessMatchPoints implements ShouldQueue
                 ]);
             }
 
+            // Vérifier si c'est un pronostic avec tirs au but
+            $isPenaltyPrediction = $prediction->predict_draw && $prediction->penalty_winner;
+
             // 2. Correct Winner (+3 points)
-            $predictedWinner = $this->determineWinner($prediction->score_a, $prediction->score_b);
+            // Pour les TAB: comparer penalty_winner avec actualWinner
+            // Pour les matchs normaux: comparer le vainqueur des scores
+            if ($isPenaltyPrediction) {
+                $predictedWinner = $prediction->penalty_winner;
+            } else {
+                $predictedWinner = $this->determineWinner($prediction->score_a, $prediction->score_b);
+            }
+            
             if ($predictedWinner === $actualWinner) {
                 $alreadyWinner = \App\Models\PointLog::where('user_id', $prediction->user_id)
                     ->where('source', 'prediction_winner')
@@ -120,7 +130,8 @@ class ProcessMatchPoints implements ShouldQueue
             }
 
             // 3. Exact Score (+3 points extra)
-            if ($prediction->score_a == $match->score_a && $prediction->score_b == $match->score_b) {
+            // PAS de points pour score exact si c'est un pronostic TAB (car c'est une égalité)
+            if (!$isPenaltyPrediction && $prediction->score_a == $match->score_a && $prediction->score_b == $match->score_b) {
                 $alreadyExact = \App\Models\PointLog::where('user_id', $prediction->user_id)
                     ->where('source', 'prediction_exact')
                     ->where('match_id', $this->matchId)

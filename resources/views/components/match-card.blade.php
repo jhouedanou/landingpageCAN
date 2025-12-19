@@ -90,39 +90,39 @@
         @if($isTbd)
             <!-- TBD Knockout Match - Show Phase Name -->
             <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-soboa-blue to-blue-600 rounded-full shadow-xl mb-4">
-                    <span class="text-5xl">🏆</span>
+                <div class="inline-flex items-center justify-center w-28 h-28 fold:w-32 fold:h-32 bg-gradient-to-br from-soboa-blue to-blue-600 rounded-full shadow-xl mb-4">
+                    <span class="text-4xl fold:text-5xl">🏆</span>
                 </div>
-                <h2 class="text-3xl font-black text-soboa-blue mb-2">{{ $match->phase_name }}</h2>
-                <p class="text-gray-600 font-semibold">Équipes à déterminer</p>
+                <h2 class="text-2xl fold:text-3xl font-black text-soboa-blue mb-2">{{ $match->phase_name }}</h2>
+                <p class="text-sm fold:text-base text-gray-600 font-semibold">Équipes à déterminer</p>
             </div>
         @else
             <!-- Regular Match with Teams -->
-            <div class="flex items-center justify-between gap-4 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 fold:gap-4 mb-6">
 
                 <!-- Home Team -->
-                <div class="flex-1 text-center group/team">
-                    <div class="relative inline-block mb-3">
+                <div class="flex-1 min-w-[100px] text-center group/team">
+                    <div class="relative inline-block mb-2 fold:mb-3">
                         @if($homeFlag)
-                            <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110 home-flag-container">
+                            <div class="w-16 h-16 fold:w-20 fold:h-20 rounded-full overflow-hidden shadow-lg ring-2 fold:ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110 home-flag-container">
                                 <img src="{{ $homeFlag }}"
                                      alt="{{ $match->team_a }}"
                                      class="w-full h-full object-cover home-flag-img"
                                      onerror="this.parentElement.outerHTML='<div class=\'w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110\'><span class=\'text-2xl font-black text-white\'>{{ mb_substr($match->team_a, 0, 2) }}</span></div>'">
                             </div>
                         @else
-                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
-                                <span class="text-2xl font-black text-white">{{ mb_substr($match->team_a, 0, 2) }}</span>
+                            <div class="w-16 h-16 fold:w-20 fold:h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-2 fold:ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
+                                <span class="text-xl fold:text-2xl font-black text-white">{{ mb_substr($match->team_a, 0, 2) }}</span>
                             </div>
                         @endif
                     </div>
-                    <h3 class="font-black text-gray-800 text-lg leading-tight px-2">
+                    <h3 class="font-black text-gray-800 text-base fold:text-lg leading-tight px-1 fold:px-2">
                         {{ $homeTeam ? $homeTeam->name : $match->team_a }}
                     </h3>
                 </div>
 
                 <!-- VS / Score Separator -->
-                <div class="flex-shrink-0 px-3">
+                <div class="flex-shrink-0 px-2 fold:px-3">
                     @if($isFinished && $match->score_a !== null && $match->score_b !== null)
                         <!-- Final Score -->
                         <div class="text-center">
@@ -136,30 +136,30 @@
                     @else
                         <!-- VS Display -->
                         <div class="text-center">
-                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-soboa-orange to-orange-600 flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-300">
-                                <span class="text-2xl font-black text-white">VS</span>
+                            <div class="w-12 h-12 fold:w-16 fold:h-16 rounded-full bg-gradient-to-br from-soboa-orange to-orange-600 flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-300">
+                                <span class="text-lg fold:text-2xl font-black text-white">VS</span>
                             </div>
                         </div>
                     @endif
                 </div>
 
                 <!-- Away Team -->
-                <div class="flex-1 text-center group/team">
-                    <div class="relative inline-block mb-3">
+                <div class="flex-1 min-w-[100px] text-center group/team">
+                    <div class="relative inline-block mb-2 fold:mb-3">
                         @if($awayFlag)
-                            <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110 away-flag-container">
+                            <div class="w-16 h-16 fold:w-20 fold:h-20 rounded-full overflow-hidden shadow-lg ring-2 fold:ring-4 ring-white group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110 away-flag-container">
                                 <img src="{{ $awayFlag }}"
                                      alt="{{ $match->team_b }}"
                                      class="w-full h-full object-cover away-flag-img"
                                      onerror="this.parentElement.outerHTML='<div class=\'w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110\'><span class=\'text-2xl font-black text-white\'>{{ mb_substr($match->team_b, 0, 2) }}</span></div>'">
                             </div>
                         @else
-                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
-                                <span class="text-2xl font-black text-white">{{ mb_substr($match->team_b, 0, 2) }}</span>
+                            <div class="w-16 h-16 fold:w-20 fold:h-20 rounded-full bg-gradient-to-br from-soboa-blue to-blue-600 shadow-lg ring-2 fold:ring-4 ring-white flex items-center justify-center group-hover/team:ring-soboa-orange transition-all duration-300 transform group-hover/team:scale-110">
+                                <span class="text-xl fold:text-2xl font-black text-white">{{ mb_substr($match->team_b, 0, 2) }}</span>
                             </div>
                         @endif
                     </div>
-                    <h3 class="font-black text-gray-800 text-lg leading-tight px-2">
+                    <h3 class="font-black text-gray-800 text-base fold:text-lg leading-tight px-1 fold:px-2">
                         {{ $awayTeam ? $awayTeam->name : $match->team_b }}
                     </h3>
                 </div>

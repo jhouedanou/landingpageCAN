@@ -4,9 +4,9 @@
   "description": "Pronostiquez les matchs de la CAN 2025 et gagnez des cadeaux exclusifs!",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "theme_color": "#003399",
-  "background_color": "#003399",
+  "orientation": "any",
+  "theme_color": "#FFD700",
+  "background_color": "#121212",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

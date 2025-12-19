@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('iso_code', 2); // For flag images: https://flagcdn.com/w40/{iso}.png
-            $table->string('group', 1); // A, B, C, D, E, F
+            $table->string('iso_code', 2)->nullable(); // For flag images: https://flagcdn.com/w40/{iso}.png
+            $table->string('group', 1)->nullable(); // A, B, C, D, E, F
             $table->timestamps();
         });
     }

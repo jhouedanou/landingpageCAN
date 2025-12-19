@@ -9,10 +9,17 @@ export default {
   ],
   theme: {
     screens: {
-      'sm': '640px',
-      'md': '1024px',  // Force responsive à partir de 1024px
-      'lg': '1280px',
-      'xl': '1536px',
+      // Mobile-first breakpoints optimized for foldable devices
+      'xs': '375px',      // Small phones
+      'sm': '640px',      // Large phones / small tablets
+      'md': '768px',      // Tablets / Galaxy Fold unfolded (653px)
+      'lg': '1024px',     // Small laptops / landscape tablets
+      'xl': '1280px',     // Desktops
+      '2xl': '1536px',    // Large desktops
+      
+      // Custom breakpoints for foldable devices
+      'fold': '653px',    // Galaxy Z Fold unfolded width
+      'fold-sm': '280px', // Galaxy Z Fold folded width
     },
     extend: {
       fontFamily: {
@@ -24,14 +31,14 @@ export default {
         orange: colors.yellow, // Remap Orange to Yellow
 
         brand: {
-          dark: '#000000',
+          dark: '#003399',
           yellow: '#FFD700',
           green: '#008000',
         },
         soboa: {
-          blue: '#000000', // Pure Black
-          'blue-dark': '#000000', // Black
-          'blue-light': '#18181b', // Zinc-900
+          blue: '#003399', // Bleu foncé
+          'blue-dark': '#002266', // Bleu plus foncé
+          'blue-light': '#0044CC', // Bleu plus clair
           orange: '#FFD700', // Gold/Yellow
           'orange-light': '#FDE047', // Yellow-300
           'orange-dark': '#EAB308', // Yellow-500

@@ -16,6 +16,7 @@ class Bar extends Model
         'latitude',
         'longitude',
         'is_active',
+        'type_pdv',
     ];
 
     protected $casts = [
@@ -23,6 +24,28 @@ class Bar extends Model
         'longitude' => 'decimal:8',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Types de PDV disponibles
+     */
+    public static function getTypePdvOptions()
+    {
+        return [
+            'dakar' => 'Points de vente Dakar',
+            'regions' => 'Points de vente Régions',
+            'chr' => 'Cafés-Hôtel-Restaurants (CHR)',
+            'fanzone' => 'Fanzones',
+        ];
+    }
+
+    /**
+     * Obtenir le nom lisible du type PDV
+     */
+    public function getTypePdvNameAttribute()
+    {
+        $types = self::getTypePdvOptions();
+        return $types[$this->type_pdv] ?? $this->type_pdv;
+    }
 
     /**
      * Get the animations for this bar.
