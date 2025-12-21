@@ -91,6 +91,64 @@ UPDATE users SET role = 'admin' WHERE phone_number = '+225XXXXXXXXXX';
 
 ## Déploiement et Gestion de la Base de Données
 
+### 🚀 Déploiement sur Laravel Forge (RECOMMANDÉ)
+
+Le déploiement utilise le script `forge-deployment-script.sh` qui :
+- ✅ Installe les dépendances PHP et frontend
+- ✅ Exécute les migrations
+- ✅ **NOUVEAU:** Exécute les seeders pour importer toutes les données locales
+- ✅ Optimise l'application
+- ✅ Nettoie tous les caches
+
+#### Configuration dans Laravel Forge
+
+1. Allez dans votre site sur Forge
+2. Cliquez sur **"Deployment"** dans le menu
+3. Collez le contenu de `forge-deployment-script.sh` dans le script de déploiement
+4. Cliquez sur **"Deploy Now"**
+
+#### Données qui seront importées en production
+
+Le seeder `DatabaseSeeder` importe automatiquement :
+- **24 équipes** de la CAN 2025 (avec codes ISO et groupes)
+- **9 stades** au Maroc (avec coordonnées GPS)
+- **62 bars/points de vente** au Sénégal (avec coordonnées GPS)
+- **25+ matchs** (phases de poules + phases finales)
+- **1 utilisateur admin** (numéro configuré dans AdminUserSeeder)
+
+**Important:** Le script utilise `updateOrCreate` pour éviter les doublons. Il ne supprime JAMAIS les données existantes (users, predictions, etc.).
+
+#### Vérifier les données en production
+
+Après le déploiement, vous pouvez vérifier les données via SSH sur Forge :
+
+```bash
+# Connexion SSH sur Forge
+ssh forge@votre-serveur.com
+
+# Aller dans le répertoire de l'application
+cd /home/forge/votre-site.com
+
+# Vérifier les données
+php artisan tinker --execute="
+echo 'Teams: ' . \App\Models\Team::count() . PHP_EOL;
+echo 'Stadiums: ' . \App\Models\Stadium::count() . PHP_EOL;
+echo 'Bars: ' . \App\Models\Bar::count() . PHP_EOL;
+echo 'Matches: ' . \App\Models\MatchGame::count() . PHP_EOL;
+echo 'Users: ' . \App\Models\User::count() . PHP_EOL;
+"
+```
+
+#### Résultat attendu après déploiement
+
+```
+Teams: 24
+Stadiums: 9
+Bars: 62-64
+Matches: 25+
+Users: (nombre existant préservé)
+```
+
 ### Scripts de déploiement disponibles
 
 #### 1. Reset complet de la production (⚠️ ATTENTION)
@@ -156,18 +214,14 @@ Si vous préférez exécuter manuellement :
 
 ```bash
 # Sur le serveur de production
-cd /home/forge/landingpagecan-qlrx6mvs.on-forge.com/current && \
-php artisan db:backup && \
+cd /home/forge/votre-site.com && \
 php artisan migrate --force && \
-php artisan tinker --execute="DB::statement('SET FOREIGN_KEY_CHECKS=0');DB::table('animations')->truncate();DB::table('matches')->truncate();DB::table('bars')->truncate();DB::table('stadiums')->truncate();DB::table('teams')->truncate();DB::statement('SET FOREIGN_KEY_CHECKS=1');" && \
-php artisan db:seed --class=AllCANTeamsSeeder --force && \
-php artisan db:seed --class=StadiumSeeder --force && \
-php artisan db:seed --class=BarSeeder --force && \
-php artisan db:seed --class=MatchSeeder --force && \
-php artisan db:seed --class=AnimationSeeder --force && \
+php artisan db:seed --class=DatabaseSeeder --force && \
+php artisan optimize && \
 php artisan cache:clear && \
 php artisan config:clear && \
-php artisan tinker --execute="echo 'Teams: '.\App\Models\Team::count().' | Venues: '.\App\Models\Bar::count().' | Matches: '.\App\Models\MatchGame::count();" && \
+php artisan view:clear && \
+php artisan route:clear && \
 echo "✅ Synchronisation terminée!"
 ```
 

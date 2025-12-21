@@ -12,14 +12,8 @@ class StadiumSeeder extends Seeder
      */
     public function run(): void
     {
-        // Désactiver les contraintes de clés étrangères
-        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        // Supprimer tous les stades existants
-        Stadium::truncate();
-
-        // Réactiver les contraintes de clés étrangères
-        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // Production-safe: updateOrCreate instead of truncate
+        // Preserves existing stadiums and their relationships
 
         $stadiums = [
             // Rabat - 4 stades
@@ -107,10 +101,22 @@ class StadiumSeeder extends Seeder
             ],
         ];
 
+        $created = 0;
+        $updated = 0;
+
         foreach ($stadiums as $stadium) {
-            Stadium::create($stadium);
+            $stadiumModel = Stadium::updateOrCreate(
+                ['name' => $stadium['name']], // Unique key
+                $stadium // All data to update/create
+            );
+
+            if ($stadiumModel->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
         }
 
-        $this->command->info('✅ 9 stades créés avec succès!');
+        $this->command->info("✅ Stadiums: {$created} created, {$updated} updated (Total: " . count($stadiums) . ")");
     }
 }
