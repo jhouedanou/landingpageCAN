@@ -45,18 +45,18 @@ class HomeController extends Controller
             if ($match->phase === 'group_stage') {
                 return true;
             }
-            
+
             // Pour les phases finales, vérifier si on a atteint la date du premier match de cette phase
             $firstMatchOfPhase = $allUpcomingMatches
                 ->where('phase', $match->phase)
                 ->sortBy('match_date')
                 ->first();
-            
+
             if ($firstMatchOfPhase) {
                 // Afficher la phase seulement si on est à J-1 du premier match de cette phase
                 return now() >= $firstMatchOfPhase->match_date->subDay();
             }
-            
+
             return false;
         });
 
@@ -96,18 +96,18 @@ class HomeController extends Controller
             if ($match->phase === 'group_stage') {
                 return true;
             }
-            
+
             // Pour les phases finales, vérifier si on a atteint la date du premier match de cette phase
             $firstMatchOfPhase = $allFutureMatches
                 ->where('phase', $match->phase)
                 ->sortBy('match_date')
                 ->first();
-            
+
             if ($firstMatchOfPhase) {
                 // Afficher la phase seulement si on est à J-1 du premier match de cette phase
                 return now() >= $firstMatchOfPhase->match_date->subDay();
             }
-            
+
             return false;
         });
 
@@ -133,9 +133,6 @@ class HomeController extends Controller
         $settings = SiteSetting::with('favoriteTeam')->first();
         $favoriteTeamId = $settings?->favorite_team_id;
 
-        // Récupérer tous les PDVs actifs pour la détection géo
-        $activeVenues = Bar::where('is_active', true)->get();
-
         // Définir l'ordre et les noms des phases
         $phaseOrder = [
             'group_stage' => 'Phase de Poules',
@@ -146,7 +143,7 @@ class HomeController extends Controller
             'final' => 'Finale',
         ];
 
-        return view('matches', compact('matchesByPhase', 'groupStageByGroup', 'userPredictions', 'favoriteTeamId', 'activeVenues', 'phaseOrder'));
+        return view('matches', compact('matchesByPhase', 'groupStageByGroup', 'userPredictions', 'favoriteTeamId', 'phaseOrder'));
     }
 
     public function leaderboard()

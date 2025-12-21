@@ -6,7 +6,5 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-    // Network first, falling back to cache logic could go here
-    // For now, prompt pass-through
-});
+// Removed empty fetch handler to avoid "no-op" warning
+// Network requests will be handled normally by the browser
