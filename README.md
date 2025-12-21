@@ -112,11 +112,22 @@ Le déploiement utilise le script `forge-deployment-script.sh` qui :
 Le seeder `DatabaseSeeder` importe automatiquement :
 - **24 équipes** de la CAN 2025 (avec codes ISO et groupes)
 - **9 stades** au Maroc (avec coordonnées GPS)
-- **62 bars/points de vente** au Sénégal (avec coordonnées GPS)
-- **25+ matchs** (phases de poules + phases finales)
+- **62-64 bars/points de vente** au Sénégal (avec coordonnées GPS)
+- **10 matchs** (5 matchs de poules + 5 phases finales)
+  - Sénégal vs Botswana (23/12/2025)
+  - Afrique du Sud vs Égypte (26/12/2025)
+  - Sénégal vs RD Congo (27/12/2025)
+  - Côte d'Ivoire vs Cameroun (28/12/2025)
+  - Sénégal vs Bénin (30/12/2025)
+  - Huitième de finale, Quart de finale, Demi finale, 3ème place, Finale
+- **80 animations** (liens match-bar indiquant où regarder chaque match)
 - **1 utilisateur admin** (numéro configuré dans AdminUserSeeder)
 
-**Important:** Le script utilise `updateOrCreate` pour éviter les doublons. Il ne supprime JAMAIS les données existantes (users, predictions, etc.).
+**Important:**
+- Le script utilise `updateOrCreate` pour éviter les doublons
+- Il ne supprime JAMAIS les données existantes (users, predictions, etc.)
+- **Les utilisateurs de test ne sont créés qu'en environnement local/development**
+- **Les animations** permettent de savoir quels matchs sont diffusés dans quels bars
 
 #### Vérifier les données en production
 
@@ -135,6 +146,7 @@ echo 'Teams: ' . \App\Models\Team::count() . PHP_EOL;
 echo 'Stadiums: ' . \App\Models\Stadium::count() . PHP_EOL;
 echo 'Bars: ' . \App\Models\Bar::count() . PHP_EOL;
 echo 'Matches: ' . \App\Models\MatchGame::count() . PHP_EOL;
+echo 'Animations: ' . \App\Models\Animation::count() . PHP_EOL;
 echo 'Users: ' . \App\Models\User::count() . PHP_EOL;
 "
 ```
@@ -145,9 +157,12 @@ echo 'Users: ' . \App\Models\User::count() . PHP_EOL;
 Teams: 24
 Stadiums: 9
 Bars: 62-64
-Matches: 25+
-Users: (nombre existant préservé)
+Matches: 10
+Animations: 80
+Users: 1 (admin seulement, pas d'utilisateurs de test en production)
 ```
+
+Les **animations** sont les liens qui indiquent quels matchs sont diffusés dans quels bars. Par exemple, le match "Sénégal vs Botswana" est diffusé dans 16 bars différents.
 
 ### Scripts de déploiement disponibles
 

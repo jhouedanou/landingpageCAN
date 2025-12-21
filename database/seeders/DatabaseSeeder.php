@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             StadiumSeeder::class,        // ✅ Stades
             MatchSeeder::class,          // ✅ Matchs
             BarSeeder::class,            // ✅ Points de vente
+            AnimationSeeder::class,      // ✅ Animations (liens match-bar)
             AdminUserSeeder::class,      // ✅ Admin
         ]);
 
