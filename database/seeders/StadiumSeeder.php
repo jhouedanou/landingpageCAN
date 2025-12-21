@@ -22,8 +22,9 @@ class StadiumSeeder extends Seeder
         \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $stadiums = [
+            // Rabat - 4 stades
             [
-                'name' => 'Complexe Sportif Moulay Abdellah',
+                'name' => 'Complexe Sportif Prince Moulay Abdellah',
                 'city' => 'Rabat',
                 'capacity' => 53000,
                 'latitude' => '33.959957',
@@ -31,21 +32,51 @@ class StadiumSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Grand Stade de Tanger (Ibn Batouta)',
-                'city' => 'Tanger',
-                'capacity' => 65000,
-                'latitude' => '35.741477',
-                'longitude' => '-5.856974',
+                'name' => 'Stade Annexe Olympique',
+                'city' => 'Rabat',
+                'capacity' => 5000,
+                'latitude' => '33.961000',
+                'longitude' => '-6.885000',
                 'is_active' => true,
             ],
             [
-                'name' => 'Stade Mohammed V',
+                'name' => 'Complexe Sportif Prince Héritier Moulay El Hassan',
+                'city' => 'Rabat',
+                'capacity' => 5000,
+                'latitude' => '33.958000',
+                'longitude' => '-6.887000',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Stade Al Barid',
+                'city' => 'Rabat',
+                'capacity' => 3000,
+                'latitude' => '33.960000',
+                'longitude' => '-6.884000',
+                'is_active' => true,
+            ],
+
+            // Casablanca
+            [
+                'name' => 'Complexe Sportif Mohammed-V',
                 'city' => 'Casablanca',
                 'capacity' => 45000,
                 'latitude' => '33.582869',
                 'longitude' => '-7.646877',
                 'is_active' => true,
             ],
+
+            // Tanger
+            [
+                'name' => 'Grand Stade de Tanger - Ibn Batouta',
+                'city' => 'Tanger',
+                'capacity' => 65000,
+                'latitude' => '35.741477',
+                'longitude' => '-5.856974',
+                'is_active' => true,
+            ],
+
+            // Marrakech
             [
                 'name' => 'Grand Stade de Marrakech',
                 'city' => 'Marrakech',
@@ -54,14 +85,18 @@ class StadiumSeeder extends Seeder
                 'longitude' => '-7.980321',
                 'is_active' => true,
             ],
+
+            // Agadir
             [
-                'name' => 'Grand Stade d\'Agadir (Adrar)',
+                'name' => 'Grand Stade d\'Agadir - Stade Adrar',
                 'city' => 'Agadir',
                 'capacity' => 45480,
                 'latitude' => '30.435832',
                 'longitude' => '-9.544778',
                 'is_active' => true,
             ],
+
+            // Fès
             [
                 'name' => 'Complexe Sportif de Fès',
                 'city' => 'Fès',
@@ -76,6 +111,6 @@ class StadiumSeeder extends Seeder
             Stadium::create($stadium);
         }
 
-        $this->command->info('✅ 6 stades créés avec succès!');
+        $this->command->info('✅ 9 stades créés avec succès!');
     }
 }
