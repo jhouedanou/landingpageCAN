@@ -24,11 +24,18 @@ echo "🔄 Running migrations..."
 $FORGE_PHP artisan migrate --force
 
 # ==========================================
-# PRODUCTION SEEDING (WITH LOCAL DATA)
+# PRODUCTION SEEDING - DÉSACTIVÉ
+# ==========================================
+# ⚠️ Le ProductionSeeder réinitialise les données de planning
+# Ne pas l'exécuter automatiquement car il supprime les animations
+# ajoutées manuellement en production.
+#
+# Pour synchroniser manuellement depuis le CSV local:
+# php artisan db:seed --class=ProductionSeeder --force
 # ==========================================
 
-echo "🌱 Running PRODUCTION seeders..."
-$FORGE_PHP artisan db:seed --class=ProductionSeeder --force
+# echo "🌱 Running PRODUCTION seeders..."
+# $FORGE_PHP artisan db:seed --class=ProductionSeeder --force
 
 # ==========================================
 # CACHE CLEARING (CRITICAL - avant optimize!)
