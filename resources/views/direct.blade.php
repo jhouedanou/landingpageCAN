@@ -1,4 +1,4 @@
-<x-layouts.app title="Temps Fort - CAN 2025">
+<x-layouts.app title="Direct - CAN 2025">
     <div class="min-h-screen bg-gray-50">
         
         <!-- Header -->
@@ -6,12 +6,18 @@
             <!-- Background Image with Overlay -->
             <div class="absolute inset-0 z-0">
                 <img src="/images/sen.webp" class="w-full h-full object-cover" alt="Background">
-                <div class="absolute inset-0 bg-gradient-to-r from-soboa-blue/90 to-black/80"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-red-900/90 to-black/80"></div>
             </div>
             <div class="relative z-10 max-w-7xl mx-auto text-center">
-                <span class="text-soboa-orange font-black text-sm uppercase tracking-widest drop-shadow-md">CAN 2025</span>
+                <div class="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-1.5 rounded-full text-sm font-bold mb-4 animate-pulse">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    EN DIRECT
+                </div>
                 <h1 class="text-4xl md:text-5xl font-black text-white mt-2 drop-shadow-2xl flex items-center justify-center gap-3">
-                    <span class="text-5xl">⚽</span> Temps Fort
+                    <span class="text-5xl">⚽</span> CAN 2025 LIVE
                 </h1>
                 <p class="text-white/80 mt-4 max-w-2xl mx-auto font-medium drop-shadow-lg">
                     Suivez tous les scores en direct et les résultats de la Coupe d'Afrique des Nations 2025
@@ -24,13 +30,20 @@
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 
                 <!-- Section Header -->
-                <div class="bg-gradient-to-r from-soboa-blue to-gray-800 px-6 py-4">
+                <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center relative">
                             <span class="text-2xl">🏆</span>
+                            <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-4 w-4 bg-white"></span>
+                            </span>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-white">Scores en Direct</h2>
+                            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                                Scores en Direct
+                                <span class="bg-white text-red-600 text-xs font-black px-2 py-0.5 rounded animate-pulse">LIVE</span>
+                            </h2>
                             <p class="text-white/70 text-sm">Résultats et classements CAN 2025</p>
                         </div>
                     </div>
