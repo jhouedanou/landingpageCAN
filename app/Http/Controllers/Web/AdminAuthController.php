@@ -88,8 +88,12 @@ class AdminAuthController extends Controller
                         'verification_attempts' => 0,
                         'otp_sent_at' => now(),
                     ]);
+                    Log::info('Log OTP admin créé avec succès', ['phone' => $phone]);
                 } catch (\Exception $e) {
-                    Log::warning('Erreur lors de la création du log OTP: ' . $e->getMessage());
+                    Log::error('ERREUR création log OTP admin: ' . $e->getMessage(), [
+                        'phone' => $phone,
+                        'exception' => $e->getTraceAsString()
+                    ]);
                 }
 
                 return response()->json([
@@ -109,8 +113,12 @@ class AdminAuthController extends Controller
                         'otp_sent_at' => now(),
                         'error_message' => $result['error'] ?? 'Erreur inconnue',
                     ]);
+                    Log::info('Log OTP admin (failed) créé avec succès', ['phone' => $phone]);
                 } catch (\Exception $e) {
-                    Log::warning('Erreur lors de la création du log OTP (failed): ' . $e->getMessage());
+                    Log::error('ERREUR création log OTP admin (failed): ' . $e->getMessage(), [
+                        'phone' => $phone,
+                        'exception' => $e->getTraceAsString()
+                    ]);
                 }
 
                 return response()->json([
