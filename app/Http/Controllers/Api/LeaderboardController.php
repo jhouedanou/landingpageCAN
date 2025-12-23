@@ -15,12 +15,14 @@ class LeaderboardController extends Controller
         // Cache top 5 users for 5 minutes to handle high traffic
         $topUsers = Cache::remember('leaderboard_top_5', 300, function () {
             return User::orderBy('points_total', 'desc')
+                ->orderBy('name', 'asc')
                 ->take(5)
                 ->get(['id', 'name', 'points_total']);
         });
 
         $currentUser = Auth::user();
         $userRank = User::orderBy('points_total', 'desc')
+            ->orderBy('name', 'asc')
             ->where('points_total', '>', $currentUser->points_total)
             ->count() + 1;
 

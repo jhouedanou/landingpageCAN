@@ -63,8 +63,11 @@ class HomeController extends Controller
         // Récupérer le prochain match pour le hero
         $nextMatch = $upcomingMatches->first();
 
-        // Fetch top 3 users for leaderboard
-        $topUsers = User::orderBy('points_total', 'desc')->take(3)->get();
+        // Fetch top 3 users for leaderboard (alphabétique en cas d'égalité)
+        $topUsers = User::orderBy('points_total', 'desc')
+                       ->orderBy('name', 'asc')
+                       ->take(3)
+                       ->get();
 
         // Count venues for stats
         $venueCount = Bar::where('is_active', true)->count();
@@ -151,7 +154,9 @@ class HomeController extends Controller
 
     public function leaderboard()
     {
-        $users = User::orderBy('points_total', 'desc')->paginate(20);
+        $users = User::orderBy('points_total', 'desc')
+                     ->orderBy('name', 'asc')
+                     ->paginate(20);
         return view('leaderboard', compact('users'));
     }
 
