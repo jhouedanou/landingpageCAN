@@ -16,6 +16,9 @@ Route::get('/leaderboard', [HomeController::class, 'leaderboard'])->name('leader
 Route::get('/map', [HomeController::class, 'map'])->name('map');
 Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
 Route::get('/animations', [HomeController::class, 'animations'])->name('animations');
+Route::get('/temps-fort', function () {
+    return view('temps-fort');
+})->name('temps-fort');
 Route::get('/conditions', function () {
     return view('terms');
 })->name('terms');
