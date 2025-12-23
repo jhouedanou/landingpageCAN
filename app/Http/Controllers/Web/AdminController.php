@@ -633,13 +633,18 @@ class AdminController extends Controller
             // BOM UTF-8 pour Excel
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // En-têtes
-            fputcsv($file, ['nom', 'adresse', 'latitude', 'longitude']);
+            // En-têtes (avec TYPE_PDV optionnel)
+            fputcsv($file, ['nom', 'adresse', 'latitude', 'longitude', 'TYPE_PDV']);
 
-            // Exemples
-            fputcsv($file, ['Bar Le Sphinx', 'Rue 10 x Avenue Hassan II Dakar', '14.692778', '-17.447938']);
-            fputcsv($file, ['Chez Fatou', 'Place de l\'Indépendance Dakar', '14.693350', '-17.448830']);
-            fputcsv($file, ['Le Djoloff', 'Corniche Ouest Dakar', '14.716677', '-17.481383']);
+            // Exemples avec les différents types
+            fputcsv($file, ['Bar Le Sphinx', 'Rue 10 x Avenue Hassan II Dakar', '14.692778', '-17.447938', 'dakar']);
+            fputcsv($file, ['Chez Fatou', 'Place de l\'Indépendance Dakar', '14.693350', '-17.448830', 'dakar']);
+            fputcsv($file, ['Restaurant Le Teranga', 'Almadies Dakar', '14.741234', '-17.521000', 'chr']);
+            fputcsv($file, ['Hotel Djoloff', 'Corniche Ouest Dakar', '14.716677', '-17.481383', 'chr']);
+            fputcsv($file, ['Fanzone Stade', 'Avenue Léopold Senghor', '14.683456', '-17.445678', 'fanzone']);
+            fputcsv($file, ['Fanzone Place Nation', 'Place de la Nation Dakar', '14.670000', '-17.440000', 'fanzone_public']);
+            fputcsv($file, ['Noom Hotel', 'Almadies Dakar', '14.695270', '-17.473630', 'fanzone_hotel']);
+            fputcsv($file, ['Bar Saint-Louis', 'Place Faidherbe Saint-Louis', '16.017500', '-16.500000', 'regions']);
 
             fclose($file);
         };
@@ -660,6 +665,44 @@ class AdminController extends Controller
             'csv_file' => 'required|file|mimes:csv,txt|max:2048',
         ]);
 
+        // Mapping des types PDV (accepte plusieurs variantes)
+        $typePdvMapping = [
+            // CHR
+            'chr' => 'chr',
+            'cafés-hôtel-restaurants' => 'chr',
+            'cafe-hotel-restaurant' => 'chr',
+            'restaurant' => 'chr',
+            'cafe' => 'chr',
+            // Dakar
+            'dakar' => 'dakar',
+            'pdv dakar' => 'dakar',
+            'points de vente dakar' => 'dakar',
+            // Régions
+            'regions' => 'regions',
+            'région' => 'regions',
+            'pdv regions' => 'regions',
+            'points de vente régions' => 'regions',
+            // Fanzone générique
+            'fanzone' => 'fanzone',
+            'fan zone' => 'fanzone',
+            'fanzones' => 'fanzone',
+            // Fanzone tout public
+            'fanzone_public' => 'fanzone_public',
+            'fanzone tout public' => 'fanzone_public',
+            'fanzone public' => 'fanzone_public',
+            'fan zone tout public' => 'fanzone_public',
+            'fan zone public' => 'fanzone_public',
+            // Fanzone hôtel
+            'fanzone_hotel' => 'fanzone_hotel',
+            'fanzone hotel' => 'fanzone_hotel',
+            'fanzone hôtel' => 'fanzone_hotel',
+            'fan zone hotel' => 'fanzone_hotel',
+            'fan zone hôtel' => 'fanzone_hotel',
+            'hotel' => 'fanzone_hotel',
+        ];
+
+        $validTypes = array_keys(Bar::getTypePdvOptions());
+
         try {
             $file = $request->file('csv_file');
             $handle = fopen($file->getRealPath(), 'r');
@@ -678,7 +721,24 @@ class AdminController extends Controller
                 return back()->with('error', 'Format de fichier invalide. Assurez-vous que le fichier contient les colonnes : nom, adresse, latitude, longitude');
             }
 
+            // Normaliser les noms de colonnes de l'en-tête
+            $headerNormalized = array_map(function($col) {
+                return strtolower(trim($col));
+            }, $header);
+
+            // Détecter l'index de la colonne type_pdv si présente
+            $typePdvIndex = null;
+            $typePdvColNames = ['type_pdv', 'type', 'cat', 'categorie', 'category'];
+            foreach ($typePdvColNames as $colName) {
+                $index = array_search($colName, $headerNormalized);
+                if ($index !== false) {
+                    $typePdvIndex = $index;
+                    break;
+                }
+            }
+
             $imported = 0;
+            $skipped = 0;
             $errors = [];
             $lineNumber = 1;
 
@@ -693,8 +753,8 @@ class AdminController extends Controller
 
                 $name = trim($data[0]);
                 $address = trim($data[1]);
-                $latitude = trim($data[2]);
-                $longitude = trim($data[3]);
+                $latitude = trim(str_replace(',', '.', $data[2])); // Convertir virgule en point
+                $longitude = trim(str_replace(',', '.', $data[3])); // Convertir virgule en point
 
                 // Validation basique
                 if (empty($name) || empty($address)) {
@@ -702,17 +762,39 @@ class AdminController extends Controller
                     continue;
                 }
 
-                if (!is_numeric($latitude) || !is_numeric($longitude)) {
-                    $errors[] = "Ligne {$lineNumber} : Coordonnées invalides";
+                // Vérifier si les coordonnées sont valides (peuvent être vides)
+                $hasValidCoords = !empty($latitude) && !empty($longitude) && is_numeric($latitude) && is_numeric($longitude);
+
+                // Vérifier les doublons (même nom et même adresse)
+                $exists = Bar::where('name', $name)->where('address', $address)->exists();
+                if ($exists) {
+                    $skipped++;
                     continue;
+                }
+
+                // Gérer le type PDV
+                $typePdv = null;
+                if ($typePdvIndex !== null && isset($data[$typePdvIndex])) {
+                    $rawType = strtolower(trim($data[$typePdvIndex]));
+                    
+                    // Chercher dans le mapping
+                    if (isset($typePdvMapping[$rawType])) {
+                        $typePdv = $typePdvMapping[$rawType];
+                    } elseif (in_array($rawType, $validTypes)) {
+                        $typePdv = $rawType;
+                    } else {
+                        $errors[] = "Ligne {$lineNumber} : Type PDV '{$data[$typePdvIndex]}' non reconnu (valeurs acceptées: " . implode(', ', $validTypes) . ")";
+                        // On continue quand même avec type null
+                    }
                 }
 
                 // Créer le point de vente
                 Bar::create([
                     'name' => $name,
                     'address' => $address,
-                    'latitude' => (float) $latitude,
-                    'longitude' => (float) $longitude,
+                    'latitude' => $hasValidCoords ? (float) $latitude : null,
+                    'longitude' => $hasValidCoords ? (float) $longitude : null,
+                    'type_pdv' => $typePdv,
                     'is_active' => true, // Actif par défaut
                 ]);
 
@@ -724,10 +806,14 @@ class AdminController extends Controller
             // Message de résultat
             $message = "{$imported} point(s) de vente importé(s) avec succès.";
 
+            if ($skipped > 0) {
+                $message .= " {$skipped} doublon(s) ignoré(s).";
+            }
+
             if (count($errors) > 0) {
-                $message .= " " . count($errors) . " erreur(s) détectée(s) : " . implode(', ', array_slice($errors, 0, 5));
-                if (count($errors) > 5) {
-                    $message .= " (et " . (count($errors) - 5) . " autre(s)...)";
+                $message .= " " . count($errors) . " erreur(s) : " . implode(', ', array_slice($errors, 0, 3));
+                if (count($errors) > 3) {
+                    $message .= " (et " . (count($errors) - 3) . " autre(s)...)";
                 }
             }
 

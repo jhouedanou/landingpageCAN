@@ -35,6 +35,8 @@ class Bar extends Model
             'regions' => 'Points de vente Régions',
             'chr' => 'Cafés-Hôtel-Restaurants (CHR)',
             'fanzone' => 'Fanzones',
+            'fanzone_public' => 'Fanzone tout public',
+            'fanzone_hotel' => 'Fanzone hôtel',
         ];
     }
 
