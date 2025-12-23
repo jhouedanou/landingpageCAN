@@ -593,6 +593,27 @@ class AdminController extends Controller
     }
 
     /**
+     * Delete a bar
+     */
+    public function deleteBar($id)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $bar = Bar::findOrFail($id);
+        $barName = $bar->name;
+
+        // Supprimer les animations associées
+        Animation::where('bar_id', $id)->delete();
+
+        // Supprimer le point de vente
+        $bar->delete();
+
+        return redirect()->route('admin.bars')->with('success', "Le point de vente \"{$barName}\" a été supprimé avec succès.");
+    }
+
+    /**
      * Download CSV template for bars import
      */
     public function downloadBarsTemplate()

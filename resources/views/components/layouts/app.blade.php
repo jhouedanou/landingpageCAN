@@ -370,7 +370,7 @@
                     <a href="/matches"
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Pronostics</a>
                     <a href="/animations"
-                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">📅 Animations</a>
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Animations</a>
                     <a href="/leaderboard"
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Classement</a>
                     <a href="/map"
@@ -444,7 +444,7 @@
                     Pronostics</a>
                 <a href="/animations"
                     class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
-                    📅 Calendrier Animations</a>
+                    Calendrier Animations</a>
                 <a href="/leaderboard"
                     class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                     Classement</a>
