@@ -355,7 +355,9 @@
                                                 venue.type_pdv === 'dakar' ? '🏙️' :
                                                 venue.type_pdv === 'regions' ? '🗺️' :
                                                 venue.type_pdv === 'chr' ? '🍽️' :
-                                                venue.type_pdv === 'fanzone' ? '🎉' : '📍'
+                                                venue.type_pdv === 'fanzone' ? '🎉' :
+                                                venue.type_pdv === 'fanzone_public' ? '🎪' :
+                                                venue.type_pdv === 'fanzone_hotel' ? '🏨' : '📍'
                                             "></span>
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-2 flex-wrap mb-1">
@@ -366,7 +368,9 @@
                                                             'bg-blue-100 text-blue-800': venue.type_pdv === 'dakar',
                                                             'bg-green-100 text-green-800': venue.type_pdv === 'regions',
                                                             'bg-orange-100 text-orange-800': venue.type_pdv === 'chr',
-                                                            'bg-purple-100 text-purple-800': venue.type_pdv === 'fanzone'
+                                                            'bg-purple-100 text-purple-800': venue.type_pdv === 'fanzone',
+                                                            'bg-yellow-100 text-yellow-800': venue.type_pdv === 'fanzone_public',
+                                                            'bg-pink-100 text-pink-800': venue.type_pdv === 'fanzone_hotel'
                                                         }"
                                                         x-text="venue.type_pdv_name">
                                                     </span>
@@ -469,41 +473,33 @@
                 <div id="map" class="h-[500px] w-full bg-gray-100 rounded-t-lg"></div>
 
                 <!-- Légende -->
+                @php
+                    // Compter le nombre de PDV par type
+                    $typeCounts = $venues->groupBy('type_pdv')->map->count();
+                    
+                    $legendItems = [
+                        'dakar' => ['emoji' => '🏙️', 'color' => '#3b82f6', 'label' => 'Points de vente Dakar'],
+                        'regions' => ['emoji' => '🗺️', 'color' => '#22c55e', 'label' => 'Points de vente Régions'],
+                        'chr' => ['emoji' => '🍽️', 'color' => '#f97316', 'label' => 'Cafés-Hôtel-Restaurants'],
+                        'fanzone' => ['emoji' => '🎉', 'color' => '#a855f7', 'label' => 'Fanzones'],
+                        'fanzone_public' => ['emoji' => '🎪', 'color' => '#eab308', 'label' => 'Fanzone tout public'],
+                        'fanzone_hotel' => ['emoji' => '🏨', 'color' => '#ec4899', 'label' => 'Fanzone hôtel'],
+                    ];
+                @endphp
                 <div class="bg-white border-t-2 border-gray-200 rounded-b-lg p-4 shadow-lg">
                     <div class="flex items-center justify-center gap-6 flex-wrap">
                         <div class="text-sm font-bold text-gray-700 mr-2">Légende:</div>
 
-                        <!-- Dakar -->
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #3b82f6; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                <span class="text-base">🏙️</span>
+                        @foreach($legendItems as $type => $item)
+                            @if(isset($typeCounts[$type]) && $typeCounts[$type] > 0)
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: {{ $item['color'] }}; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                    <span class="text-base">{{ $item['emoji'] }}</span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">{{ $item['label'] }} ({{ $typeCounts[$type] }})</span>
                             </div>
-                            <span class="text-sm font-medium text-gray-700">Points de vente Dakar</span>
-                        </div>
-
-                        <!-- Régions -->
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #22c55e; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                <span class="text-base">🗺️</span>
-                            </div>
-                            <span class="text-sm font-medium text-gray-700">Points de vente Régions</span>
-                        </div>
-
-                        <!-- CHR -->
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #f97316; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                <span class="text-base">🍽️</span>
-                            </div>
-                            <span class="text-sm font-medium text-gray-700">Cafés-Hôtel-Restaurants</span>
-                        </div>
-
-                        <!-- Fanzone -->
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: #a855f7; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                <span class="text-base">🎉</span>
-                            </div>
-                            <span class="text-sm font-medium text-gray-700">Fanzones</span>
-                        </div>
+                            @endif
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -528,10 +524,12 @@
             // Function to create custom marker icon based on PDV type
             function getVenueIcon(type) {
                 const iconConfig = {
-                    'dakar': { emoji: '🏙️', color: '#3b82f6' },      // Blue
-                    'regions': { emoji: '🗺️', color: '#22c55e' },   // Green
-                    'chr': { emoji: '🍽️', color: '#f97316' },       // Orange
-                    'fanzone': { emoji: '🎉', color: '#a855f7' }    // Purple
+                    'dakar': { emoji: '🏙️', color: '#3b82f6' },           // Blue
+                    'regions': { emoji: '🗺️', color: '#22c55e' },        // Green
+                    'chr': { emoji: '🍽️', color: '#f97316' },            // Orange
+                    'fanzone': { emoji: '🎉', color: '#a855f7' },         // Purple
+                    'fanzone_public': { emoji: '🎪', color: '#eab308' },  // Yellow
+                    'fanzone_hotel': { emoji: '🏨', color: '#ec4899' }    // Pink
                 };
 
                 const config = iconConfig[type] || iconConfig['dakar'];

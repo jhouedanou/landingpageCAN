@@ -50,24 +50,24 @@
                                 id="search"
                                 name="search"
                                 value="{{ request('search') }}"
-                                placeholder="Nom, zone, adresse..."
+                                placeholder="Nom, adresse..."
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-soboa-orange focus:border-transparent"
                             >
                         </div>
 
-                        <!-- Filtre par zone -->
+                        <!-- Filtre par type de PDV -->
                         <div>
-                            <label for="zone" class="block text-sm font-bold text-gray-700 mb-2">
-                                📍 Zone
+                            <label for="type_pdv" class="block text-sm font-bold text-gray-700 mb-2">
+                                🏷️ Type de PDV
                             </label>
                             <select
-                                id="zone"
-                                name="zone"
+                                id="type_pdv"
+                                name="type_pdv"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-soboa-orange focus:border-transparent"
                             >
-                                <option value="">Toutes les zones</option>
-                                @foreach($zones as $zone)
-                                <option value="{{ $zone }}" {{ request('zone') === $zone ? 'selected' : '' }}>{{ $zone }}</option>
+                                <option value="">Tous les types</option>
+                                @foreach($typePdvOptions as $value => $label)
+                                <option value="{{ $value }}" {{ request('type_pdv') === $value ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -88,25 +88,8 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <!-- Filtre par type de PDV -->
-                        <div>
-                            <label for="type_pdv" class="block text-sm font-bold text-gray-700 mb-2">
-                                🏷️ Type de PDV
-                            </label>
-                            <select
-                                id="type_pdv"
-                                name="type_pdv"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-soboa-orange focus:border-transparent"
-                            >
-                                <option value="">Tous les types</option>
-                                @foreach($typePdvOptions as $value => $label)
-                                <option value="{{ $value }}" {{ request('type_pdv') === $value ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
                         <!-- Filtre par matches assignés -->
                         <div>
                             <label for="has_matches" class="block text-sm font-bold text-gray-700 mb-2">
@@ -131,7 +114,7 @@
                             >
                                 Rechercher
                             </button>
-                            @if(request()->hasAny(['search', 'zone', 'status', 'has_matches', 'type_pdv']))
+                            @if(request()->hasAny(['search', 'status', 'has_matches', 'type_pdv']))
                             <a
                                 href="{{ route('admin.bars') }}"
                                 class="bg-gray-500 hover:bg-gray-600 text-white font-bold px-6 py-2 rounded-lg transition-colors"
@@ -142,7 +125,7 @@
                         </div>
                     </div>
 
-                    @if(request()->hasAny(['search', 'zone', 'status', 'has_matches', 'type_pdv']))
+                    @if(request()->hasAny(['search', 'status', 'has_matches', 'type_pdv']))
                     <div class="pt-2 text-sm text-gray-600">
                         <strong>{{ $bars->total() }}</strong> résultat(s) trouvé(s)
                         @if(request('search'))
@@ -175,7 +158,6 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="text-left p-4 font-bold text-gray-700">Nom</th>
-                            <th class="text-left p-4 font-bold text-gray-700">Zone</th>
                             <th class="text-left p-4 font-bold text-gray-700">Type PDV</th>
                             <th class="text-left p-4 font-bold text-gray-700">Matchs Assignés</th>
                             <th class="text-center p-4 font-bold text-gray-700">Statut</th>
@@ -192,18 +174,14 @@
                                     </div>
                                     <div>
                                         <div class="font-bold text-gray-800">{{ $bar->name }}</div>
-                                        <div class="text-xs text-gray-500 font-mono">
+                                        <div class="text-xs text-gray-500">{{ $bar->address }}</div>
+                                        @if($bar->latitude && $bar->longitude)
+                                        <div class="text-xs text-gray-400 font-mono">
                                             {{ number_format($bar->latitude, 4) }}, {{ number_format($bar->longitude, 4) }}
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
-                            </td>
-                            <td class="p-4">
-                                @if($bar->zone)
-                                    <span class="text-gray-700 font-medium">{{ $bar->zone }}</span>
-                                @else
-                                    <span class="text-gray-400 italic text-sm">Non définie</span>
-                                @endif
                             </td>
                             <td class="p-4">
                                 @if($bar->type_pdv)

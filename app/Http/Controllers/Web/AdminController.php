@@ -773,12 +773,8 @@ class AdminController extends Controller
                 // Vérifier si les coordonnées sont valides (peuvent être vides)
                 $hasValidCoords = !empty($latitude) && !empty($longitude) && is_numeric($latitude) && is_numeric($longitude);
 
-                // Vérifier les doublons (même nom et même adresse)
-                $exists = Bar::where('name', $name)->where('address', $address)->exists();
-                if ($exists) {
-                    $skipped++;
-                    continue;
-                }
+                // Vérifier les doublons (même nom et même adresse) - Mise à jour au lieu d'ignorer
+                $existingBar = Bar::where('name', $name)->where('address', $address)->first();
 
                 // Gérer le type PDV
                 $typePdv = null;
@@ -796,26 +792,44 @@ class AdminController extends Controller
                     }
                 }
 
-                // Créer le point de vente
-                Bar::create([
-                    'name' => $name,
-                    'address' => $address,
+                // Préparer les données
+                $barData = [
                     'latitude' => $hasValidCoords ? (float) $latitude : null,
                     'longitude' => $hasValidCoords ? (float) $longitude : null,
-                    'type_pdv' => $typePdv,
-                    'is_active' => true, // Actif par défaut
-                ]);
+                    'is_active' => true,
+                ];
 
-                $imported++;
+                // Ajouter type_pdv seulement s'il est défini (pour ne pas écraser une valeur existante)
+                if ($typePdv !== null) {
+                    $barData['type_pdv'] = $typePdv;
+                }
+
+                if ($existingBar) {
+                    // Mise à jour du point de vente existant
+                    // Ne pas écraser type_pdv s'il n'est pas fourni dans le CSV
+                    if ($typePdv === null && $existingBar->type_pdv) {
+                        unset($barData['type_pdv']);
+                    }
+                    $existingBar->update($barData);
+                    $skipped++; // On compte comme "mis à jour" (label sera adapté)
+                } else {
+                    // Créer un nouveau point de vente
+                    Bar::create(array_merge([
+                        'name' => $name,
+                        'address' => $address,
+                        'type_pdv' => $typePdv,
+                    ], $barData));
+                    $imported++;
+                }
             }
 
             fclose($handle);
 
             // Message de résultat
-            $message = "{$imported} point(s) de vente importé(s) avec succès.";
+            $message = "{$imported} point(s) de vente créé(s).";
 
             if ($skipped > 0) {
-                $message .= " {$skipped} doublon(s) ignoré(s).";
+                $message .= " {$skipped} existant(s) mis à jour.";
             }
 
             if (count($errors) > 0) {
