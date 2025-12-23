@@ -30,8 +30,8 @@ class SecurityHeadersMiddleware
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://unpkg.com; " .
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; " .
             "font-src 'self' data: https://fonts.gstatic.com; " .
-            "img-src 'self' data: https: https://flagcdn.com https://tile.openstreetmap.org; " .
-            "connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://tile.openstreetmap.org https://nominatim.openstreetmap.org; " .
+            "img-src 'self' data: https: https://flagcdn.com https://tile.openstreetmap.org https://www.googletagmanager.com; " .
+            "connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://tile.openstreetmap.org https://nominatim.openstreetmap.org; " .
             "frame-ancestors 'self';"
         );
 

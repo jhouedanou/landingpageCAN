@@ -151,6 +151,8 @@
                                         'regions' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'border' => 'border-green-300'],
                                         'chr' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'border' => 'border-orange-300'],
                                         'fanzone' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-800', 'border' => 'border-purple-300'],
+                                        'fanzone_public' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'border' => 'border-yellow-300'],
+                                        'fanzone_hotel' => ['bg' => 'bg-pink-100', 'text' => 'text-pink-800', 'border' => 'border-pink-300'],
                                     ];
                                     $colors = $typeColors[$bar->type_pdv ?? 'dakar'] ?? $typeColors['dakar'];
                                 @endphp

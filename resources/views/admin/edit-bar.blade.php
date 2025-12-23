@@ -57,6 +57,12 @@
                                         <option value="fanzone" {{ old('type_pdv', $bar->type_pdv) === 'fanzone' ? 'selected' : '' }}>
                                             🎉 Fanzones
                                         </option>
+                                        <option value="fanzone_public" {{ old('type_pdv', $bar->type_pdv) === 'fanzone_public' ? 'selected' : '' }}>
+                                            🎪 Fanzone tout public
+                                        </option>
+                                        <option value="fanzone_hotel" {{ old('type_pdv', $bar->type_pdv) === 'fanzone_hotel' ? 'selected' : '' }}>
+                                            🏨 Fanzone hôtel
+                                        </option>
                                     </select>
                                 </div>
 
