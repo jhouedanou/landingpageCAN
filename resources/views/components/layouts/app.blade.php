@@ -545,6 +545,7 @@
                 <div class="text-center md:text-left">
                     <h4 class="font-bold text-soboa-orange mb-4">Système de points</h4>
                     <ul class="space-y-2 text-white/70 text-sm">
+                        <li>🔑 +1 pt / connexion quotidienne</li>
                         <li>⚽ +1 pt / pronostic</li>
                         <li>🎯 +3 pts / bon vainqueur</li>
                         <li>🏆 +3 pts / score exact</li>

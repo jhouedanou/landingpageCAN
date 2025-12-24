@@ -216,12 +216,21 @@ class AuthController extends Controller
                     'name' => $otpData['name'],
                     'phone' => $phone,
                     'password' => Hash::make(Str::random(32)),
+                    'last_login_at' => now(),
                 ]);
             } else {
                 if ($user->name !== $otpData['name']) {
                     $user->update(['name' => $otpData['name']]);
                 }
+                $user->update(['last_login_at' => now()]);
             }
+
+            // Bonus connexion quotidienne (+1 point/jour)
+            $pointsService = app(\App\Services\PointsService::class);
+            $pointsService->awardDailyLoginPoints($user);
+            
+            // Recharger l'utilisateur pour avoir les points mis à jour
+            $user->refresh();
 
             session([
                 'user_id' => $user->id,

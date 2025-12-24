@@ -323,6 +323,18 @@
                 <span>📋</span> Historique détaillé des actions
             </h2>
 
+            <!-- Légende des points -->
+            <div class="bg-gradient-to-r from-soboa-blue/5 to-soboa-orange/5 rounded-xl p-4 mb-4 border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-700 mb-2">💡 Système de points :</h3>
+                <div class="flex flex-wrap gap-3 text-xs">
+                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">🔑 +1 pt/connexion/jour</span>
+                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">⚽ +1 pt/pronostic</span>
+                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">🎯 +3 pts/bon vainqueur</span>
+                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">🏆 +3 pts/score exact</span>
+                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">📍 +4 pts/visite lieu</span>
+                </div>
+            </div>
+
             @if($activityLog && $activityLog->count() > 0)
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                     <div class="max-h-[600px] overflow-y-auto">
