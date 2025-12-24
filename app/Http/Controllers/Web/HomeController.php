@@ -152,12 +152,20 @@ class HomeController extends Controller
         return view('matches', compact('matchesByPhase', 'groupStageByGroup', 'userPredictions', 'favoriteTeamId', 'phaseOrder'));
     }
 
-    public function leaderboard()
+    public function leaderboard(Request $request)
     {
-        $users = User::orderBy('points_total', 'desc')
-                     ->orderBy('name', 'asc')
-                     ->paginate(20);
-        return view('leaderboard', compact('users'));
+        $leaderboardService = app(\App\Services\LeaderboardService::class);
+        
+        // Récupérer la période sélectionnée (par défaut: global)
+        $period = $request->get('period', 'global');
+        
+        // Récupérer l'ID de l'utilisateur connecté
+        $userId = session('user_id');
+        
+        // Récupérer les données du leaderboard
+        $leaderboardData = $leaderboardService->getLeaderboardData($userId, $period);
+        
+        return view('leaderboard', $leaderboardData);
     }
 
     public function map()

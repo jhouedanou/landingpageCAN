@@ -25,7 +25,11 @@ npm run build
 # Les données existantes (matchs, animations, PDV, équipes, utilisateurs)
 # ne seront pas affectées par le déploiement.
 #
-# Si vous devez exécuter une migration manuellement:
+# NOUVELLE MIGRATION À EXÉCUTER (24/12/2025):
+# - 2025_01_24_000001_create_weekly_rankings_table.php
+#   → Table pour les classements hebdomadaires CAN
+#
+# Pour exécuter les migrations manuellement:
 # ssh forge@your-server
 # cd /home/forge/your-site/current
 # php artisan migrate --force

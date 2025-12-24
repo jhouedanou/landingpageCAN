@@ -25,6 +25,7 @@ Route::get('/matches', [MatchController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/predictions', [PredictionController::class, 'store']);
     Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+    Route::get('/leaderboard/winners', [LeaderboardController::class, 'winners']);
 });
 
 // Routes de check-in avec authentification web (appels AJAX depuis l'app web)
