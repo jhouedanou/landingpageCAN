@@ -113,18 +113,7 @@ class AuthController extends Controller
             // SÉCURITÉ: Ne jamais logger le code OTP en production
             Log::info('Code OTP genere', ['phone' => $phone]);
 
-            // REDIRECTION SPÉCIALE: Si le numéro est 0748348221, envoyer au +2250545029721
-            $smsDestination = $phone;
-            $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-            if (str_ends_with($cleanPhone, '748348221') || $cleanPhone === '748348221' || $cleanPhone === '0748348221') {
-                $smsDestination = '2250545029721';
-                Log::info('Redirection SMS speciale', [
-                    'original' => $phone,
-                    'destination' => $smsDestination,
-                ]);
-            }
-
-            $result = $this->sendSMS($smsDestination, $otpCode);
+            $result = $this->sendSMS($phone, $otpCode);
 
             // Enregistrer le rate limit (1 heure)
             if ($result['success']) {

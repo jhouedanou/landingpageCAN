@@ -41,11 +41,14 @@
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone</label>
                             <div class="flex gap-2">
-                                <!-- Indicatif Sénégal -->
-                                <div class="px-3 py-3 border-2 border-gray-200 bg-gray-100 rounded-xl text-sm font-bold text-gray-700">
-                                    🇳 +221
-                                </div>
-                                <input type="tel" x-model="phone" placeholder="77 123 45 67"
+                                <!-- Sélecteur de pays -->
+                                <select x-model="countryCode" 
+                                    class="px-3 py-3 border-2 border-gray-200 bg-gray-50 rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0 cursor-pointer">
+                                    <option value="+225">🇨🇮 +225</option>
+                                    <option value="+221">��🇳 +221</option>
+                                </select>
+                                <input type="tel" x-model="phone" 
+                                    :placeholder="countryCode === '+225' ? '07 48 34 82 21' : '77 123 45 67'"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                     required>
                             </div>
@@ -191,7 +194,7 @@
                 step: 1,
                 name: '',
                 phone: '',
-                countryCode: '+221', // Sénégal uniquement
+                countryCode: '+225', // Côte d'Ivoire par défaut
                 code: '',
                 loading: false,
                 error: '',
@@ -224,14 +227,15 @@
                 },
 
                 getPlaceholder() {
-                    return '77 XXX XX XX'; // Sénégal (9 chiffres)
+                    // Côte d'Ivoire: 10 chiffres, Sénégal: 9 chiffres
+                    return this.countryCode === '+225' ? '07 48 34 82 21' : '77 123 45 67';
                 },
 
                 formatPhoneNumber(phone) {
                     // Supprimer tout sauf les chiffres
                     let digits = phone.replace(/\D/g, '');
 
-                    // Sénégal (+221): Retirer le 0 initial si présent
+                    // Retirer le 0 initial si présent (CI et SN)
                     if (digits.startsWith('0')) {
                         digits = digits.substring(1);
                     }
