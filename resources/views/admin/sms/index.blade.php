@@ -1,273 +1,249 @@
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Envoi de SMS - Administration CAN 2025</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'soboa-green': '#006B3F',
-                        'soboa-yellow': '#FCD116',
-                        'soboa-orange': '#E65100',
-                        'soboa-blue': '#0047AB',
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-
-<body class="bg-gray-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-soboa-green text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('admin.dashboard') }}" class="text-white hover:text-soboa-yellow">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<x-layouts.app title="Admin - Envoi SMS">
+    <div class="bg-gray-100 min-h-screen py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            
+            <!-- Header -->
+            <div class="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
+                        <span class="text-4xl">📱</span> Envoi de SMS
+                    </h1>
+                    <p class="text-gray-600 mt-2">Envoyez des SMS aux utilisateurs de l'application</p>
+                </div>
+                <a href="{{ route('admin.dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
+                    Retour
                 </a>
-                <h1 class="text-2xl font-bold">📱 Envoi de SMS</h1>
             </div>
-            <a href="{{ route('admin.logout') }}" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition">
-                Déconnexion
-            </a>
-        </div>
-    </header>
 
-    <main class="container mx-auto px-4 py-8">
-        <!-- Messages de notification -->
-        @if(session('success'))
-        <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-            {{ session('success') }}
-        </div>
-        @endif
+            <!-- Messages de notification -->
+            @if(session('success'))
+            <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                {{ session('success') }}
+            </div>
+            @endif
 
-        @if(session('error'))
-        <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {{ session('error') }}
-        </div>
-        @endif
+            @if(session('error'))
+            <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {{ session('error') }}
+            </div>
+            @endif
 
-        @if($errors->any())
-        <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            <ul class="list-disc list-inside">
-                @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
+            @if($errors->any())
+            <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <ul class="list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
-        <div x-data="smsForm()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Formulaire d'envoi -->
-            <div class="lg:col-span-2">
-                <form action="{{ route('admin.sms.send') }}" method="POST" class="bg-white rounded-xl shadow-lg p-6">
-                    @csrf
+            <div x-data="smsForm()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Formulaire d'envoi -->
+                <div class="lg:col-span-2">
+                    <form action="{{ route('admin.sms.send') }}" method="POST" class="bg-white rounded-xl shadow-lg p-6">
+                        @csrf
 
-                    <!-- Type de destinataires -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-3">Type de destinataires</label>
-                        <div class="flex flex-wrap gap-4">
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="recipient_type" value="selected" x-model="recipientType"
-                                    class="w-4 h-4 text-soboa-green focus:ring-soboa-green">
-                                <span class="ml-2 text-gray-700">Utilisateurs sélectionnés</span>
+                        <!-- Type de destinataires -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Type de destinataires</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="recipient_type" value="selected" x-model="recipientType"
+                                        class="w-4 h-4 text-soboa-blue focus:ring-soboa-blue">
+                                    <span class="ml-2 text-gray-700">Utilisateurs sélectionnés</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="recipient_type" value="all" x-model="recipientType"
+                                        class="w-4 h-4 text-soboa-blue focus:ring-soboa-blue">
+                                    <span class="ml-2 text-gray-700">Tous les utilisateurs ({{ $users->count() }})</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="recipient_type" value="manual" x-model="recipientType"
+                                        class="w-4 h-4 text-soboa-blue focus:ring-soboa-blue">
+                                    <span class="ml-2 text-gray-700">Numéros manuels</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Sélection d'utilisateurs -->
+                        <div x-show="recipientType === 'selected'" x-cloak class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">
+                                Sélectionner les destinataires
+                                <span class="text-gray-500 font-normal">(<span x-text="selectedUsers.length"></span> sélectionnés)</span>
                             </label>
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="recipient_type" value="all" x-model="recipientType"
-                                    class="w-4 h-4 text-soboa-green focus:ring-soboa-green">
-                                <span class="ml-2 text-gray-700">Tous les utilisateurs ({{ $users->count() }})</span>
+                            
+                            <!-- Recherche -->
+                            <input type="text" x-model="searchQuery" placeholder="Rechercher un utilisateur..."
+                                class="w-full px-4 py-2 mb-3 border border-gray-300 rounded-lg focus:ring-soboa-blue focus:border-soboa-blue">
+                            
+                            <!-- Boutons sélection -->
+                            <div class="flex gap-2 mb-3">
+                                <button type="button" @click="selectAll()" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded">
+                                    Tout sélectionner
+                                </button>
+                                <button type="button" @click="deselectAll()" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded">
+                                    Tout désélectionner
+                                </button>
+                            </div>
+
+                            <!-- Liste des utilisateurs -->
+                            <div class="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
+                                @foreach($users as $user)
+                                <label x-show="'{{ strtolower($user->name . ' ' . $user->phone) }}'.includes(searchQuery.toLowerCase())"
+                                    class="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer">
+                                    <input type="checkbox" name="recipients[]" value="{{ $user->id }}"
+                                        x-model="selectedUsers"
+                                        class="w-4 h-4 text-soboa-blue focus:ring-soboa-blue rounded">
+                                    <span class="ml-3">
+                                        <span class="font-medium text-gray-800">{{ $user->name ?? 'Sans nom' }}</span>
+                                        <span class="text-gray-500 text-sm ml-2">{{ $user->phone }}</span>
+                                    </span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Numéros manuels -->
+                        <div x-show="recipientType === 'manual'" x-cloak class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Numéros de téléphone
+                                <span class="text-gray-500 font-normal">(un par ligne ou séparés par virgule)</span>
                             </label>
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="recipient_type" value="manual" x-model="recipientType"
-                                    class="w-4 h-4 text-soboa-green focus:ring-soboa-green">
-                                <span class="ml-2 text-gray-700">Numéros manuels</span>
+                            <textarea name="manual_numbers" rows="4" placeholder="+2250545029721&#10;+2250707123456&#10;+221771234567"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-soboa-blue focus:border-soboa-blue"></textarea>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">
+                                Message SMS
+                                <span class="text-gray-500 font-normal">(<span x-text="message.length"></span>/1600 caractères)</span>
                             </label>
+                            <textarea name="message" rows="5" x-model="message" required
+                                placeholder="Tapez votre message ici..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-soboa-blue focus:border-soboa-blue"
+                                maxlength="1600"></textarea>
+                            
+                            <!-- Compteur SMS -->
+                            <div class="mt-2 text-sm text-gray-500">
+                                <span x-text="Math.ceil(message.length / 160) || 0"></span> SMS
+                                <span class="text-gray-400">(160 caractères par SMS)</span>
+                            </div>
+                        </div>
+
+                        <!-- Modèles de messages -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Modèles de messages</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" @click="useTemplate('match')"
+                                    class="px-3 py-1 text-sm bg-soboa-blue text-white rounded-full hover:opacity-80">
+                                    🏆 Match CAN
+                                </button>
+                                <button type="button" @click="useTemplate('promo')"
+                                    class="px-3 py-1 text-sm bg-soboa-orange text-white rounded-full hover:opacity-80">
+                                    🎁 Promotion
+                                </button>
+                                <button type="button" @click="useTemplate('reminder')"
+                                    class="px-3 py-1 text-sm bg-green-600 text-white rounded-full hover:opacity-80">
+                                    ⏰ Rappel
+                                </button>
+                                <button type="button" @click="useTemplate('winner')"
+                                    class="px-3 py-1 text-sm bg-yellow-500 text-gray-800 rounded-full hover:opacity-80">
+                                    🎉 Gagnant
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'envoi -->
+                        <div class="flex justify-end gap-3">
+                            <button type="button" @click="showTestModal = true"
+                                class="px-6 py-3 bg-gray-500 text-white font-bold rounded-xl hover:bg-gray-600 transition">
+                                📤 Test
+                            </button>
+                            <button type="submit"
+                                class="px-6 py-3 bg-soboa-blue text-white font-bold rounded-xl hover:opacity-90 transition">
+                                📱 Envoyer les SMS
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sidebar avec stats -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Statistiques -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Statistiques</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-600">Utilisateurs avec téléphone</span>
+                                <span class="font-bold text-soboa-blue">{{ $users->count() }}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-600">Sélectionnés</span>
+                                <span class="font-bold text-soboa-blue" x-text="recipientType === 'all' ? {{ $users->count() }} : selectedUsers.length"></span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-600">Coût estimé</span>
+                                <span class="font-bold text-soboa-orange" x-text="'~' + estimatedCost + ' €'"></span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Sélection d'utilisateurs -->
-                    <div x-show="recipientType === 'selected'" x-cloak class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-3">
-                            Sélectionner les destinataires
-                            <span class="text-gray-500 font-normal">(<span x-text="selectedUsers.length"></span> sélectionnés)</span>
-                        </label>
+                    <!-- Aide -->
+                    <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                        <h3 class="text-lg font-bold text-blue-800 mb-3">💡 Conseils</h3>
+                        <ul class="text-sm text-blue-700 space-y-2">
+                            <li>• Un SMS = 160 caractères max</li>
+                            <li>• Évitez les caractères spéciaux</li>
+                            <li>• Testez avant d'envoyer en masse</li>
+                            <li>• Les numéros ivoiriens commencent par +225</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Modal de test -->
+                <div x-show="showTestModal" x-cloak
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                    @click.self="showTestModal = false">
+                    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">📤 Envoyer un SMS de test</h3>
                         
-                        <!-- Recherche -->
-                        <input type="text" x-model="searchQuery" placeholder="Rechercher un utilisateur..."
-                            class="w-full px-4 py-2 mb-3 border border-gray-300 rounded-lg focus:ring-soboa-green focus:border-soboa-green">
-                        
-                        <!-- Boutons sélection -->
-                        <div class="flex gap-2 mb-3">
-                            <button type="button" @click="selectAll()" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded">
-                                Tout sélectionner
-                            </button>
-                            <button type="button" @click="deselectAll()" class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded">
-                                Tout désélectionner
-                            </button>
+                        <div class="mb-4">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de test</label>
+                            <input type="text" x-model="testPhone" placeholder="+2250545029721"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-soboa-blue focus:border-soboa-blue">
                         </div>
 
-                        <!-- Liste des utilisateurs -->
-                        <div class="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
-                            @foreach($users as $user)
-                            <label x-show="'{{ strtolower($user->name . ' ' . $user->phone) }}'.includes(searchQuery.toLowerCase())"
-                                class="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer">
-                                <input type="checkbox" name="recipients[]" value="{{ $user->id }}"
-                                    x-model="selectedUsers"
-                                    class="w-4 h-4 text-soboa-green focus:ring-soboa-green rounded">
-                                <span class="ml-3">
-                                    <span class="font-medium text-gray-800">{{ $user->name ?? 'Sans nom' }}</span>
-                                    <span class="text-gray-500 text-sm ml-2">{{ $user->phone }}</span>
-                                </span>
-                            </label>
-                            @endforeach
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Message</label>
+                            <textarea x-model="message" rows="3" readonly
+                                class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50"></textarea>
                         </div>
-                    </div>
 
-                    <!-- Numéros manuels -->
-                    <div x-show="recipientType === 'manual'" x-cloak class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">
-                            Numéros de téléphone
-                            <span class="text-gray-500 font-normal">(un par ligne ou séparés par virgule)</span>
-                        </label>
-                        <textarea name="manual_numbers" rows="4" placeholder="+2250545029721&#10;+2250707123456&#10;+221771234567"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-soboa-green focus:border-soboa-green"></textarea>
-                    </div>
-
-                    <!-- Message -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">
-                            Message SMS
-                            <span class="text-gray-500 font-normal">(<span x-text="message.length"></span>/1600 caractères)</span>
-                        </label>
-                        <textarea name="message" rows="5" x-model="message" required
-                            placeholder="Tapez votre message ici..."
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-soboa-green focus:border-soboa-green"
-                            maxlength="1600"></textarea>
-                        
-                        <!-- Compteur SMS -->
-                        <div class="mt-2 text-sm text-gray-500">
-                            <span x-text="Math.ceil(message.length / 160) || 0"></span> SMS
-                            <span class="text-gray-400">(160 caractères par SMS)</span>
+                        <div x-show="testResult" x-cloak class="mb-4 p-3 rounded-lg" :class="testSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                            <span x-text="testResult"></span>
                         </div>
-                    </div>
 
-                    <!-- Modèles de messages -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Modèles de messages</label>
-                        <div class="flex flex-wrap gap-2">
-                            <button type="button" @click="useTemplate('match')"
-                                class="px-3 py-1 text-sm bg-soboa-blue text-white rounded-full hover:bg-blue-700">
-                                🏆 Match CAN
+                        <div class="flex justify-end gap-3">
+                            <button type="button" @click="showTestModal = false; testResult = ''"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                                Annuler
                             </button>
-                            <button type="button" @click="useTemplate('promo')"
-                                class="px-3 py-1 text-sm bg-soboa-orange text-white rounded-full hover:bg-orange-700">
-                                🎁 Promotion
-                            </button>
-                            <button type="button" @click="useTemplate('reminder')"
-                                class="px-3 py-1 text-sm bg-soboa-green text-white rounded-full hover:bg-green-700">
-                                ⏰ Rappel
-                            </button>
-                            <button type="button" @click="useTemplate('winner')"
-                                class="px-3 py-1 text-sm bg-soboa-yellow text-gray-800 rounded-full hover:bg-yellow-500">
-                                🎉 Gagnant
+                            <button type="button" @click="sendTest()" :disabled="testLoading"
+                                class="px-4 py-2 bg-soboa-blue text-white rounded-lg hover:opacity-90 disabled:opacity-50">
+                                <span x-show="!testLoading">Envoyer le test</span>
+                                <span x-show="testLoading">Envoi...</span>
                             </button>
                         </div>
                     </div>
-
-                    <!-- Bouton d'envoi -->
-                    <div class="flex justify-end gap-3">
-                        <button type="button" @click="showTestModal = true"
-                            class="px-6 py-3 bg-gray-500 text-white font-bold rounded-xl hover:bg-gray-600 transition">
-                            📤 Test
-                        </button>
-                        <button type="submit"
-                            class="px-6 py-3 bg-soboa-green text-white font-bold rounded-xl hover:bg-green-700 transition">
-                            📱 Envoyer les SMS
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Sidebar avec stats -->
-            <div class="lg:col-span-1 space-y-6">
-                <!-- Statistiques -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Statistiques</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-600">Utilisateurs avec téléphone</span>
-                            <span class="font-bold text-soboa-green">{{ $users->count() }}</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-600">Sélectionnés</span>
-                            <span class="font-bold text-soboa-blue" x-text="recipientType === 'all' ? {{ $users->count() }} : selectedUsers.length"></span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="text-gray-600">Coût estimé</span>
-                            <span class="font-bold text-soboa-orange" x-text="'~' + estimatedCost + ' €'"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Aide -->
-                <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                    <h3 class="text-lg font-bold text-blue-800 mb-3">💡 Conseils</h3>
-                    <ul class="text-sm text-blue-700 space-y-2">
-                        <li>• Un SMS = 160 caractères max</li>
-                        <li>• Évitez les caractères spéciaux</li>
-                        <li>• Testez avant d'envoyer en masse</li>
-                        <li>• Les numéros ivoiriens commencent par +225</li>
-                    </ul>
                 </div>
             </div>
         </div>
-
-        <!-- Modal de test -->
-        <div x-show="showTestModal" x-cloak
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            @click.self="showTestModal = false">
-            <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">📤 Envoyer un SMS de test</h3>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de test</label>
-                    <input type="text" x-model="testPhone" placeholder="+2250545029721"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-soboa-green focus:border-soboa-green">
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Message</label>
-                    <textarea x-model="message" rows="3" readonly
-                        class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50"></textarea>
-                </div>
-
-                <div x-show="testResult" class="mb-4 p-3 rounded-lg" :class="testSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                    <span x-text="testResult"></span>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                    <button type="button" @click="showTestModal = false"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                        Annuler
-                    </button>
-                    <button type="button" @click="sendTest()" :disabled="testLoading"
-                        class="px-4 py-2 bg-soboa-green text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
-                        <span x-show="!testLoading">Envoyer le test</span>
-                        <span x-show="testLoading">Envoi...</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
         function smsForm() {
@@ -285,7 +261,6 @@
                 get estimatedCost() {
                     let count = this.recipientType === 'all' ? {{ $users->count() }} : this.selectedUsers.length;
                     let smsCount = Math.ceil(this.message.length / 160) || 1;
-                    // Estimation: ~0.05€ par SMS
                     return (count * smsCount * 0.05).toFixed(2);
                 },
 
@@ -299,10 +274,10 @@
 
                 useTemplate(type) {
                     const templates = {
-                        match: "🏆 CAN 2025 - Ne manquez pas le match de ce soir ! Rejoignez-nous dans l'un de nos bars partenaires pour vivre l'ambiance.\n\n🍺 SOBOA - Le goût de la victoire !",
-                        promo: "🎁 PROMO SPÉCIALE CAN 2025 !\n\nProfitez de -20% sur toutes les bières SOBOA dans nos bars partenaires ce weekend.\n\nÀ consommer avec modération.",
-                        reminder: "⏰ RAPPEL: Votre pronostic pour le match de ce soir expire dans 1 heure !\n\nConnectez-vous vite sur l'app CAN 2025 pour valider votre prédiction.\n\n🏆 Bonne chance !",
-                        winner: "🎉 FÉLICITATIONS !\n\nVous avez gagné [PRIX] grâce à vos pronostics CAN 2025 !\n\nContactez-nous pour récupérer votre lot.\n\n🍺 SOBOA - Le goût de la victoire !"
+                        match: "CAN 2025 - Ne manquez pas le match de ce soir ! Rejoignez-nous dans l'un de nos bars partenaires pour vivre l'ambiance. SOBOA - Le gout de la victoire !",
+                        promo: "PROMO SPECIALE CAN 2025 ! Profitez de -20% sur toutes les bieres SOBOA dans nos bars partenaires ce weekend. A consommer avec moderation.",
+                        reminder: "RAPPEL: Votre pronostic pour le match de ce soir expire dans 1 heure ! Connectez-vous vite sur l'app CAN 2025 pour valider votre prediction. Bonne chance !",
+                        winner: "FELICITATIONS ! Vous avez gagne [PRIX] grace a vos pronostics CAN 2025 ! Contactez-nous pour recuperer votre lot. SOBOA - Le gout de la victoire !"
                     };
                     this.message = templates[type] || '';
                 },
@@ -322,7 +297,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
                             body: JSON.stringify({
                                 phone: this.testPhone,
@@ -347,6 +322,4 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
-</body>
-
-</html>
+</x-layouts.app>
