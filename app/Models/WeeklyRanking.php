@@ -24,6 +24,9 @@ class WeeklyRanking extends Model
     /**
      * Périodes disponibles pour la CAN 2025
      * NOTE: Dates mises à jour pour la phase de test (décembre 2025)
+     * 
+     * Classements hebdomadaires: Top 5 gagnants par semaine (20 gagnants au total)
+     * Classement spécial demi-finale: Classement global, le #1 gagne un billet finale
      */
     public const PERIODS = [
         'week_1' => [
@@ -47,7 +50,7 @@ class WeeklyRanking extends Model
             'end' => '2026-01-17',
         ],
         'semifinal' => [
-            'label' => 'Classement Général',
+            'label' => 'Spécial Demi-Finale',
             'start' => '2025-12-21', // Début du jeu
             'end' => '2026-01-17', // Fin du jeu
         ],

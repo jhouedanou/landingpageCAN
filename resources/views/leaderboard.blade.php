@@ -34,13 +34,42 @@
             </div>
         </div>
 
+        <!-- Info sur les gains -->
+        @if(str_starts_with($selected_period, 'week_'))
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-4 text-white">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎁</span>
+                <div>
+                    <p class="font-bold">Classement Hebdomadaire</p>
+                    <p class="text-sm text-white/90">Les 5 premiers de cette semaine remportent des lots !</p>
+                </div>
+            </div>
+        </div>
+        @elseif($selected_period === 'semifinal')
+        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl shadow-lg p-4 text-white">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🎟️</span>
+                <div>
+                    <p class="font-bold">Classement Spécial Demi-Finale</p>
+                    <p class="text-sm text-white/90">Le numéro 1 gagne un billet pour la finale !</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- TOP 5 National -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
             <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue/80 p-4">
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                    <span>🏅</span> TOP 5 National
+                    <span>🏅</span> TOP 5 {{ str_starts_with($selected_period, 'week_') ? 'de la Semaine' : 'National' }}
                 </h2>
-                <p class="text-white/80 text-sm mt-1">Les meilleurs pronostiqueurs</p>
+                <p class="text-white/80 text-sm mt-1">
+                    @if(str_starts_with($selected_period, 'week_'))
+                        Points des pronostics de cette semaine uniquement
+                    @else
+                        Les meilleurs pronostiqueurs
+                    @endif
+                </p>
             </div>
 
             @if(count($top5) > 0)
