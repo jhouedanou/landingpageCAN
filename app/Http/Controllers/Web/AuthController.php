@@ -45,8 +45,6 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            $whatsappNumber = $this->formatWhatsAppNumber($phone);
-
             // RATE LIMITING: 1 OTP par heure par numéro
             $rateLimitKey = 'otp_rate_limit_' . md5($phone);
             $lastOtpSent = Cache::get($rateLimitKey);
@@ -69,16 +67,15 @@ class AuthController extends Controller
                 }
             }
 
-            Log::info('=== ENVOI OTP WHATSAPP ===', [
+            Log::info('=== ENVOI OTP SMS ===', [
                 'original_phone' => $originalPhone,
                 'formatted_phone' => $phone,
-                'whatsapp_number' => $whatsappNumber,
                 'name' => $request->name,
             ]);
 
             $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            $cacheKey = 'otp_' . $whatsappNumber;
+            $cacheKey = 'otp_' . $phone;
             Cache::put($cacheKey, [
                 'code' => $otpCode,
                 'name' => $request->name,
@@ -87,9 +84,9 @@ class AuthController extends Controller
             ], now()->addMinutes(10));
 
             // SÉCURITÉ: Ne jamais logger le code OTP en production
-            Log::info('Code OTP genere', ['whatsapp_number' => $whatsappNumber]);
+            Log::info('Code OTP genere', ['phone' => $phone]);
 
-            $result = $this->sendWhatsAppMessage($whatsappNumber, $otpCode);
+            $result = $this->sendSMS($phone, $otpCode);
 
             // Enregistrer le rate limit (1 heure)
             if ($result['success']) {
@@ -100,7 +97,7 @@ class AuthController extends Controller
             $otpLog = AdminOtpLog::create([
                 'phone' => $phone,
                 'code' => $otpCode,
-                'whatsapp_number' => $whatsappNumber,
+                'whatsapp_number' => $phone, // Pour compatibilité, on garde le même champ
                 'status' => $result['success'] ? 'sent' : 'failed',
                 'otp_sent_at' => now(),
                 'error_message' => $result['success'] ? null : ($result['error'] ?? 'Erreur inconnue'),
@@ -109,13 +106,13 @@ class AuthController extends Controller
             if ($result['success']) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Code envoye sur WhatsApp !',
-                    'whatsapp_number' => $whatsappNumber,
+                    'message' => 'Code envoyé par SMS !',
+                    'phone' => $phone,
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur lors de l envoi du message WhatsApp.',
+                    'message' => 'Erreur lors de l\'envoi du SMS.',
                     'error' => $result['error'] ?? 'Erreur inconnue',
                 ], 500);
             }
@@ -130,68 +127,71 @@ class AuthController extends Controller
         }
     }
 
-    private function sendWhatsAppMessage(string $whatsappNumber, string $otpCode): array
+    /**
+     * Envoie un SMS via Twilio
+     */
+    private function sendSMS(string $phone, string $otpCode): array
     {
-        Log::info('=== DEBUT sendWhatsAppMessage ===');
+        Log::info('=== DEBUT sendSMS (Twilio) ===');
 
-        $idInstance = config('services.greenapi.id_instance');
-        $apiToken = config('services.greenapi.api_token');
-        $baseUrl = config('services.greenapi.url');
+        $accountSid = config('services.twilio.account_sid');
+        $authToken = config('services.twilio.auth_token');
+        $fromNumber = config('services.twilio.from_number');
 
-        Log::info('Configuration Green API', [
-            'id_instance' => $idInstance,
-            'api_token' => $apiToken ? substr($apiToken, 0, 15) . '...' : 'NULL',
-            'base_url' => $baseUrl,
+        Log::info('Configuration Twilio', [
+            'account_sid' => $accountSid ? substr($accountSid, 0, 10) . '...' : 'NULL',
+            'from_number' => $fromNumber,
         ]);
 
-        if (!$idInstance || !$apiToken || !$baseUrl) {
-            Log::error('Configuration Green API incomplete !', [
-                'id_instance_set' => !empty($idInstance),
-                'api_token_set' => !empty($apiToken),
-                'base_url_set' => !empty($baseUrl),
-            ]);
-            return ['success' => false, 'error' => 'Configuration Green API incomplete'];
+        if (!$accountSid || !$authToken || !$fromNumber) {
+            Log::error('Configuration Twilio incomplete !');
+            return ['success' => false, 'error' => 'Configuration Twilio incomplete'];
         }
 
-        $url = "{$baseUrl}/waInstance{$idInstance}/sendMessage/{$apiToken}";
+        // Formater le numéro au format international avec +
+        $toNumber = '+' . ltrim($phone, '+');
 
-        Log::info('URL Green API', ['url' => $url]);
-
-        $message = "⚽ SOBOA FOOT TIME\n\nVotre code de vérification :\n\n👉 ```{$otpCode}``` 👈\n\n_Le jeu commence ici !_";
-
-        $payload = [
-            'chatId' => $whatsappNumber . '@c.us',
-            'message' => $message,
-        ];
-
-        Log::info('Payload WhatsApp', $payload);
+        $message = "SOBOA FOOT TIME - Votre code de verification: {$otpCode}";
 
         try {
-            Log::info('Envoi requete HTTP vers Green API...');
+            Log::info('Envoi SMS via Twilio...', [
+                'to' => $toNumber,
+                'from' => $fromNumber,
+            ]);
 
-            $response = Http::timeout(30)->post($url, $payload);
+            $url = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
 
-            Log::info('Reponse Green API recue', [
+            $response = Http::withBasicAuth($accountSid, $authToken)
+                ->asForm()
+                ->timeout(30)
+                ->post($url, [
+                    'To' => $toNumber,
+                    'From' => $fromNumber,
+                    'Body' => $message,
+                ]);
+
+            Log::info('Reponse Twilio recue', [
                 'status' => $response->status(),
                 'body' => $response->body(),
-                'headers' => $response->headers(),
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                Log::info('=== SUCCES WhatsApp ===', ['data' => $data]);
-                return ['success' => true, 'idMessage' => $data['idMessage'] ?? null];
+                Log::info('=== SUCCES SMS Twilio ===', ['sid' => $data['sid'] ?? null]);
+                return ['success' => true, 'sid' => $data['sid'] ?? null];
             } else {
-                Log::error('=== ECHEC WhatsApp ===', [
+                $errorData = $response->json();
+                $errorMessage = $errorData['message'] ?? ('HTTP ' . $response->status());
+                Log::error('=== ECHEC SMS Twilio ===', [
                     'status' => $response->status(),
+                    'error' => $errorMessage,
                     'body' => $response->body(),
                 ]);
-                return ['success' => false, 'error' => 'HTTP ' . $response->status() . ': ' . $response->body()];
+                return ['success' => false, 'error' => $errorMessage];
             }
         } catch (\Exception $e) {
-            Log::error('=== EXCEPTION WhatsApp ===', [
+            Log::error('=== EXCEPTION Twilio ===', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
             return ['success' => false, 'error' => $e->getMessage()];
         }
@@ -215,13 +215,11 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            $whatsappNumber = $this->formatWhatsAppNumber($phone);
-
-            $cacheKey = 'otp_' . $whatsappNumber;
+            $cacheKey = 'otp_' . $phone;
             $otpData = Cache::get($cacheKey);
 
             // Récupérer le log OTP pour mise à jour
-            $otpLog = AdminOtpLog::where('whatsapp_number', $whatsappNumber)
+            $otpLog = AdminOtpLog::where('phone', $phone)
                 ->where('status', 'sent')
                 ->orderBy('created_at', 'desc')
                 ->first();
