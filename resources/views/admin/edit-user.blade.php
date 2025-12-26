@@ -118,12 +118,12 @@
                 <div>
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         @php
-                            \$totalPoints = \$pointLogs->sum('points');
-                            \$participation = \$pointLogs->where('source', 'prediction_participation')->sum('points');
-                            \$winner = \$pointLogs->where('source', 'prediction_winner')->sum('points');
-                            \$exact = \$pointLogs->where('source', 'prediction_exact')->sum('points');
-                            \$admin = \$pointLogs->where('source', 'admin_bonus')->sum('points');
-                            \$other = \$pointLogs->whereNotIn('source', ['prediction_participation', 'prediction_winner', 'prediction_exact', 'admin_bonus'])->sum('points');
+                            $totalPoints = $pointLogs->sum('points');
+                            $participation = $pointLogs->where('source', 'prediction_participation')->sum('points');
+                            $winner = $pointLogs->where('source', 'prediction_winner')->sum('points');
+                            $exact = $pointLogs->where('source', 'prediction_exact')->sum('points');
+                            $admin = $pointLogs->where('source', 'admin_bonus')->sum('points');
+                            $other = $pointLogs->whereNotIn('source', ['prediction_participation', 'prediction_winner', 'prediction_exact', 'admin_bonus'])->sum('points');
                         @endphp
 
                         <div class="flex items-center justify-between mb-4">
@@ -131,28 +131,28 @@
                                 📊 Historique des Points
                             </h2>
                             <div class="flex items-center gap-2">
-                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ \$pointLogs->count() }} actions</span>
-                                <span class="bg-soboa-orange text-black font-black text-lg px-3 py-1 rounded-full">{{ \$totalPoints }} pts</span>
+                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ $pointLogs->count() }} actions</span>
+                                <span class="bg-soboa-orange text-black font-black text-lg px-3 py-1 rounded-full">{{ $totalPoints }} pts</span>
                             </div>
                         </div>
 
-                        @if(\$pointLogs->count() > 0)
+                        @if($pointLogs->count() > 0)
                             <!-- Résumé par type -->
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
                                 <div class="bg-blue-50 rounded-lg p-2 text-center">
-                                    <div class="text-xl font-black text-blue-600">{{ \$participation }}</div>
+                                    <div class="text-xl font-black text-blue-600">{{ $participation }}</div>
                                     <div class="text-xs text-blue-700 font-medium">Participation</div>
                                 </div>
                                 <div class="bg-green-50 rounded-lg p-2 text-center">
-                                    <div class="text-xl font-black text-green-600">{{ \$winner }}</div>
+                                    <div class="text-xl font-black text-green-600">{{ $winner }}</div>
                                     <div class="text-xs text-green-700 font-medium">Bon vainqueur</div>
                                 </div>
                                 <div class="bg-yellow-50 rounded-lg p-2 text-center">
-                                    <div class="text-xl font-black text-yellow-600">{{ \$exact }}</div>
+                                    <div class="text-xl font-black text-yellow-600">{{ $exact }}</div>
                                     <div class="text-xs text-yellow-700 font-medium">Score exact</div>
                                 </div>
                                 <div class="bg-purple-50 rounded-lg p-2 text-center">
-                                    <div class="text-xl font-black text-purple-600">{{ \$admin + \$other }}</div>
+                                    <div class="text-xl font-black text-purple-600">{{ $admin + $other }}</div>
                                     <div class="text-xs text-purple-700 font-medium">Bonus/Autre</div>
                                 </div>
                             </div>
@@ -169,13 +169,13 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
-                                        @foreach(\$pointLogs as \$log)
+                                        @foreach($pointLogs as $log)
                                         <tr class="hover:bg-gray-50">
                                             <td class="px-3 py-2 text-gray-500 text-xs whitespace-nowrap">
-                                                {{ \$log->created_at->format('d/m H:i') }}
+                                                {{ $log->created_at->format('d/m H:i') }}
                                             </td>
                                             <td class="px-3 py-2">
-                                                @switch(\$log->source)
+                                                @switch($log->source)
                                                     @case('prediction_participation')
                                                         <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium">🎯 Particip.</span>
                                                         @break
@@ -192,21 +192,21 @@
                                                         <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-medium">📍 Check-in</span>
                                                         @break
                                                     @default
-                                                        <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs font-medium">{{ \$log->source }}</span>
+                                                        <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs font-medium">{{ $log->source }}</span>
                                                 @endswitch
                                             </td>
                                             <td class="px-3 py-2 text-gray-600 text-xs">
-                                                @if(\$log->match)
-                                                    {{ \$log->match->homeTeam->name ?? '?' }} vs {{ \$log->match->awayTeam->name ?? '?' }}
-                                                @elseif(\$log->bar)
-                                                    📍 {{ \$log->bar->name }}
+                                                @if($log->match)
+                                                    {{ $log->match->homeTeam->name ?? '?' }} vs {{ $log->match->awayTeam->name ?? '?' }}
+                                                @elseif($log->bar)
+                                                    📍 {{ $log->bar->name }}
                                                 @else
                                                     -
                                                 @endif
                                             </td>
                                             <td class="px-3 py-2 text-center">
-                                                <span class="font-bold {{ \$log->points > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                                    {{ \$log->points > 0 ? '+' : '' }}{{ \$log->points }}
+                                                <span class="font-bold {{ $log->points > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                    {{ $log->points > 0 ? '+' : '' }}{{ $log->points }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -245,7 +245,7 @@
             btn.innerHTML = '⏳...';
             btn.disabled = true;
 
-            fetch(\`/admin/users/\${userId}/reset-points\`, {
+            fetch(\`/admin/users/${userId}/reset-points\`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
