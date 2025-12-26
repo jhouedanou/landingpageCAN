@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessMatchPoints;
 use App\Models\Bar;
 use App\Models\MatchGame;
+use App\Models\PointLog;
 use App\Models\Prediction;
 use App\Models\Stadium;
 use App\Models\Team;

@@ -23,32 +23,33 @@ class WeeklyRanking extends Model
 
     /**
      * Périodes disponibles pour la CAN 2025
+     * NOTE: Dates mises à jour pour la phase de test (décembre 2025)
      */
     public const PERIODS = [
         'week_1' => [
             'label' => 'Semaine 1',
-            'start' => '2025-01-21',
-            'end' => '2025-01-27',
+            'start' => '2025-12-21',
+            'end' => '2025-12-27',
         ],
         'week_2' => [
             'label' => 'Semaine 2',
-            'start' => '2025-01-28',
-            'end' => '2025-02-03',
+            'start' => '2025-12-28',
+            'end' => '2026-01-03',
         ],
         'week_3' => [
             'label' => 'Semaine 3',
-            'start' => '2025-02-04',
-            'end' => '2025-02-10',
+            'start' => '2026-01-04',
+            'end' => '2026-01-10',
         ],
         'week_4' => [
             'label' => 'Semaine 4',
-            'start' => '2025-02-11',
-            'end' => '2025-02-17',
+            'start' => '2026-01-11',
+            'end' => '2026-01-17',
         ],
         'semifinal' => [
-            'label' => 'Classement Demi-finale',
-            'start' => '2025-01-21', // Début de la CAN
-            'end' => '2025-02-17', // Après les demi-finales
+            'label' => 'Classement Général CAN',
+            'start' => '2025-12-21', // Début du jeu
+            'end' => '2026-01-17', // Fin du jeu
         ],
     ];
 

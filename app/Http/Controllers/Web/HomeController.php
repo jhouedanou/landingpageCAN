@@ -159,6 +159,12 @@ class HomeController extends Controller
         // Récupérer la période sélectionnée (par défaut: global)
         $period = $request->get('period', 'global');
         
+        // Forcer rafraîchissement du cache si demandé
+        if ($request->has('refresh')) {
+            \Illuminate\Support\Facades\Cache::forget("leaderboard_top5_{$period}");
+            \Illuminate\Support\Facades\Cache::forget("leaderboard_top20_{$period}");
+        }
+        
         // Récupérer l'ID de l'utilisateur connecté
         $userId = session('user_id');
         
