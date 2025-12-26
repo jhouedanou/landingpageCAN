@@ -11,6 +11,24 @@
                 <p class="text-gray-600 mt-2">Entrez votre numéro pour jouer</p>
             </div>
 
+            <!-- Explication du système de mot de passe -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                <div class="flex items-start gap-3">
+                    <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm text-blue-800">
+                        <p class="font-bold mb-1">Comment ça marche ?</p>
+                        <ul class="list-disc list-inside space-y-1 text-blue-700">
+                            <li><strong>Première connexion :</strong> Vous recevrez un code à 6 chiffres par SMS</li>
+                            <li><strong>Ce code devient votre mot de passe</strong> pour toutes vos connexions futures</li>
+                            <li><strong>Prochaines connexions :</strong> Entrez simplement ce même code (pas de nouveau SMS)</li>
+                            <li><strong>Code oublié ?</strong> Vous pourrez en demander un nouveau</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- Formulaire -->
             <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8" x-data="loginForm()">
 
@@ -41,20 +59,22 @@
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone</label>
                             <div class="flex gap-2">
-                                <!-- Indicatif Sénégal -->
-                                <div class="px-3 py-3 border-2 border-gray-200 bg-gray-100 rounded-xl text-sm font-bold text-gray-700">
-                                    🇳 +221
-                                </div>
+                                <!-- Sélecteur de pays -->
+                                <select x-model="countryCode" 
+                                    class="px-3 py-3 border-2 border-gray-200 bg-white rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0">
+                                    <option value="+221">��🇳 +221</option>
+                                    <option value="+225">🇨🇮 +225</option>
+                                </select>
                                 <input type="tel" x-model="phone" 
-                                    placeholder="77 123 45 67"
+                                    :placeholder="getPlaceholder()"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                     required>
                             </div>
                             <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
                                 <svg class="w-4 h-4 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                 </svg>
-                                <span>Un code vous sera envoyé par <strong>SMS</strong></span>
+                                <span>Un <strong>mot de passe à 6 chiffres</strong> vous sera envoyé par SMS</span>
                             </p>
                         </div>
 
@@ -91,7 +111,7 @@
                         <!-- Bouton -->
                         <button type="submit" :disabled="loading"
                             class="w-full bg-soboa-orange hover:bg-soboa-orange-dark disabled:bg-gray-400 text-black font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
-                            <span x-show="!loading">Recevoir le code</span>
+                            <span x-show="!loading">Recevoir mon mot de passe</span>
                             <span x-show="loading" class="flex items-center gap-2">
                                 <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24">
@@ -117,22 +137,44 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
                                 </svg>
                             </div>
-                            <h2 class="text-xl font-bold text-gray-800">Code envoyé par SMS !</h2>
-                            <p class="text-gray-600 mt-1">
-                                Vérifiez vos messages SMS au <span class="font-bold text-soboa-blue"
-                                    x-text="fullPhone"></span>
-                            </p>
-                            <p class="text-sm text-green-600 mt-2 flex items-center justify-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span>Ce code est valide pendant <strong>1 heure</strong></span>
-                            </p>
+                            
+                            <!-- Message différent selon nouveau ou ancien utilisateur -->
+                            <template x-if="hasExistingPassword">
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800">Bon retour ! 👋</h2>
+                                    <p class="text-gray-600 mt-1">
+                                        Entrez votre <strong>mot de passe</strong> pour <span class="font-bold text-soboa-blue" x-text="fullPhone"></span>
+                                    </p>
+                                    <p class="text-sm text-blue-600 mt-2 flex items-center justify-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span>C'est le code à 6 chiffres reçu lors de votre inscription</span>
+                                    </p>
+                                </div>
+                            </template>
+                            
+                            <template x-if="!hasExistingPassword">
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800">Mot de passe envoyé ! 📱</h2>
+                                    <p class="text-gray-600 mt-1">
+                                        Vérifiez vos SMS au <span class="font-bold text-soboa-blue" x-text="fullPhone"></span>
+                                    </p>
+                                    <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <p class="text-sm text-yellow-800 flex items-start gap-2">
+                                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                            <span><strong>⚠️ Notez ce code !</strong> Il sera votre mot de passe permanent pour toutes vos connexions futures. Pas de nouveau SMS à chaque connexion !</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- Champ code -->
                         <div class="mb-6">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Code de vérification</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2" x-text="hasExistingPassword ? 'Votre mot de passe (6 chiffres)' : 'Code reçu par SMS'"></label>
                             <input type="text" x-model="code" placeholder="000000" maxlength="6"
                                 class="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-soboa-blue focus:ring-0 text-2xl text-center tracking-[0.5em] font-bold"
                                 required>
@@ -141,7 +183,7 @@
                         <!-- Boutons -->
                         <button type="submit" :disabled="loading || code.length !== 6"
                             class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 mb-4">
-                            <span x-show="!loading">Vérifier le code</span>
+                            <span x-show="!loading">Se connecter</span>
                             <span x-show="loading" class="flex items-center gap-2">
                                 <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24">
@@ -151,12 +193,12 @@
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                     </path>
                                 </svg>
-                                Vérification...
+                                Connexion...
                             </span>
                         </button>
 
-                        <!-- Renvoyer le code -->
-                        <div class="text-center">
+                        <!-- Renvoyer le code (seulement pour les nouveaux) -->
+                        <div x-show="!hasExistingPassword" class="text-center">
                             <p class="text-sm text-gray-500 mb-2">Vous n'avez pas reçu le code ?</p>
                             <button type="button" @click="resendOtp" :disabled="resendCooldown > 0"
                                 class="text-soboa-orange hover:underline font-bold disabled:text-gray-400">
@@ -165,10 +207,19 @@
                                         x-text="resendCooldown"></span>s</span>
                             </button>
                         </div>
+                        
+                        <!-- Code oublié (pour les anciens utilisateurs) -->
+                        <div x-show="hasExistingPassword" class="text-center">
+                            <p class="text-sm text-gray-500 mb-2">Vous avez oublié votre mot de passe ?</p>
+                            <button type="button" @click="requestNewCode"
+                                class="text-soboa-orange hover:underline font-bold">
+                                🔄 Recevoir un nouveau mot de passe par SMS
+                            </button>
+                        </div>
 
                         <!-- Changer de numéro -->
                         <div class="text-center mt-4 pt-4 border-t">
-                            <button type="button" @click="step = 1; code = ''; error = ''"
+                            <button type="button" @click="step = 1; code = ''; error = ''; hasExistingPassword = false"
                                 class="text-sm text-gray-500 hover:text-gray-700">
                                 ← Modifier le numéro
                             </button>
@@ -202,6 +253,7 @@
                 captchaAnswer: '',
                 captchaCorrectAnswer: 0,
                 resendCooldown: 0,
+                hasExistingPassword: false, // Indique si l'utilisateur a déjà un code permanent
 
                 init() {
                     // Restaurer les données sauvegardées
@@ -247,11 +299,27 @@
                     return phone.replace(/\D/g, '');
                 },
 
-                // Valider le format du numéro sénégalais
-                isValidSenegalPhone() {
+                // Valider le format du numéro selon le pays
+                isValidPhone() {
                     const phoneDigits = this.formatPhoneNumber(this.phone);
-                    // Le numéro sénégalais doit avoir 9 chiffres et commencer par 7
-                    return phoneDigits.length === 9 && phoneDigits.startsWith('7');
+                    
+                    if (this.countryCode === '+221') {
+                        // Sénégal: 9 chiffres commençant par 7
+                        return phoneDigits.length === 9 && phoneDigits.startsWith('7');
+                    } else if (this.countryCode === '+225') {
+                        // Côte d'Ivoire: 10 chiffres commençant par 0
+                        return phoneDigits.length === 10 && phoneDigits.startsWith('0');
+                    }
+                    return false;
+                },
+
+                getPhoneFormatError() {
+                    if (this.countryCode === '+221') {
+                        return 'Le numéro sénégalais doit contenir 9 chiffres commençant par 7 (ex: 77 123 45 67).';
+                    } else if (this.countryCode === '+225') {
+                        return 'Le numéro ivoirien doit contenir 10 chiffres commençant par 0 (ex: 07 XX XX XX XX).';
+                    }
+                    return 'Format de numéro invalide.';
                 },
 
                 async sendOtp() {
@@ -260,9 +328,9 @@
                         return;
                     }
 
-                    // Valider le format du numéro sénégalais AVANT d'envoyer
-                    if (!this.isValidSenegalPhone()) {
-                        this.error = 'Format de numéro invalide. Le numéro sénégalais doit contenir 9 chiffres commençant par 7 (ex: 77 123 45 67).';
+                    // Valider le format du numéro AVANT d'envoyer
+                    if (!this.isValidPhone()) {
+                        this.error = this.getPhoneFormatError();
                         return;
                     }
 
@@ -307,9 +375,15 @@
 
                         if (data.success) {
                             this.step = 2;
-                            this.startResendCooldown();
+                            // Vérifier si l'utilisateur a déjà un mot de passe permanent
+                            this.hasExistingPassword = data.has_password === true;
+                            
+                            if (!this.hasExistingPassword) {
+                                // Nouveau compte : démarrer le cooldown de renvoi
+                                this.startResendCooldown();
+                            }
                             this.generateCaptcha();
-                            console.log('SMS OTP envoyé avec succès !');
+                            console.log('Passage à l\'étape 2, hasExistingPassword:', this.hasExistingPassword);
                         } else {
                             this.error = data.message || 'Erreur lors de l\'envoi du code.';
                             this.generateCaptcha();
@@ -410,6 +484,45 @@
                             clearInterval(interval);
                         }
                     }, 1000);
+                },
+
+                // Demander un nouveau code (pour les utilisateurs qui ont oublié leur code)
+                async requestNewCode() {
+                    if (!confirm('Vous allez recevoir un nouveau mot de passe par SMS. Ce nouveau mot de passe remplacera l\'ancien. Continuer ?')) {
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const response = await fetch('/auth/request-new-code', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                name: this.name,
+                                phone: this.fullPhone
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            this.hasExistingPassword = false; // Maintenant c'est un nouveau code
+                            this.startResendCooldown();
+                            this.error = '';
+                            alert('✅ Un nouveau mot de passe vous a été envoyé par SMS. Notez-le précieusement, il sera votre nouveau mot de passe !');
+                        } else {
+                            this.error = data.message || 'Erreur lors de l\'envoi du nouveau mot de passe.';
+                        }
+                    } catch (err) {
+                        this.error = 'Erreur de connexion.';
+                    } finally {
+                        this.loading = false;
+                    }
                 }
             };
         }

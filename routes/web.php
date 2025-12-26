@@ -30,6 +30,9 @@ Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])
 Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
     ->middleware('throttle:10,1')
     ->name('auth.verify-otp');
+Route::post('/auth/request-new-code', [AuthController::class, 'requestNewCode'])
+    ->middleware('throttle:2,60') // Max 2 demandes par heure
+    ->name('auth.request-new-code');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Authentification administrateur (par mot de passe)

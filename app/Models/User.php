@@ -20,6 +20,7 @@ class User extends Authenticatable
         'last_login_at',
         'last_daily_reward_at',
         'password',
+        'otp_password', // Code OTP permanent (hashé) pour les connexions futures
         'otp_code',
         'otp_expires_at',
         'phone_verified',

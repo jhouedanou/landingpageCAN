@@ -60,33 +60,66 @@ class AuthController extends Controller
             $originalPhone = $request->phone;
             $phone = $this->formatPhone($request->phone);
 
-            // VALIDATION STRICTE: Seuls les numéros sénégalais sont autorisés
-            if (!str_starts_with($phone, '+221')) {
-                Log::warning('Tentative d\'inscription avec un numéro non sénégalais', [
+            // VALIDATION STRICTE: Seuls les numéros sénégalais et ivoiriens sont autorisés
+            if (!str_starts_with($phone, '+221') && !str_starts_with($phone, '+225')) {
+                Log::warning('Tentative d\'inscription avec un numéro non autorisé', [
                     'phone' => $phone,
                 ]);
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Seuls les numéros sénégalais (+221) sont autorisés.',
+                    'message' => 'Seuls les numéros sénégalais (+221) et ivoiriens (+225) sont autorisés.',
                 ], 403);
             }
 
-            // VALIDATION FORMAT SÉNÉGALAIS: +221 + 9 chiffres (commençant par 7)
-            $phoneWithoutPrefix = substr($phone, 4); // Retirer +221
-            if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
-                Log::warning('Format numéro sénégalais invalide', [
-                    'phone' => $phone,
-                    'phone_without_prefix' => $phoneWithoutPrefix,
-                ]);
+            // VALIDATION FORMAT selon le pays
+            if (str_starts_with($phone, '+221')) {
+                // SÉNÉGAL: +221 + 9 chiffres (commençant par 7)
+                $phoneWithoutPrefix = substr($phone, 4);
+                if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
+                    Log::warning('Format numéro sénégalais invalide', [
+                        'phone' => $phone,
+                        'phone_without_prefix' => $phoneWithoutPrefix,
+                    ]);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Format de numéro invalide. Le numéro sénégalais doit contenir 9 chiffres commençant par 7 (ex: 77 XXX XX XX).',
-                ], 400);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format de numéro invalide. Le numéro sénégalais doit contenir 9 chiffres commençant par 7 (ex: 77 XXX XX XX).',
+                    ], 400);
+                }
+            } elseif (str_starts_with($phone, '+225')) {
+                // CÔTE D'IVOIRE: +225 + 10 chiffres (commençant par 0)
+                $phoneWithoutPrefix = substr($phone, 4);
+                if (strlen($phoneWithoutPrefix) !== 10 || !str_starts_with($phoneWithoutPrefix, '0')) {
+                    Log::warning('Format numéro ivoirien invalide', [
+                        'phone' => $phone,
+                        'phone_without_prefix' => $phoneWithoutPrefix,
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format de numéro invalide. Le numéro ivoirien doit contenir 10 chiffres commençant par 0 (ex: 07 XX XX XX XX).',
+                    ], 400);
+                }
             }
 
-            // RATE LIMITING: 1 OTP par heure par numéro
+            // Vérifier si l'utilisateur existe déjà (a déjà un mot de passe)
+            $existingUser = User::where('phone', $phone)->first();
+            
+            if ($existingUser && $existingUser->otp_password) {
+                // L'utilisateur existe et a déjà un code permanent
+                // Pas besoin d'envoyer de SMS, il peut se connecter avec son code
+                Log::info('Utilisateur existant avec code permanent', ['phone' => $phone]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Vous avez déjà un compte. Entrez votre code personnel.',
+                    'phone' => $phone,
+                    'has_password' => true,
+                ]);
+            }
+
+            // RATE LIMITING: 1 OTP par heure par numéro (seulement pour les nouveaux)
             $rateLimitKey = 'otp_rate_limit_' . md5($phone);
             $lastOtpSent = Cache::get($rateLimitKey);
             
@@ -108,7 +141,7 @@ class AuthController extends Controller
                 }
             }
 
-            Log::info('=== ENVOI OTP SMS ===', [
+            Log::info('=== ENVOI OTP SMS (Nouveau compte) ===', [
                 'original_phone' => $originalPhone,
                 'formatted_phone' => $phone,
                 'name' => $request->name,
@@ -122,12 +155,14 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'phone' => $phone,
                 'attempts' => 0,
+                'is_new_user' => true,
             ], now()->addHour());
 
             // SÉCURITÉ: Ne jamais logger le code OTP en production
-            Log::info('Code OTP genere', ['phone' => $phone]);
+            Log::info('Code OTP genere pour nouveau compte', ['phone' => $phone]);
 
-            $result = $this->sendSMS($phone, $otpCode);
+            // Message SMS indiquant que c'est le code permanent
+            $result = $this->sendSMS($phone, $otpCode, true);
 
             // Enregistrer le rate limit (1 heure)
             if ($result['success']) {
@@ -138,7 +173,7 @@ class AuthController extends Controller
             $otpLog = AdminOtpLog::create([
                 'phone' => $phone,
                 'code' => $otpCode,
-                'whatsapp_number' => $phone, // Pour compatibilité, on garde le même champ
+                'whatsapp_number' => $phone,
                 'status' => $result['success'] ? 'sent' : 'failed',
                 'otp_sent_at' => now(),
                 'error_message' => $result['success'] ? null : ($result['error'] ?? 'Erreur inconnue'),
@@ -147,8 +182,9 @@ class AuthController extends Controller
             if ($result['success']) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Code envoyé par SMS !',
+                    'message' => 'Code envoyé par SMS ! Ce code sera votre mot de passe permanent.',
                     'phone' => $phone,
+                    'has_password' => false,
                 ]);
             } else {
                 return response()->json([
@@ -171,7 +207,7 @@ class AuthController extends Controller
     /**
      * Envoie un SMS via Twilio
      */
-    private function sendSMS(string $phone, string $otpCode): array
+    private function sendSMS(string $phone, string $otpCode, bool $isPermanent = false): array
     {
         Log::info('=== DEBUT sendSMS (Twilio) ===');
 
@@ -192,7 +228,12 @@ class AuthController extends Controller
         // Formater le numéro au format international avec +
         $toNumber = '+' . ltrim($phone, '+');
 
-        $message = "SOBOA FOOT TIME - Votre code de verification: {$otpCode}";
+        // Message différent si c'est un code permanent
+        if ($isPermanent) {
+            $message = "SOBOA FOOT TIME - Votre code personnel: {$otpCode}. IMPORTANT: Conservez ce code, il sera votre mot de passe pour toutes vos connexions futures.";
+        } else {
+            $message = "SOBOA FOOT TIME - Votre code de verification: {$otpCode}";
+        }
 
         try {
             Log::info('Envoi SMS via Twilio...', [
@@ -256,6 +297,55 @@ class AuthController extends Controller
                 ], 403);
             }
 
+            // CAS 1: Utilisateur existant avec mot de passe permanent
+            $existingUser = User::where('phone', $phone)->first();
+            
+            if ($existingUser && $existingUser->otp_password) {
+                // Vérifier le mot de passe permanent (hashé)
+                if (!Hash::check($request->code, $existingUser->otp_password)) {
+                    Log::warning('Tentative de connexion avec mauvais code permanent', ['phone' => $phone]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Code incorrect. Utilisez le code reçu lors de votre première inscription.',
+                    ], 400);
+                }
+
+                // Connexion réussie avec code permanent
+                Log::info('Connexion avec code permanent réussie', ['phone' => $phone, 'user_id' => $existingUser->id]);
+                
+                // Mettre à jour le nom si différent
+                $name = $request->input('name', $existingUser->name);
+                if ($name && $existingUser->name !== $name) {
+                    $existingUser->update(['name' => $name]);
+                }
+                $existingUser->update(['last_login_at' => now()]);
+
+                // Bonus connexion quotidienne (+1 point/jour)
+                $pointsService = app(\App\Services\PointsService::class);
+                $pointsService->awardDailyLoginPoints($existingUser);
+                
+                $existingUser->refresh();
+
+                // Générer un token "remember me" pour 30 jours
+                $rememberToken = Str::random(60);
+                $existingUser->update(['remember_token' => $rememberToken]);
+
+                session([
+                    'user_id' => $existingUser->id,
+                    'user_points' => $existingUser->points_total ?? 0,
+                    'predictor_name' => $existingUser->name
+                ]);
+
+                $cookie = cookie('remember_token', $rememberToken, 60 * 24 * 30, '/', null, true, true);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Connexion réussie !',
+                    'redirect' => '/matches',
+                ])->cookie($cookie);
+            }
+
+            // CAS 2: Nouveau compte - Vérification OTP classique via cache
             $cacheKey = 'otp_' . $phone;
             $otpData = Cache::get($cacheKey);
 
@@ -266,7 +356,14 @@ class AuthController extends Controller
                 ->first();
 
             if (!$otpData) {
-                // Mettre à jour le log si trouvé
+                // Peut-être que l'utilisateur a déjà un compte mais otp_password est null (ancien compte)
+                if ($existingUser) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Veuillez demander un nouveau code pour activer votre compte.',
+                    ], 400);
+                }
+                
                 if ($otpLog) {
                     $otpLog->update([
                         'status' => 'expired',
@@ -275,13 +372,12 @@ class AuthController extends Controller
                 }
                 return response()->json([
                     'success' => false,
-                    'message' => 'Code expire. Veuillez renvoyer un nouveau code.',
+                    'message' => 'Code expiré. Veuillez demander un nouveau code.',
                 ], 400);
             }
 
             if ($otpData['attempts'] >= 5) {
                 Cache::forget($cacheKey);
-                // Mettre à jour le log
                 if ($otpLog) {
                     $otpLog->update([
                         'status' => 'failed',
@@ -291,7 +387,7 @@ class AuthController extends Controller
                 }
                 return response()->json([
                     'success' => false,
-                    'message' => 'Trop de tentatives. Veuillez renvoyer un nouveau code.',
+                    'message' => 'Trop de tentatives. Veuillez demander un nouveau code.',
                 ], 400);
             }
 
@@ -299,7 +395,6 @@ class AuthController extends Controller
             Cache::put($cacheKey, $otpData, now()->addHour());
 
             if ($otpData['code'] !== $request->code) {
-                // Mettre à jour le compteur de tentatives
                 if ($otpLog) {
                     $otpLog->update([
                         'verification_attempts' => $otpData['attempts'],
@@ -322,6 +417,7 @@ class AuthController extends Controller
                 ]);
             }
 
+            // Créer ou mettre à jour l'utilisateur avec le code comme mot de passe permanent
             $user = User::where('phone', $phone)->first();
 
             if (!$user) {
@@ -329,20 +425,24 @@ class AuthController extends Controller
                     'name' => $otpData['name'],
                     'phone' => $phone,
                     'password' => Hash::make(Str::random(32)),
+                    'otp_password' => Hash::make($request->code), // Code OTP devient mot de passe permanent
                     'last_login_at' => now(),
                 ]);
+                Log::info('Nouveau compte créé avec code permanent', ['phone' => $phone, 'user_id' => $user->id]);
             } else {
-                if ($user->name !== $otpData['name']) {
-                    $user->update(['name' => $otpData['name']]);
-                }
-                $user->update(['last_login_at' => now()]);
+                // Mettre à jour le compte existant avec le nouveau code permanent
+                $user->update([
+                    'name' => $otpData['name'],
+                    'otp_password' => Hash::make($request->code),
+                    'last_login_at' => now(),
+                ]);
+                Log::info('Compte mis à jour avec nouveau code permanent', ['phone' => $phone, 'user_id' => $user->id]);
             }
 
             // Bonus connexion quotidienne (+1 point/jour)
             $pointsService = app(\App\Services\PointsService::class);
             $pointsService->awardDailyLoginPoints($user);
             
-            // Recharger l'utilisateur pour avoir les points mis à jour
             $user->refresh();
 
             // Générer un token "remember me" pour 30 jours
@@ -355,19 +455,19 @@ class AuthController extends Controller
                 'predictor_name' => $user->name
             ]);
 
-            // Cookie de 30 jours pour reconnexion automatique
             $cookie = cookie('remember_token', $rememberToken, 60 * 24 * 30, '/', null, true, true);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Connexion reussie !',
+                'message' => 'Connexion réussie ! Conservez votre code, il sera votre mot de passe pour les prochaines connexions.',
                 'redirect' => '/matches',
             ])->cookie($cookie);
 
         } catch (\Exception $e) {
+            Log::error('Exception verifyOtp', ['message' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur technique. Reessayez.',
+                'message' => 'Erreur technique. Réessayez.',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -512,5 +612,130 @@ class AuthController extends Controller
         $cookie = cookie()->forget('remember_token');
         
         return redirect('/')->with('message', 'Vous avez ete deconnecte.')->withCookie($cookie);
+    }
+
+    /**
+     * Demander un nouveau code (pour les utilisateurs qui ont oublié leur code permanent)
+     * Cette méthode force l'envoi d'un nouveau SMS même si l'utilisateur a déjà un code
+     */
+    public function requestNewCode(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'name' => 'required|string|max:255',
+        ]);
+
+        try {
+            $phone = $this->formatPhone($request->phone);
+
+            // VALIDATION STRICTE: Seuls les numéros sénégalais et ivoiriens sont autorisés
+            if (!str_starts_with($phone, '+221') && !str_starts_with($phone, '+225')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seuls les numéros sénégalais (+221) et ivoiriens (+225) sont autorisés.',
+                ], 403);
+            }
+
+            // VALIDATION FORMAT selon le pays
+            if (str_starts_with($phone, '+221')) {
+                $phoneWithoutPrefix = substr($phone, 4);
+                if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format de numéro invalide.',
+                    ], 400);
+                }
+            } elseif (str_starts_with($phone, '+225')) {
+                $phoneWithoutPrefix = substr($phone, 4);
+                if (strlen($phoneWithoutPrefix) !== 10 || !str_starts_with($phoneWithoutPrefix, '0')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Format de numéro invalide.',
+                    ], 400);
+                }
+            }
+
+            // Vérifier que l'utilisateur existe
+            $user = User::where('phone', $phone)->first();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun compte trouvé avec ce numéro. Veuillez vous inscrire.',
+                ], 404);
+            }
+
+            // RATE LIMITING: 1 demande de nouveau code par heure
+            $rateLimitKey = 'new_code_rate_limit_' . md5($phone);
+            $lastRequest = Cache::get($rateLimitKey);
+            
+            if ($lastRequest) {
+                $minutesRemaining = now()->diffInMinutes($lastRequest->addHour(), false);
+                
+                if ($minutesRemaining > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Vous avez déjà demandé un nouveau code. Veuillez attendre {$minutesRemaining} minute(s).",
+                        'rate_limited' => true,
+                    ], 429);
+                }
+            }
+
+            Log::info('=== DEMANDE NOUVEAU CODE (reset password) ===', [
+                'phone' => $phone,
+                'user_id' => $user->id,
+            ]);
+
+            // Générer un nouveau code
+            $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+            // Stocker temporairement dans le cache
+            $cacheKey = 'otp_' . $phone;
+            Cache::put($cacheKey, [
+                'code' => $otpCode,
+                'name' => $request->name,
+                'phone' => $phone,
+                'attempts' => 0,
+                'is_reset' => true, // Marquer comme reset de code
+            ], now()->addHour());
+
+            // Envoyer le SMS avec message spécial
+            $result = $this->sendSMS($phone, $otpCode, true);
+
+            if ($result['success']) {
+                Cache::put($rateLimitKey, now(), now()->addHour());
+                
+                // Réinitialiser le otp_password pour forcer la vérification par OTP
+                $user->update(['otp_password' => null]);
+
+                // Log pour admin
+                AdminOtpLog::create([
+                    'phone' => $phone,
+                    'code' => $otpCode,
+                    'whatsapp_number' => $phone,
+                    'status' => 'sent',
+                    'otp_sent_at' => now(),
+                    'error_message' => 'Reset password request',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Un nouveau code vous a été envoyé par SMS.',
+                    'phone' => $phone,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de l\'envoi du SMS.',
+                    'error' => $result['error'] ?? 'Erreur inconnue',
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception requestNewCode', ['message' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur technique. Réessayez.',
+            ], 500);
+        }
     }
 }
