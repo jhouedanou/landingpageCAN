@@ -45,13 +45,12 @@
                                 <select x-model="countryCode" 
                                     class="px-3 py-3 border-2 border-gray-200 bg-gray-50 rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0 cursor-pointer">
                                     <option value="+225">🇨🇮 +225</option>
-                                    <option value="+221">��🇳 +221</option>
+                                    <option value="+221">🇸🇳 +221</option>
                                 </select>
                                 <input type="tel" x-model="phone" 
-                                    :placeholder="countryCode === '+225' ? '07 48 34 82 21' : '77 123 45 67'"
+                                    :placeholder="countryCode === '+225' ? '05 45 02 97 21' : '77 123 45 67'"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                     required>
-                            </div>
                             </div>
                             <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
                                 <svg class="w-4 h-4 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
