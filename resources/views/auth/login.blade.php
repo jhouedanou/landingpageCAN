@@ -44,7 +44,9 @@
                                 <!-- Sélecteur de pays -->
                                 <select x-model="countryCode"
                                     class="px-3 py-3 border-2 border-gray-200 bg-white rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0 cursor-pointer">
+                                    <option value="+225">🇨🇮 +225</option>
                                     <option value="+221">🇸🇳 +221</option>
+                                    <option value="+33">🇫🇷 +33</option>
                                 </select>
                                 <input type="tel" x-model="phone" :placeholder="getPlaceholder()"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
@@ -198,7 +200,7 @@
                 step: 1,
                 name: '',
                 phone: '',
-                countryCode: '+221', // Sénégal par défaut
+                countryCode: '+225', // Côte d'Ivoire par défaut
                 code: '',
                 loading: false,
                 error: '',
@@ -231,16 +233,27 @@
                 },
 
                 getPlaceholder() {
-                    return '77 XXX XX XX';
+                    if (this.countryCode === '+225') {
+                        return '07 XX XX XX XX'; // Côte d'Ivoire (10 chiffres)
+                    } else if (this.countryCode === '+221') {
+                        return '77 XXX XX XX'; // Sénégal (9 chiffres)
+                    } else if (this.countryCode === '+33') {
+                        return '6 XX XX XX XX'; // France (9 chiffres sans le 0)
+                    }
+                    return '07 XX XX XX XX';
                 },
 
                 formatPhoneNumber(phone) {
                     // Supprimer tout sauf les chiffres
                     let digits = phone.replace(/\D/g, '');
 
+                    // Côte d'Ivoire (+225): Garder le 0 initial (format 10 chiffres)
                     // Sénégal (+221): Retirer le 0 initial si présent
-                    if (digits.startsWith('0')) {
-                        digits = digits.substring(1);
+                    // France (+33): Retirer le 0 initial si présent
+                    if (this.countryCode === '+221' || this.countryCode === '+33') {
+                        if (digits.startsWith('0')) {
+                            digits = digits.substring(1);
+                        }
                     }
 
                     return digits;

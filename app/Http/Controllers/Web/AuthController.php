@@ -418,31 +418,23 @@ class AuthController extends Controller
         // Retirer le +
         $number = ltrim($phone, '+');
 
-        // Validation et Formatage stricts
+        // Pour SMS (pas WhatsApp), on garde le numéro tel quel sans conversion
+        // On valide juste que c'est un pays autorisé
 
         // CÔTE D'IVOIRE (+225)
-        // Doit avoir 13 chiffres au total : 225 + 10 chiffres (ex: 07xxxxxxxx)
+        // Format: 225 + 10 chiffres (ex: 0748348221)
         if (str_starts_with($number, '225')) {
-            if (strlen($number) !== 13) {
-                throw new \Exception("Numéro CI invalide. Le numéro doit comporter 10 chiffres après l'indicatif (+225).");
+            // Accepter les numéros CI avec 10 chiffres après l'indicatif
+            if (strlen($number) === 13) {
+                Log::info('Numéro CI valide (10 chiffres)', ['number' => $number]);
+                return $number;
             }
-            // Conversion au format 8 chiffres pour la CI (demande specifique)
-            // On retire les 2 premiers chiffres du numéro local (index 3 et 4)
-            // Ex: 225 07 48 34 82 21 -> 225 48 34 82 21
-            // 225 (0,1,2) + local (3...12) -> on garde 225 et on prend à partir de l'index 5 (le 6ème caractère)
-            // ATTENTION: substr est 0-indexed.
-            // 2 2 5 0 7 4 8 3 4 8 2 2 1
-            // 0 1 2 3 4 5 6 7 8 9 0 1 2
-            // On veut garder '225' + '48348221' (à partir de l'index 5)
-
-            $prefixCurrent = substr($number, 0, 3); // 225
-            $suffix8 = substr($number, 5); // les 8 derniers chiffres
-
-            $formatted = $prefixCurrent . $suffix8;
-
-            Log::info('Conversion CI 8 chiffres', ['original' => $number, 'converted' => $formatted]);
-
-            return $formatted;
+            // Accepter aussi les anciens formats 8 chiffres
+            if (strlen($number) === 11) {
+                Log::info('Numéro CI valide (8 chiffres)', ['number' => $number]);
+                return $number;
+            }
+            throw new \Exception("Numéro CI invalide. Format attendu: +225 suivi de 10 ou 8 chiffres.");
         }
 
         // SÉNÉGAL (+221)
