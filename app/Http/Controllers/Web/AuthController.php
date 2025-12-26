@@ -47,6 +47,28 @@ class AuthController extends Controller
 
             $whatsappNumber = $this->formatWhatsAppNumber($phone);
 
+            // RATE LIMITING: 1 OTP par heure par numéro
+            $rateLimitKey = 'otp_rate_limit_' . md5($phone);
+            $lastOtpSent = Cache::get($rateLimitKey);
+            
+            if ($lastOtpSent) {
+                $minutesRemaining = now()->diffInMinutes($lastOtpSent->addHour(), false);
+                
+                if ($minutesRemaining > 0) {
+                    Log::warning('Rate limit OTP atteint', [
+                        'phone' => $phone,
+                        'minutes_remaining' => $minutesRemaining,
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Vous avez déjà demandé un code. Veuillez attendre {$minutesRemaining} minute(s) avant de réessayer.",
+                        'rate_limited' => true,
+                        'minutes_remaining' => $minutesRemaining,
+                    ], 429);
+                }
+            }
+
             Log::info('=== ENVOI OTP WHATSAPP ===', [
                 'original_phone' => $originalPhone,
                 'formatted_phone' => $phone,
@@ -68,6 +90,11 @@ class AuthController extends Controller
             Log::info('Code OTP genere', ['whatsapp_number' => $whatsappNumber]);
 
             $result = $this->sendWhatsAppMessage($whatsappNumber, $otpCode);
+
+            // Enregistrer le rate limit (1 heure)
+            if ($result['success']) {
+                Cache::put($rateLimitKey, now(), now()->addHour());
+            }
 
             // Enregistrer le log OTP
             $otpLog = AdminOtpLog::create([
