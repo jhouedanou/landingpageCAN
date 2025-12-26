@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\AdminOtpLog;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -14,6 +15,13 @@ use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
+    private SmsService $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
+
     public function showLoginForm()
     {
         if (session('user_id')) {
@@ -86,7 +94,8 @@ class AuthController extends Controller
             // SÉCURITÉ: Ne jamais logger le code OTP en production
             Log::info('Code OTP genere', ['phone' => $phone]);
 
-            $result = $this->sendSMS($phone, $otpCode);
+            // Envoyer le SMS via SMS Pro Africa
+            $result = $this->smsService->sendOtpSms($phone, $otpCode);
 
             // Enregistrer le rate limit (1 heure)
             if ($result['success']) {
@@ -124,76 +133,6 @@ class AuthController extends Controller
                 'message' => 'Erreur technique. Reessayez.',
                 'error' => $e->getMessage(),
             ], 500);
-        }
-    }
-
-    /**
-     * Envoie un SMS via Twilio
-     */
-    private function sendSMS(string $phone, string $otpCode): array
-    {
-        Log::info('=== DEBUT sendSMS (Twilio) ===');
-
-        $accountSid = config('services.twilio.account_sid');
-        $authToken = config('services.twilio.auth_token');
-        $fromNumber = config('services.twilio.from_number');
-
-        Log::info('Configuration Twilio', [
-            'account_sid' => $accountSid ? substr($accountSid, 0, 10) . '...' : 'NULL',
-            'from_number' => $fromNumber,
-        ]);
-
-        if (!$accountSid || !$authToken || !$fromNumber) {
-            Log::error('Configuration Twilio incomplete !');
-            return ['success' => false, 'error' => 'Configuration Twilio incomplete'];
-        }
-
-        // Formater le numéro au format international avec +
-        $toNumber = '+' . ltrim($phone, '+');
-
-        $message = "SOBOA FOOT TIME - Votre code de verification: {$otpCode}";
-
-        try {
-            Log::info('Envoi SMS via Twilio...', [
-                'to' => $toNumber,
-                'from' => $fromNumber,
-            ]);
-
-            $url = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
-
-            $response = Http::withBasicAuth($accountSid, $authToken)
-                ->asForm()
-                ->timeout(30)
-                ->post($url, [
-                    'To' => $toNumber,
-                    'From' => $fromNumber,
-                    'Body' => $message,
-                ]);
-
-            Log::info('Reponse Twilio recue', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                Log::info('=== SUCCES SMS Twilio ===', ['sid' => $data['sid'] ?? null]);
-                return ['success' => true, 'sid' => $data['sid'] ?? null];
-            } else {
-                $errorData = $response->json();
-                $errorMessage = $errorData['message'] ?? ('HTTP ' . $response->status());
-                Log::error('=== ECHEC SMS Twilio ===', [
-                    'status' => $response->status(),
-                    'error' => $errorMessage,
-                    'body' => $response->body(),
-                ]);
-                return ['success' => false, 'error' => $errorMessage];
-            }
-        } catch (\Exception $e) {
-            Log::error('=== EXCEPTION Twilio ===', [
-                'message' => $e->getMessage(),
-            ]);
-            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 

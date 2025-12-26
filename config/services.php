@@ -51,4 +51,10 @@ return [
         'api_key_secret' => env('TWILIO_API_KEY_SECRET'),
     ],
 
+    'sms_pro_africa' => [
+        'base_url' => env('SMS_PRO_AFRICA_BASE_URL', 'https://app.smspro.africa/api/v3/'),
+        'token' => env('SMS_PRO_AFRICA_TOKEN'),
+        'sender_id' => env('SMS_PRO_AFRICA_SENDER_ID', 'SOBOA'),
+    ],
+
 ];

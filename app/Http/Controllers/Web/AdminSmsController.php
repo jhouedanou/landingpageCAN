@@ -4,17 +4,17 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\TwilioService;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AdminSmsController extends Controller
 {
-    protected $twilioService;
+    protected SmsService $smsService;
 
-    public function __construct(TwilioService $twilioService)
+    public function __construct(SmsService $smsService)
     {
-        $this->twilioService = $twilioService;
+        $this->smsService = $smsService;
     }
 
     /**
@@ -71,19 +71,39 @@ class AdminSmsController extends Controller
             return back()->with('error', 'Aucun destinataire valide trouvé.');
         }
 
-        Log::info('Admin SMS: Début envoi', [
+        Log::info('Admin SMS: Début envoi via SMS Pro Africa', [
             'total_recipients' => count($phoneNumbers),
             'message_length' => strlen($message)
         ]);
 
-        $results = $this->twilioService->sendBulkSms($phoneNumbers, $message);
+        $successCount = 0;
+        $failedCount = 0;
+        $errors = [];
 
-        Log::info('Admin SMS: Résultats', $results);
+        foreach ($phoneNumbers as $phone) {
+            $result = $this->smsService->sendSms($phone, $message);
+            
+            if ($result['success']) {
+                $successCount++;
+            } else {
+                $failedCount++;
+                $errors[] = [
+                    'phone' => $phone,
+                    'error' => $result['error'] ?? 'Erreur inconnue'
+                ];
+            }
+        }
+
+        Log::info('Admin SMS: Résultats', [
+            'success' => $successCount,
+            'failed' => $failedCount,
+            'errors' => $errors
+        ]);
 
         return back()->with('success', sprintf(
             'SMS envoyés : %d réussis, %d échoués sur %d total.',
-            $results['success'],
-            $results['failed'],
+            $successCount,
+            $failedCount,
             count($phoneNumbers)
         ));
     }
@@ -98,7 +118,7 @@ class AdminSmsController extends Controller
             'message' => 'required|string|max:1600',
         ]);
 
-        $result = $this->twilioService->sendSms(
+        $result = $this->smsService->sendSms(
             $request->input('phone'),
             $request->input('message')
         );
