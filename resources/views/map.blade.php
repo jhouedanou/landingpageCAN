@@ -1,5 +1,23 @@
 <x-layouts.app title="Animations Gazelle">
 
+    <style>
+        /* Custom scrollbar styles for the modal */
+        .modal-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 4px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: #1a365d;
+            border-radius: 4px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #2d4a7c;
+        }
+    </style>
+
     @php
         $venuesData = $venues->map(function ($venue) {
             return [
@@ -847,7 +865,7 @@
                      x-transition:leave="transition ease-in duration-200"
                      x-transition:leave-start="opacity-100 transform scale-100"
                      x-transition:leave-end="opacity-0 transform scale-95"
-                     class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden relative"
+                     class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col relative"
                      @click.stop>
                     <!-- Bouton fermer en haut à droite -->
                     <button @click="closeDayModal()" class="absolute top-3 right-3 z-10 bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 p-2 rounded-full shadow-lg transition">
@@ -857,48 +875,68 @@
                     </button>
 
                     <!-- Header du modal -->
-                    <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark p-4 pr-14">
+                    <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark p-4 pr-14 flex-shrink-0 rounded-t-2xl">
                         <h3 class="text-xl font-bold text-white capitalize" x-text="selectedDay"></h3>
-                        <p class="text-white/80 text-sm">
-                            Points de vente avec animations
+                        <p class="text-white/80 text-sm flex items-center gap-2">
+                            <span x-text="selectedAnimations.length"></span> point(s) de vente avec animations
                         </p>
                     </div>
 
-                    <!-- Liste des PDV uniquement -->
-                    <div class="p-4 overflow-y-auto max-h-[55vh] space-y-3">
-                        <template x-for="(anim, index) in selectedAnimations" :key="index">
-                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:shadow-md hover:border-soboa-blue/30 transition">
-                                <div class="flex items-start gap-3">
-                                    <div class="bg-soboa-blue/10 rounded-full p-2 flex-shrink-0">
-                                        <svg class="w-5 h-5 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
+                    <!-- Liste des PDV en cartes avec scroll -->
+                    <div class="flex-1 overflow-y-auto p-4 bg-gray-100 modal-scroll" style="scrollbar-width: thin; scrollbar-color: #1a365d #e5e7eb;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="(anim, index) in selectedAnimations" :key="index">
+                                <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-soboa-blue/50 transform hover:-translate-y-1">
+                                    <!-- En-tête de la carte avec icône -->
+                                    <div class="bg-gradient-to-r from-soboa-orange/10 to-soboa-blue/10 p-3 border-b border-gray-100">
+                                        <div class="flex items-center gap-3">
+                                            <div class="bg-soboa-blue rounded-full p-2 flex-shrink-0 shadow-sm">
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-bold text-gray-800 text-base truncate" x-text="anim.bar_name"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="font-bold text-gray-800 text-lg" x-text="anim.bar_name"></div>
-                                        <div class="text-sm text-gray-500 mt-1" x-text="anim.bar_address"></div>
-                                        <div class="mt-2 flex items-center gap-2 text-xs text-soboa-blue font-medium">
-                                            <span class="bg-soboa-orange/20 text-soboa-orange px-2 py-1 rounded-full font-bold" x-text="anim.time"></span>
-                                            <span x-text="anim.match_label"></span>
+                                    
+                                    <!-- Corps de la carte -->
+                                    <div class="p-3">
+                                        <!-- Adresse -->
+                                        <div class="flex items-start gap-2 text-sm text-gray-600 mb-3">
+                                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            </svg>
+                                            <span class="line-clamp-2" x-text="anim.bar_address"></span>
+                                        </div>
+                                        
+                                        <!-- Informations match -->
+                                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="bg-soboa-orange text-white px-3 py-1 rounded-full font-bold text-xs shadow-sm" x-text="anim.time"></span>
+                                                <span class="text-xs text-soboa-blue font-medium truncate flex-1 text-right" x-text="anim.match_label"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
 
                         <!-- Message si aucune animation -->
                         <template x-if="selectedAnimations.length === 0">
-                            <div class="text-center text-gray-500 py-8">
-                                <span class="text-4xl mb-2 block">📅</span>
-                                <p>Aucun point de vente avec animation ce jour.</p>
+                            <div class="text-center text-gray-500 py-12 bg-white rounded-xl shadow">
+                                <span class="text-5xl mb-4 block">📅</span>
+                                <p class="text-lg font-medium">Aucun point de vente avec animation ce jour.</p>
+                                <p class="text-sm text-gray-400 mt-2">Les animations seront bientôt annoncées !</p>
                             </div>
                         </template>
                     </div>
 
                     <!-- Footer du modal -->
-                    <div class="p-4 border-t border-gray-100 bg-gray-50">
-                        <button @click="closeDayModal()" class="w-full bg-soboa-blue text-white font-bold py-3 rounded-xl hover:bg-soboa-blue/90 transition flex items-center justify-center gap-2">
+                    <div class="p-4 border-t border-gray-200 bg-white flex-shrink-0 rounded-b-2xl">
+                        <button @click="closeDayModal()" class="w-full bg-soboa-blue text-white font-bold py-3 rounded-xl hover:bg-soboa-blue/90 transition flex items-center justify-center gap-2 shadow-md">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
