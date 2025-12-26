@@ -382,7 +382,8 @@
                         console.log('Status HTTP:', response.status);
                         console.log('Data:', data);
 
-                        if (data.success) {
+                        // Vérifier le statut HTTP ET le succès dans la réponse
+                        if (response.ok && data.success) {
                             this.step = 2;
                             // Vérifier si l'utilisateur a déjà un mot de passe permanent
                             this.hasExistingPassword = data.has_password === true;
@@ -394,11 +395,12 @@
                             this.generateCaptcha();
                             console.log('Passage à l\'étape 2, hasExistingPassword:', this.hasExistingPassword);
                         } else {
-                            this.error = data.message || 'Erreur lors de l\'envoi du code.';
-                            this.generateCaptcha();
+                            // Afficher l'erreur du serveur
+                            this.error = data.message || 'Erreur lors de l\'envoi du SMS. Veuillez réessayer.';
                             if (data.error) {
-                                console.error('Erreur SMS:', data.error);
+                                console.error('Détail erreur:', data.error);
                             }
+                            this.generateCaptcha();
                         }
                     } catch (err) {
                         console.error('Erreur réseau:', err);
@@ -427,20 +429,25 @@
                             },
                             body: JSON.stringify({
                                 phone: this.fullPhone,
-                                code: this.code
+                                code: this.code,
+                                name: this.name
                             })
                         });
 
                         const data = await response.json();
+                        
+                        console.log('=== VERIFICATION OTP ===');
+                        console.log('Status HTTP:', response.status);
+                        console.log('Data:', data);
 
-                        if (data.success) {
+                        if (response.ok && data.success) {
                             // Sauvegarder le nom pour la prochaine fois
                             localStorage.setItem('user_name', this.name);
 
                             // Redirection après succès
                             window.location.href = data.redirect || '/matches';
                         } else {
-                            this.error = data.message || 'Code incorrect.';
+                            this.error = data.message || 'Code incorrect. Vérifiez votre SMS.';
                         }
                     } catch (err) {
                         console.error('Erreur:', err);
