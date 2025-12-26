@@ -1,7 +1,7 @@
 {
-  "name": "SOBOA CAN 2025",
-  "short_name": "SOBOA CAN",
-  "description": "Pronostiquez les matchs de la CAN 2025 et gagnez des cadeaux exclusifs!",
+  "name": "SOBOA FOOT TIME",
+  "short_name": "SOBOA FOOT",
+  "description": "Pronostiquez les scores des matchs et gagnez des cadeaux exclusifs!",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

@@ -222,7 +222,7 @@
                         <div>
                             <h4 class="font-bold text-gray-800">Classement Hebdomadaire</h4>
                             <p class="text-gray-600 text-sm mt-1">
-                                Chaque semaine de la CAN, les <strong>5 premiers</strong> du classement sont déclarés gagnants.
+                                Chaque semaine, les <strong>5 premiers</strong> du classement sont déclarés gagnants.
                             </p>
                             <p class="text-gray-500 text-xs mt-2">
                                 → 20 gagnants au total (4 semaines × 5 gagnants)

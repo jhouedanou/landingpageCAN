@@ -47,7 +47,7 @@ class WeeklyRanking extends Model
             'end' => '2026-01-17',
         ],
         'semifinal' => [
-            'label' => 'Classement Général CAN',
+            'label' => 'Classement Général',
             'start' => '2025-12-21', // Début du jeu
             'end' => '2026-01-17', // Fin du jeu
         ],

@@ -458,7 +458,7 @@
                         class="bg-soboa-orange text-black font-bold w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4">
                         2</div>
                     <h3 class="font-bold text-soboa-blue text-xl mb-2">Pronostiquez</h3>
-                    <p class="text-gray-600">Prédisez les scores des matchs de la CAN.</p>
+                    <p class="text-gray-600">Prédisez les scores des matchs.</p>
                 </div>
 
                 <!-- Step 3 -->
