@@ -62,7 +62,7 @@
                                 <!-- Sélecteur de pays -->
                                 <select x-model="countryCode" 
                                     class="px-3 py-3 border-2 border-gray-200 bg-white rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0">
-                                    <option value="+221">��🇳 +221</option>
+                                    <option value="+221">🇸🇳 +221</option>
                                     <option value="+225">🇨🇮 +225</option>
                                 </select>
                                 <input type="tel" x-model="phone" 
@@ -124,6 +124,15 @@
                                 Envoi en cours...
                             </span>
                         </button>
+                        
+                        <!-- Lien code oublié -->
+                        <div class="text-center mt-4 pt-4 border-t border-gray-100">
+                            <p class="text-sm text-gray-500 mb-2">Déjà inscrit mais code oublié ?</p>
+                            <button type="button" @click="forgotPassword()"
+                                class="text-soboa-orange hover:underline font-bold text-sm">
+                                🔄 Demander un nouveau mot de passe
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -515,6 +524,57 @@
                             this.startResendCooldown();
                             this.error = '';
                             alert('✅ Un nouveau mot de passe vous a été envoyé par SMS. Notez-le précieusement, il sera votre nouveau mot de passe !');
+                        } else {
+                            this.error = data.message || 'Erreur lors de l\'envoi du nouveau mot de passe.';
+                        }
+                    } catch (err) {
+                        this.error = 'Erreur de connexion.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                // Fonction pour demander un nouveau mot de passe depuis l'étape 1
+                async forgotPassword() {
+                    if (!this.name.trim() || !this.phone.trim()) {
+                        this.error = 'Veuillez d\'abord remplir votre nom et numéro de téléphone.';
+                        return;
+                    }
+
+                    // Valider le format du numéro
+                    if (!this.isValidPhone()) {
+                        this.error = this.getPhoneFormatError();
+                        return;
+                    }
+
+                    if (!confirm('Vous avez oublié votre mot de passe ?\n\nUn nouveau mot de passe sera envoyé par SMS au ' + this.fullPhone + '.\n\nContinuer ?')) {
+                        return;
+                    }
+
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const response = await fetch('/auth/request-new-code', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                name: this.name,
+                                phone: this.fullPhone
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            this.step = 2;
+                            this.hasExistingPassword = false;
+                            this.startResendCooldown();
+                            this.saveUserData();
+                            alert('✅ Un nouveau mot de passe vous a été envoyé par SMS. Entrez-le ci-dessous.');
                         } else {
                             this.error = data.message || 'Erreur lors de l\'envoi du nouveau mot de passe.';
                         }
