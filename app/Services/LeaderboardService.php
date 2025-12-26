@@ -16,14 +16,32 @@ class LeaderboardService
      */
     public function getTop5(string $period = 'global'): array
     {
-        $cacheKey = "leaderboard_top5_{$period}";
+        return $this->getTopN($period, 5);
+    }
+
+    /**
+     * Récupère le TOP 20 national pour une période donnée
+     * avec noms abrégés (Prénom + initiale du nom)
+     */
+    public function getTop20(string $period = 'global'): array
+    {
+        return $this->getTopN($period, 20);
+    }
+
+    /**
+     * Récupère le TOP N national pour une période donnée
+     * avec noms abrégés (Prénom + initiale du nom)
+     */
+    public function getTopN(string $period = 'global', int $limit = 5): array
+    {
+        $cacheKey = "leaderboard_top{$limit}_{$period}";
         
-        return Cache::remember($cacheKey, 60, function () use ($period) {
+        return Cache::remember($cacheKey, 60, function () use ($period, $limit) {
             if ($period === 'global') {
                 // Classement global basé sur points_total
                 $users = User::orderBy('points_total', 'desc')
                     ->orderBy('name', 'asc')
-                    ->take(5)
+                    ->take($limit)
                     ->get(['id', 'name', 'points_total']);
                 
                 return $users->map(function ($user, $index) {
@@ -46,7 +64,7 @@ class LeaderboardService
             // Calculer les points pour cette période
             $rankings = $this->calculatePeriodRankings($period);
             
-            return array_slice($rankings, 0, 5);
+            return array_slice($rankings, 0, $limit);
         });
     }
 
@@ -222,6 +240,7 @@ class LeaderboardService
     public function getLeaderboardData(?int $userId = null, string $period = 'global'): array
     {
         $top5 = $this->getTop5($period);
+        $top20 = $this->getTop20($period);
         $userPosition = $userId ? $this->getUserPosition($userId, $period) : null;
         $availablePeriods = WeeklyRanking::getAvailablePeriods();
         $currentPeriod = WeeklyRanking::getCurrentPeriod();
@@ -239,6 +258,7 @@ class LeaderboardService
 
         return [
             'top5' => $top5,
+            'top20' => $top20,
             'user_position' => $userPosition,
             'user_in_top5' => $userInTop5,
             'available_periods' => $availablePeriods,

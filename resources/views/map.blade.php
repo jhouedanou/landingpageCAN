@@ -516,13 +516,29 @@
         </div>
 
         <!-- Section Calendrier des Animations - GRILLE CLASSIQUE -->
-        <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="max-w-7xl mx-auto px-4 py-12" x-data="{
+            selectedDay: null,
+            selectedAnimations: [],
+            showModal: false,
+            
+            openDayModal(day, animations) {
+                this.selectedDay = day;
+                this.selectedAnimations = animations;
+                this.showModal = true;
+            },
+            
+            closeDayModal() {
+                this.showModal = false;
+                this.selectedDay = null;
+                this.selectedAnimations = [];
+            }
+        }">
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-soboa-blue to-soboa-blue-dark">
                     <h3 class="text-2xl font-black text-white flex items-center gap-3">
                         <span>📅</span> Calendrier des animations
                     </h3>
-                    <p class="text-white/80 mt-1">Retrouvez toutes les animations à venir dans nos lieux partenaires</p>
+                    <p class="text-white/80 mt-1">Cliquez sur un jour pour voir toutes les animations</p>
                 </div>
 
                 @if(isset($animations) && $animations->count() > 0)
@@ -576,7 +592,36 @@
                                 $isWeekend = $currentDate->isWeekend();
                             @endphp
                             
-                            <div class="border border-gray-200 {{ $isCurrentMonth ? '' : 'bg-gray-100' }} {{ $isToday ? 'bg-yellow-50 ring-2 ring-soboa-orange ring-inset' : '' }} {{ $isWeekend && $isCurrentMonth ? 'bg-gray-50' : '' }}" style="min-height: 90px;">
+                            <div class="border border-gray-200 {{ $isCurrentMonth ? '' : 'bg-gray-100' }} {{ $isToday ? 'bg-yellow-50 ring-2 ring-soboa-orange ring-inset' : '' }} {{ $isWeekend && $isCurrentMonth ? 'bg-gray-50' : '' }} {{ $hasAnimations && $isCurrentMonth ? 'cursor-pointer hover:bg-soboa-blue/5 transition-colors' : '' }}" style="min-height: 90px;"
+                                @if($hasAnimations && $isCurrentMonth)
+                                @php
+                                    $animationsJson = $dayAnimations->map(function($anim) {
+                                        $displayTime = '';
+                                        if ($anim->animation_time) {
+                                            $timeStr = $anim->animation_time;
+                                            if (preg_match('/^(\d{1,2})\s*[Hh]?\s*(\d{0,2})?$/', trim($timeStr), $matches)) {
+                                                $hour = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+                                                $minute = isset($matches[2]) && $matches[2] !== '' ? str_pad($matches[2], 2, '0', STR_PAD_LEFT) : '00';
+                                                $displayTime = $hour . ':' . $minute;
+                                            } elseif (preg_match('/^(\d{1,2}):(\d{2})/', $timeStr, $matches)) {
+                                                $displayTime = str_pad($matches[1], 2, '0', STR_PAD_LEFT) . ':' . $matches[2];
+                                            }
+                                        }
+                                        return [
+                                            'id' => $anim->id,
+                                            'time' => $displayTime,
+                                            'match_label' => $anim->match ? $anim->match->display_label : 'À définir',
+                                            'bar_name' => $anim->bar ? $anim->bar->name : '',
+                                            'bar_address' => $anim->bar ? $anim->bar->address : '',
+                                            'home_flag' => ($anim->match && $anim->match->homeTeam && !$anim->match->is_tbd) ? $anim->match->homeTeam->flag_url : null,
+                                            'away_flag' => ($anim->match && $anim->match->awayTeam && !$anim->match->is_tbd) ? $anim->match->awayTeam->flag_url : null,
+                                        ];
+                                    })->toJson();
+                                    $dayLabel = $currentDate->locale('fr')->isoFormat('dddd D MMMM YYYY');
+                                @endphp
+                                @click="openDayModal('{{ $dayLabel }}', {{ $animationsJson }})"
+                                @endif
+                            >
                                 <!-- Numéro du jour -->
                                 <div class="p-1 {{ $isToday ? 'bg-soboa-orange' : ($hasAnimations && $isCurrentMonth ? 'bg-soboa-blue' : '') }}">
                                     <div class="flex items-center justify-between">
@@ -672,7 +717,36 @@
                                 $isWeekend2 = $currentDate2->isWeekend();
                             @endphp
                             
-                            <div class="border border-gray-200 {{ $isCurrentMonth2 ? '' : 'bg-gray-100' }} {{ $isToday2 ? 'bg-yellow-50 ring-2 ring-soboa-orange ring-inset' : '' }} {{ $isWeekend2 && $isCurrentMonth2 ? 'bg-gray-50' : '' }}" style="min-height: 90px;">
+                            <div class="border border-gray-200 {{ $isCurrentMonth2 ? '' : 'bg-gray-100' }} {{ $isToday2 ? 'bg-yellow-50 ring-2 ring-soboa-orange ring-inset' : '' }} {{ $isWeekend2 && $isCurrentMonth2 ? 'bg-gray-50' : '' }} {{ $hasAnimations2 && $isCurrentMonth2 ? 'cursor-pointer hover:bg-soboa-blue/5 transition-colors' : '' }}" style="min-height: 90px;"
+                                @if($hasAnimations2 && $isCurrentMonth2)
+                                @php
+                                    $animationsJson2 = $dayAnimations2->map(function($anim) {
+                                        $displayTime = '';
+                                        if ($anim->animation_time) {
+                                            $timeStr = $anim->animation_time;
+                                            if (preg_match('/^(\d{1,2})\s*[Hh]?\s*(\d{0,2})?$/', trim($timeStr), $matches)) {
+                                                $hour = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+                                                $minute = isset($matches[2]) && $matches[2] !== '' ? str_pad($matches[2], 2, '0', STR_PAD_LEFT) : '00';
+                                                $displayTime = $hour . ':' . $minute;
+                                            } elseif (preg_match('/^(\d{1,2}):(\d{2})/', $timeStr, $matches)) {
+                                                $displayTime = str_pad($matches[1], 2, '0', STR_PAD_LEFT) . ':' . $matches[2];
+                                            }
+                                        }
+                                        return [
+                                            'id' => $anim->id,
+                                            'time' => $displayTime,
+                                            'match_label' => $anim->match ? $anim->match->display_label : 'À définir',
+                                            'bar_name' => $anim->bar ? $anim->bar->name : '',
+                                            'bar_address' => $anim->bar ? $anim->bar->address : '',
+                                            'home_flag' => ($anim->match && $anim->match->homeTeam && !$anim->match->is_tbd) ? $anim->match->homeTeam->flag_url : null,
+                                            'away_flag' => ($anim->match && $anim->match->awayTeam && !$anim->match->is_tbd) ? $anim->match->awayTeam->flag_url : null,
+                                        ];
+                                    })->toJson();
+                                    $dayLabel2 = $currentDate2->locale('fr')->isoFormat('dddd D MMMM YYYY');
+                                @endphp
+                                @click="openDayModal('{{ $dayLabel2 }}', {{ $animationsJson2 }})"
+                                @endif
+                            >
                                 <!-- Numéro du jour -->
                                 <div class="p-1 {{ $isToday2 ? 'bg-soboa-orange' : ($hasAnimations2 && $isCurrentMonth2 ? 'bg-soboa-blue' : '') }}">
                                     <div class="flex items-center justify-between">
@@ -751,6 +825,90 @@
                     <p class="text-gray-500">Les prochaines animations seront bientôt annoncées !</p>
                 </div>
                 @endif
+            </div>
+
+            <!-- Modal Popup pour les animations du jour -->
+            <div x-show="showModal" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                 @click.self="closeDayModal()"
+                 x-cloak>
+                <div x-show="showModal"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform scale-95"
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 transform scale-100"
+                     x-transition:leave-end="opacity-0 transform scale-95"
+                     class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden">
+                    <!-- Header du modal -->
+                    <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark p-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-white capitalize" x-text="selectedDay"></h3>
+                            <p class="text-white/80 text-sm">
+                                <span x-text="selectedAnimations.length"></span> animation(s) prévue(s)
+                            </p>
+                        </div>
+                        <button @click="closeDayModal()" class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Liste des animations -->
+                    <div class="p-4 overflow-y-auto max-h-[60vh] space-y-4">
+                        <template x-for="(anim, index) in selectedAnimations" :key="index">
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:shadow-md transition">
+                                <!-- Match avec drapeaux -->
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="flex items-center gap-2 flex-1">
+                                        <template x-if="anim.home_flag">
+                                            <img :src="anim.home_flag" class="w-8 h-6 object-cover rounded shadow-sm" alt="">
+                                        </template>
+                                        <span class="text-lg font-bold text-gray-800" x-text="anim.match_label"></span>
+                                        <template x-if="anim.away_flag">
+                                            <img :src="anim.away_flag" class="w-8 h-6 object-cover rounded shadow-sm" alt="">
+                                        </template>
+                                    </div>
+                                    <div class="bg-soboa-orange text-black font-bold px-3 py-1 rounded-full text-sm" x-text="anim.time"></div>
+                                </div>
+
+                                <!-- Lieu -->
+                                <div class="flex items-start gap-2 text-gray-600">
+                                    <svg class="w-5 h-5 text-soboa-blue flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="font-semibold text-gray-800" x-text="anim.bar_name"></div>
+                                        <div class="text-sm text-gray-500" x-text="anim.bar_address"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Message si aucune animation -->
+                        <template x-if="selectedAnimations.length === 0">
+                            <div class="text-center text-gray-500 py-8">
+                                <span class="text-4xl mb-2 block">📅</span>
+                                <p>Aucune animation programmée ce jour.</p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Footer du modal -->
+                    <div class="p-4 border-t border-gray-100 bg-gray-50">
+                        <button @click="closeDayModal()" class="w-full bg-soboa-blue text-white font-bold py-3 rounded-xl hover:bg-soboa-blue/90 transition">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

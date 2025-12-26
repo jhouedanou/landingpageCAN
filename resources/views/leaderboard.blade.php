@@ -126,6 +126,35 @@
             @endif
         </div>
 
+        <!-- TOP 20 National (positions 6-20) -->
+        @if(count($top20) > 5)
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                <div class="bg-gradient-to-r from-gray-700 to-gray-800 p-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>📊</span> TOP 20 National
+                    </h2>
+                    <p class="text-white/80 text-sm mt-1">Positions 6 à 20</p>
+                </div>
+
+                <div class="divide-y divide-gray-100">
+                    @foreach(array_slice($top20, 5) as $entry)
+                        <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition {{ auth()->check() && auth()->id() === ($entry['user_id'] ?? null) ? 'bg-soboa-orange/10 border-l-4 border-soboa-orange' : '' }}">
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-full {{ $entry['rank'] <= 10 ? 'bg-soboa-blue text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-sm">
+                                    {{ $entry['rank'] }}
+                                </span>
+                                <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-700">
+                                    {{ substr($entry['name'], 0, 1) }}
+                                </div>
+                                <span class="font-medium text-gray-800">{{ $entry['name'] }}</span>
+                            </div>
+                            <span class="font-bold text-gray-700">{{ $entry['points'] }} pts</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <!-- Position personnelle de l'utilisateur -->
         @if($user_position)
             <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue/90 rounded-xl shadow-lg p-6 text-white">

@@ -35,8 +35,8 @@ npm run build
   # commenter la ligne ci-dessous.
   # ==========================================
 
-echo "🔄 Running migrations..."
-$FORGE_PHP artisan migrate --force
+ # echo "🔄 Running migrations..."
+ # $FORGE_PHP artisan migrate --force
 
   # ==========================================
   # PRODUCTION SEEDING - DÉSACTIVÉ DÉFINITIVEMENT
