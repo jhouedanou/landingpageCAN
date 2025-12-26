@@ -72,24 +72,24 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            // RATE LIMITING: 1 OTP par heure par numéro
+            // RATE LIMITING: 1 OTP par minute par numéro
             $rateLimitKey = 'otp_rate_limit_' . md5($phone);
             $lastOtpSent = Cache::get($rateLimitKey);
             
             if ($lastOtpSent) {
-                $minutesRemaining = now()->diffInMinutes($lastOtpSent->addHour(), false);
+                $secondsRemaining = now()->diffInSeconds($lastOtpSent->addMinute(), false);
                 
-                if ($minutesRemaining > 0) {
+                if ($secondsRemaining > 0) {
                     Log::warning('Rate limit OTP atteint', [
                         'phone' => $phone,
-                        'minutes_remaining' => $minutesRemaining,
+                        'seconds_remaining' => $secondsRemaining,
                     ]);
                     
                     return response()->json([
                         'success' => false,
-                        'message' => "Vous avez déjà demandé un code. Veuillez attendre {$minutesRemaining} minute(s) avant de réessayer.",
+                        'message' => "Vous avez déjà demandé un code. Veuillez attendre {$secondsRemaining} seconde(s) avant de réessayer.",
                         'rate_limited' => true,
-                        'minutes_remaining' => $minutesRemaining,
+                        'seconds_remaining' => $secondsRemaining,
                     ], 429);
                 }
             }
@@ -115,9 +115,9 @@ class AuthController extends Controller
 
             $result = $this->sendSMS($phone, $otpCode);
 
-            // Enregistrer le rate limit (1 heure)
+            // Enregistrer le rate limit (1 minute)
             if ($result['success']) {
-                Cache::put($rateLimitKey, now(), now()->addHour());
+                Cache::put($rateLimitKey, now(), now()->addMinute());
             }
 
             // Enregistrer le log OTP
