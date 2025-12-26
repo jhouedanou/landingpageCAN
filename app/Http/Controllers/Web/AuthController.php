@@ -26,6 +26,13 @@ class AuthController extends Controller
         if ($rememberToken) {
             $user = User::where('remember_token', $rememberToken)->first();
             if ($user) {
+                // Bonus connexion quotidienne (+1 point/jour)
+                $pointsService = app(\App\Services\PointsService::class);
+                $pointsService->awardDailyLoginPoints($user);
+                
+                // Recharger l'utilisateur pour avoir les points mis à jour
+                $user->refresh();
+                
                 // Reconnecter automatiquement
                 session([
                     'user_id' => $user->id,

@@ -176,19 +176,6 @@
                     <a href="/conditions" class="text-soboa-blue hover:underline">conditions d'utilisation</a>
                 </p>
             </div>
-
-            <!-- Infos supplémentaires -->
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600">
-                    🔞 Ce jeu est réservé aux personnes de 18 ans et plus
-                </p>
-                <p class="text-xs text-gray-500 mt-2">
-                    🎮 Gagnez des points à chaque match!<br>
-                    <span class="text-soboa-orange font-bold">+1</span> pronostic •
-                    <span class="text-soboa-orange font-bold">+4</span> bon vainqueur •
-                    <span class="text-soboa-orange font-bold">+7</span> score exact
-                </p>
-            </div>
         </div>
     </div>
 
