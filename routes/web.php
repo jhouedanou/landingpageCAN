@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\PredictionController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\AdminAuthController;
+use App\Http\Controllers\Web\AdminSmsController;
 use App\Http\Controllers\Admin\VenueController;
 
 // Pages publiques
@@ -154,4 +155,9 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::post('/tournament/calculate-qualified', [AdminController::class, 'calculateQualified'])->name('calculate-qualified');
     Route::get('/tournament/phase/{phase}', [AdminController::class, 'phaseMatches'])->name('phase-matches');
     Route::post('/tournament/qualify-team/{matchId}', [AdminController::class, 'qualifyTeam'])->name('qualify-team');
+
+    // Envoi de SMS
+    Route::get('/sms', [AdminSmsController::class, 'index'])->name('sms');
+    Route::post('/sms/send', [AdminSmsController::class, 'send'])->name('sms.send');
+    Route::post('/sms/test', [AdminSmsController::class, 'sendTest'])->name('sms.test');
 });

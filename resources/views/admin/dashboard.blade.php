@@ -96,6 +96,10 @@
                     <span class="text-3xl">📊</span>
                     <span class="font-bold text-sm text-center">Matrice</span>
                 </a>
+                <a href="{{ route('admin.sms') }}" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">📱</span>
+                    <span class="font-bold text-sm text-center">Envoi SMS</span>
+                </a>
                 <form action="{{ route('admin.clear-cache') }}" method="POST" onsubmit="return confirm('Vider le cache de l\'application ?')">
                     @csrf
                     <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">

@@ -173,4 +173,84 @@ class TwilioService
         // Par défaut: assumer Côte d'Ivoire
         return '+225' . $phone;
     }
+
+    /**
+     * Envoie un SMS direct (pas de vérification)
+     */
+    public function sendSms(string $phoneNumber, string $message): array
+    {
+        if (!$this->client) {
+            Log::error('Twilio: Client non configuré');
+            return ['success' => false, 'error' => 'Configuration Twilio manquante'];
+        }
+
+        try {
+            $formattedPhone = $this->formatE164($phoneNumber);
+            $fromNumber = config('services.twilio.from_number');
+
+            Log::info('Twilio: Envoi SMS', [
+                'to' => $formattedPhone,
+                'from' => $fromNumber,
+                'message_length' => strlen($message)
+            ]);
+
+            $sms = $this->client->messages->create(
+                $formattedPhone,
+                [
+                    'from' => $fromNumber,
+                    'body' => $message
+                ]
+            );
+
+            Log::info('Twilio: SMS envoyé avec succès', [
+                'sid' => $sms->sid,
+                'status' => $sms->status
+            ]);
+
+            return [
+                'success' => true,
+                'sid' => $sms->sid,
+                'status' => $sms->status
+            ];
+
+        } catch (TwilioException $e) {
+            Log::error('Twilio SMS Exception', [
+                'code' => $e->getCode(),
+                'message' => $e->getMessage()
+            ]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        } catch (\Exception $e) {
+            Log::error('Twilio SMS Error', [
+                'message' => $e->getMessage()
+            ]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Envoie un SMS à plusieurs destinataires
+     */
+    public function sendBulkSms(array $phoneNumbers, string $message): array
+    {
+        $results = [
+            'success' => 0,
+            'failed' => 0,
+            'details' => []
+        ];
+
+        foreach ($phoneNumbers as $phone) {
+            $result = $this->sendSms($phone, $message);
+            if ($result['success']) {
+                $results['success']++;
+            } else {
+                $results['failed']++;
+            }
+            $results['details'][] = [
+                'phone' => $phone,
+                'result' => $result
+            ];
+        }
+
+        return $results;
+    }
 }
