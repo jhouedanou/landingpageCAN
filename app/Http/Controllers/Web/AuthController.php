@@ -16,9 +16,29 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
+        // Si déjà connecté via session
         if (session('user_id')) {
             return redirect('/matches');
         }
+
+        // Tentative de reconnexion via cookie "remember_token"
+        $rememberToken = request()->cookie('remember_token');
+        if ($rememberToken) {
+            $user = User::where('remember_token', $rememberToken)->first();
+            if ($user) {
+                // Reconnecter automatiquement
+                session([
+                    'user_id' => $user->id,
+                    'user_points' => $user->points_total ?? 0,
+                    'predictor_name' => $user->name
+                ]);
+                $user->update(['last_login_at' => now()]);
+                
+                Log::info('Reconnexion automatique via remember_token', ['user_id' => $user->id]);
+                return redirect('/matches');
+            }
+        }
+
         return view('auth.login');
     }
 
@@ -304,17 +324,24 @@ class AuthController extends Controller
             // Recharger l'utilisateur pour avoir les points mis à jour
             $user->refresh();
 
+            // Générer un token "remember me" pour 30 jours
+            $rememberToken = Str::random(60);
+            $user->update(['remember_token' => $rememberToken]);
+
             session([
                 'user_id' => $user->id,
                 'user_points' => $user->points_total ?? 0,
                 'predictor_name' => $user->name
             ]);
 
+            // Cookie de 30 jours pour reconnexion automatique
+            $cookie = cookie('remember_token', $rememberToken, 60 * 24 * 30, '/', null, true, true);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Connexion reussie !',
                 'redirect' => '/matches',
-            ]);
+            ])->cookie($cookie);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -459,7 +486,21 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Récupérer l'utilisateur connecté pour nettoyer son remember_token
+        $userId = session('user_id');
+        if ($userId) {
+            $user = \App\Models\User::find($userId);
+            if ($user) {
+                $user->remember_token = null;
+                $user->save();
+            }
+        }
+        
         session()->forget('user_id');
-        return redirect('/')->with('message', 'Vous avez ete deconnecte.');
+        
+        // Supprimer le cookie remember_token
+        $cookie = cookie()->forget('remember_token');
+        
+        return redirect('/')->with('message', 'Vous avez ete deconnecte.')->withCookie($cookie);
     }
 }
