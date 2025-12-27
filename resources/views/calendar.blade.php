@@ -47,13 +47,13 @@ $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
 $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 @endphp
 
-<x-layouts.app title="Calendrier CAN 2025">
+<x-layouts.app title="Calendrier des matchs">
 <div class="min-h-screen bg-gradient-to-br from-soboa-blue via-blue-800 to-blue-900 py-4 px-2 md:px-4">
 
 {{-- Header --}}
 <div class="max-w-7xl mx-auto mb-4">
     <div class="text-center">
-        <h1 class="text-xl md:text-4xl font-black text-white mb-2">Calendrier CAN 2025</h1>
+        <h1 class="text-xl md:text-4xl font-black text-white mb-2">Calendrier des matchs</h1>
         <p class="text-blue-200 text-xs md:text-sm">{{ $totalMatches }} matchs - {{ $finishedMatches }} terminés - {{ $upcomingMatches }} à venir</p>
     </div>
 </div>
@@ -128,14 +128,9 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                             </div>
                         </div>
                         {{-- Infos supplémentaires --}}
-                        @if($match->stadium || $match->group)
+                        @if($match->group)
                             <div class="mt-2 flex items-center justify-center gap-3 text-xs text-gray-500">
-                                @if($match->group)
-                                    <span class="bg-gray-100 px-2 py-0.5 rounded">Groupe {{ $match->group }}</span>
-                                @endif
-                                @if($match->stadium)
-                                    <span>📍 {{ $match->stadium }}</span>
-                                @endif
+                                <span class="bg-gray-100 px-2 py-0.5 rounded">Groupe {{ $match->group }}</span>
                             </div>
                         @endif
                     </a>

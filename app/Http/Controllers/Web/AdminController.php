@@ -429,11 +429,15 @@ class AdminController extends Controller
      * Import matches from JSON data
      * Format attendu :
      * {
-     *   "matchs_termines": [
+     *   "matchs": [
      *     {"date": "2025-01-21", "groupe": "A", "equipe_1": "Maroc", "score_1": 2, "equipe_2": "Comores", "score_2": 0},
+     *     {"date": "2025-01-22", "groupe": "A", "equipe_1": "Mali", "score_1": null, "equipe_2": "Zambie", "score_2": null},
      *     ...
      *   ]
      * }
+     * 
+     * Note: Si score_1 et score_2 sont null, le match est créé/mis à jour comme "scheduled" (à venir)
+     * Supporte aussi l'ancien format avec "matchs_termines" pour rétrocompatibilité
      */
     public function importMatchesJson(Request $request)
     {
@@ -455,29 +459,42 @@ class AdminController extends Controller
                 return response()->json(['success' => false, 'message' => 'JSON invalide: ' . json_last_error_msg()]);
             }
 
-            // Vérifier la structure
-            if (!isset($data['matchs_termines']) || !is_array($data['matchs_termines'])) {
-                return response()->json(['success' => false, 'message' => 'Structure JSON invalide. Attendu: {"matchs_termines": [...]}']);
+            // Supporter les deux formats : "matchs" ou "matchs_termines"
+            $matchesData = null;
+            if (isset($data['matchs']) && is_array($data['matchs'])) {
+                $matchesData = $data['matchs'];
+            } elseif (isset($data['matchs_termines']) && is_array($data['matchs_termines'])) {
+                $matchesData = $data['matchs_termines'];
             }
 
-            $matchesData = $data['matchs_termines'];
+            if (!$matchesData) {
+                return response()->json(['success' => false, 'message' => 'Structure JSON invalide. Attendu: {"matchs": [...]} ou {"matchs_termines": [...]}']);
+            }
+
             $updated = 0;
             $created = 0;
+            $skipped = 0;
             $errors = [];
 
             foreach ($matchesData as $matchData) {
-                // Valider les champs requis
-                if (!isset($matchData['equipe_1'], $matchData['equipe_2'], $matchData['score_1'], $matchData['score_2'])) {
-                    $errors[] = "Match avec données incomplètes: " . json_encode($matchData);
+                // Valider les champs requis (équipes obligatoires, scores optionnels)
+                if (!isset($matchData['equipe_1'], $matchData['equipe_2'])) {
+                    $errors[] = "Match avec données incomplètes (équipes manquantes): " . json_encode($matchData);
                     continue;
                 }
 
                 $team1Name = trim($matchData['equipe_1']);
                 $team2Name = trim($matchData['equipe_2']);
-                $score1 = (int)$matchData['score_1'];
-                $score2 = (int)$matchData['score_2'];
                 $matchDate = $matchData['date'] ?? now()->format('Y-m-d');
+                $matchTime = $matchData['horaire'] ?? '17:00'; // Heure par défaut si non fournie
                 $groupName = $matchData['groupe'] ?? null;
+
+                // Vérifier si les scores sont définis (null = match pas encore joué)
+                $hasScores = isset($matchData['score_1']) && isset($matchData['score_2']) 
+                          && $matchData['score_1'] !== null && $matchData['score_2'] !== null;
+                
+                $score1 = $hasScores ? (int)$matchData['score_1'] : null;
+                $score2 = $hasScores ? (int)$matchData['score_2'] : null;
 
                 // Rechercher les équipes (correspondance exacte d'abord, puis partielle)
                 $team1 = Team::where('name', $team1Name)->first() 
@@ -493,7 +510,7 @@ class AdminController extends Controller
                     continue;
                 }
 
-                // Rechercher le match correspondant (dans les deux sens)
+                // Rechercher le match correspondant (dans les deux sens) avec la même date
                 $match = MatchGame::where(function ($query) use ($team1, $team2) {
                     $query->where(function ($q) use ($team1, $team2) {
                         $q->where('home_team_id', $team1->id)
@@ -502,7 +519,24 @@ class AdminController extends Controller
                         $q->where('home_team_id', $team2->id)
                           ->where('away_team_id', $team1->id);
                     });
-                })->first();
+                })
+                ->whereDate('match_date', $matchDate)
+                ->first();
+
+                // Si pas trouvé avec date exacte, chercher sans la date
+                if (!$match) {
+                    $match = MatchGame::where(function ($query) use ($team1, $team2) {
+                        $query->where(function ($q) use ($team1, $team2) {
+                            $q->where('home_team_id', $team1->id)
+                              ->where('away_team_id', $team2->id);
+                        })->orWhere(function ($q) use ($team1, $team2) {
+                            $q->where('home_team_id', $team2->id)
+                              ->where('away_team_id', $team1->id);
+                        });
+                    })->first();
+                }
+
+                $isNew = false;
 
                 // Si le match n'existe pas, le créer
                 if (!$match) {
@@ -511,40 +545,64 @@ class AdminController extends Controller
                     $match->away_team_id = $team2->id;
                     $match->team_a = $team1->name;
                     $match->team_b = $team2->name;
-                    $match->match_date = $matchDate . ' 17:00:00'; // Heure par défaut
+                    $match->match_date = $matchDate . ' ' . $matchTime . ':00';
                     $match->group_name = $groupName;
                     $match->phase = $groupName ? 'group_stage' : null;
-                    $match->stadium = 'Stade CAN 2025';
+                    $match->stadium = null;
+                    $isNew = true;
                     $created++;
                 } else {
                     $updated++;
                 }
 
-                // Déterminer l'ordre des scores selon l'équipe domicile/extérieure
-                if ($match->home_team_id === $team1->id) {
-                    $match->score_a = $score1;
-                    $match->score_b = $score2;
-                } else {
-                    $match->score_a = $score2;
-                    $match->score_b = $score1;
+                // Mettre à jour la date et l'heure
+                if (isset($matchData['date'])) {
+                    // Utiliser l'horaire fourni ou garder 17:00 par défaut
+                    $timeToUse = $matchTime . ':00';
+                    $match->match_date = $matchData['date'] . ' ' . $timeToUse;
                 }
 
-                // Mettre à jour le statut et la date si fournie
-                $match->status = 'finished';
-                
-                if (isset($matchData['date'])) {
-                    // Garder l'heure existante si le match existe, sinon 17:00 par défaut
-                    $existingTime = $match->exists ? \Carbon\Carbon::parse($match->match_date)->format('H:i:s') : '17:00:00';
-                    $match->match_date = $matchData['date'] . ' ' . $existingTime;
+                // Mettre à jour le groupe si fourni
+                if ($groupName) {
+                    $match->group_name = $groupName;
+                }
+
+                // Gérer les scores et le statut
+                if ($hasScores) {
+                    // Match terminé avec scores
+                    if ($match->home_team_id === $team1->id) {
+                        $match->score_a = $score1;
+                        $match->score_b = $score2;
+                    } else {
+                        $match->score_a = $score2;
+                        $match->score_b = $score1;
+                    }
+                    $match->status = 'finished';
+                } else {
+                    // Match sans scores = scheduled (à venir)
+                    // Ne pas écraser les scores existants si le match a déjà été joué
+                    if ($match->status !== 'finished') {
+                        $match->status = 'scheduled';
+                    } else {
+                        // Le match existe déjà avec des scores, on ne modifie pas
+                        $skipped++;
+                        $updated--; // Annuler l'incrément car on ne met pas vraiment à jour
+                        continue;
+                    }
                 }
 
                 $match->save();
 
-                // Déclencher le calcul des points
-                ProcessMatchPoints::dispatch($match->id);
+                // Déclencher le calcul des points uniquement pour les matchs terminés
+                if ($hasScores) {
+                    ProcessMatchPoints::dispatch($match->id);
+                }
             }
 
             $message = "Import terminé: {$created} match(s) créé(s), {$updated} match(s) mis à jour.";
+            if ($skipped > 0) {
+                $message .= " {$skipped} match(s) ignoré(s) (déjà terminés).";
+            }
             if (!empty($errors)) {
                 $message .= " Erreurs: " . implode('; ', array_slice($errors, 0, 5));
                 if (count($errors) > 5) {
@@ -553,11 +611,12 @@ class AdminController extends Controller
             }
 
             return response()->json([
-                'success' => ($created + $updated) > 0,
+                'success' => ($created + $updated) > 0 || $skipped > 0,
                 'message' => $message,
                 'stats' => [
                     'created' => $created,
                     'updated' => $updated,
+                    'skipped' => $skipped,
                     'errors' => count($errors),
                 ]
             ]);

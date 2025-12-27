@@ -63,6 +63,9 @@ class HomeController extends Controller
         // Récupérer le prochain match pour le hero
         $nextMatch = $upcomingMatches->first();
 
+        // Limiter à 4 matchs pour la page d'accueil
+        $upcomingMatches = $upcomingMatches->take(4);
+
         // Fetch top 3 users for leaderboard (alphabétique en cas d'égalité)
         $topUsers = User::orderBy('points_total', 'desc')
                        ->orderBy('name', 'asc')
@@ -528,7 +531,7 @@ class HomeController extends Controller
                 'homeScore' => $match->score_a,
                 'awayScore' => $match->score_b,
                 'status' => $match->status,
-                'stadium' => $match->stadium ?? 'Stade CAN 2025',
+                'stadium' => $match->stadium ?? null,
                 'group' => $match->group_name,
                 'phase' => $match->phase,
             ];

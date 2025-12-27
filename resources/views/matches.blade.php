@@ -242,14 +242,6 @@
                                                                             </span>
                                                                         @endif
                                                                     </div>
-                                                                    @if($match->stadium)
-                                                                        <div class="px-6 pt-2 pb-1">
-                                                                            <p class="text-xs text-white/80 flex items-center gap-1">
-                                                                                <span>🏟️</span>
-                                                                                <span>{{ $match->stadium }}</span>
-                                                                            </p>
-                                                                        </div>
-                                                                    @endif
                                                                 </div>
 
                                                                 <!-- Corps du match -->
@@ -559,14 +551,6 @@
                                                             </span>
                                                         @endif
                                                     </div>
-                                                    @if($match->stadium)
-                                                        <div class="px-6 pt-2 pb-1">
-                                                            <p class="text-xs text-white/80 flex items-center gap-1">
-                                                                <span>🏟️</span>
-                                                                <span>{{ $match->stadium }}</span>
-                                                            </p>
-                                                        </div>
-                                                    @endif
                                                 </div>
 
                                                 <!-- Corps du match -->

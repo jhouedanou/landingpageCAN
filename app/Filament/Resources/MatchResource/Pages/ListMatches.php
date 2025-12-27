@@ -128,7 +128,7 @@ class ListMatches extends ListRecords
                         'team_a' => $homeTeam->name,
                         'team_b' => $awayTeam->name,
                         'match_date' => $matchData['date'] . ' 17:00:00',
-                        'stadium' => 'Stade CAN 2025',
+                        'stadium' => null,
                         'group_name' => $matchData['groupe'] ?? null,
                         'status' => isset($matchData['score_1']) ? 'finished' : 'scheduled',
                         'score_a' => $matchData['score_1'] ?? null,
