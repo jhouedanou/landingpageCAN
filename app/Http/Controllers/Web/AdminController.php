@@ -513,7 +513,7 @@ class AdminController extends Controller
                     $match->team_b = $team2->name;
                     $match->match_date = $matchDate . ' 17:00:00'; // Heure par défaut
                     $match->group_name = $groupName;
-                    $match->phase = $groupName ? 'Poules' : null;
+                    $match->phase = $groupName ? 'group_stage' : null;
                     $match->stadium = 'Stade CAN 2025';
                     $created++;
                 } else {
