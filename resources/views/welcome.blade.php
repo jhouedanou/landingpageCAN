@@ -269,9 +269,6 @@
                     
                     <div class="text-white/60 text-xs md:text-sm mb-4">
                         {{ $nextMatch->match_date->format('d M Y à H:i') }}
-                        @if($nextMatch->stadium)
-                            • {{ $nextMatch->stadium }}
-                        @endif
                         @if($nextMatch->phase === 'group_stage') 
                             • Groupe {{ $nextMatch->group_name }}
                         @else

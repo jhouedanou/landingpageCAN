@@ -107,14 +107,17 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                             {{-- Score ou heure --}}
                             <div class="flex-shrink-0 mx-2">
                                 @if($match->status === 'finished')
-                                    <div class="flex items-center gap-1 bg-green-100 px-3 py-1 rounded-lg">
-                                        <span class="text-lg font-black text-green-700">{{ $match->score_a }}</span>
-                                        <span class="text-gray-400 font-bold">-</span>
-                                        <span class="text-lg font-black text-green-700">{{ $match->score_b }}</span>
+                                    <div class="flex flex-col items-center">
+                                        <div class="flex items-center gap-1 bg-green-100 px-3 py-1 rounded-lg">
+                                            <span class="text-lg font-black text-green-700">{{ $match->score_a }}</span>
+                                            <span class="text-gray-400 font-bold">-</span>
+                                            <span class="text-lg font-black text-green-700">{{ $match->score_b }}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-400 mt-0.5">{{ Carbon::parse($match->match_date)->format('H:i') }}</span>
                                     </div>
                                 @else
                                     <div class="bg-blue-50 px-3 py-1 rounded-lg">
-                                        <span class="text-blue-600 font-semibold text-sm">{{ $match->match_time ? Carbon::parse($match->match_time)->format('H:i') : 'À venir' }}</span>
+                                        <span class="text-blue-600 font-semibold text-sm">{{ Carbon::parse($match->match_date)->format('H:i') }}</span>
                                     </div>
                                 @endif
                             </div>
@@ -174,6 +177,7 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                         <div class="space-y-1 overflow-y-auto" style="max-height: 80px;">
                             @foreach($dayMatches as $match)
                                 <a href="{{ route('matches') }}#match-{{ $match->id }}" class="block rounded p-1.5 text-[11px] hover:opacity-80 transition-opacity @if($match->status === 'finished') bg-green-100 border-l-2 border-green-500 @else bg-blue-50 border-l-2 border-blue-400 @endif">
+                                    <div class="text-[9px] text-gray-500 mb-0.5">{{ Carbon::parse($match->match_date)->format('H:i') }}</div>
                                     <div class="flex items-center justify-between gap-1">
                                         <div class="flex items-center gap-1 min-w-0 flex-1">
                                             @if($match->homeTeam && $match->homeTeam->iso_code)

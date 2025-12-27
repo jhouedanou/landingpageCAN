@@ -116,7 +116,6 @@
                                         <div>
                                             <span
                                                 class="text-xs text-gray-500">{{ $prediction->match->match_date->translatedFormat('l d F Y - H:i') }}</span>
-                                            <div class="text-sm text-gray-400">{{ $prediction->match->stadium }}</div>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span
@@ -175,7 +174,6 @@
                                     <div>
                                         <span
                                             class="text-xs text-gray-500">{{ $prediction->match->match_date->translatedFormat('l d F Y - H:i') }}</span>
-                                        <div class="text-sm text-gray-400">{{ $prediction->match->stadium }}</div>
                                     </div>
                                     <span class="px-3 py-1 bg-soboa-blue/10 text-soboa-blue text-sm font-bold rounded-full">
                                         En attente
@@ -221,7 +219,6 @@
                                     <div>
                                         <span
                                             class="text-xs text-gray-500">{{ $prediction->match->match_date->translatedFormat('l d F Y - H:i') }}</span>
-                                        <div class="text-sm text-gray-400">{{ $prediction->match->stadium }}</div>
                                     </div>
                                     @if($prediction->points_earned > 0)
                                         <span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
