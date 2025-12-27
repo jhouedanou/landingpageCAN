@@ -181,6 +181,8 @@ class HomeController extends Controller
     {
         $venues = Bar::with(['animations.match.homeTeam', 'animations.match.awayTeam'])
             ->where('is_active', true)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
             ->orderBy('name')
             ->get();
         
