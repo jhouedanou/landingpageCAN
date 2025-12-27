@@ -378,6 +378,11 @@
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Accueil</a>
                     <a href="/matches"
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Pronostics</a>
+                    <a href="/calendar"
+                        class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all flex items-center gap-1.5">
+                        <span>📅</span>
+                        <span>Calendrier</span>
+                    </a>
                     <a href="/map"
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-orange/20 rounded-lg font-semibold text-sm transition-all flex items-center gap-1.5">
                         <span>🎉</span>
@@ -452,6 +457,11 @@
                 <a href="/matches"
                     class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">
                     Pronostics</a>
+                <a href="/calendar"
+                    class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                    <span>📅</span>
+                    <span>Calendrier</span>
+                </a>
                 <a href="/map"
                     class="block px-4 py-3 text-black hover:bg-soboa-orange/20 rounded-lg font-semibold transition-colors flex items-center gap-2">
                     <span>🎉</span>
@@ -529,6 +539,7 @@
                     <h4 class="font-bold text-soboa-orange mb-4">Liens rapides</h4>
                     <ul class="space-y-2 text-white/70 text-sm">
                         <li><a href="/matches" class="hover:text-white transition-colors">Faire un pronostic</a></li>
+                        <li><a href="/calendar" class="hover:text-white transition-colors">Calendrier des matchs</a></li>
                         <li><a href="/leaderboard" class="hover:text-white transition-colors">Voir le classement</a>
                         </li>
                         <li><a href="/map" class="hover:text-white transition-colors">Lieux partenaires</a></li>
