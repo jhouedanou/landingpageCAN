@@ -1,4 +1,4 @@
-<x-layouts.app title="Connexion">
+<x-layouts.app title="Inscription">
     <div class="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
         <div class="w-full max-w-md">
 
@@ -7,12 +7,12 @@
                 <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 shadow-lg flex items-center justify-center">
                     <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-16 h-16 object-contain">
                 </div>
-                <h1 class="text-3xl font-black text-soboa-blue">Connexion</h1>
-                <p class="text-gray-600 mt-2">Entrez vos identifiants</p>
+                <h1 class="text-3xl font-black text-soboa-blue">Inscription</h1>
+                <p class="text-gray-600 mt-2">Créez votre compte</p>
             </div>
 
-            <!-- Formulaire de connexion -->
-            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8" x-data="loginForm()">
+            <!-- Formulaire d'inscription -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8" x-data="registerForm()">
 
                 <!-- Messages d'erreur -->
                 <div x-show="error" x-cloak
@@ -37,7 +37,15 @@
                     </div>
                 </div>
 
-                <form @submit.prevent="login">
+                <form @submit.prevent="register">
+                    <!-- Nom complet -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Votre nom complet</label>
+                        <input type="text" x-model="name" placeholder="Jean Dupont"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
+                            required autofocus>
+                    </div>
+
                     <!-- Numéro de téléphone -->
                     <div class="mb-5">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone</label>
@@ -49,16 +57,17 @@
                             <input type="tel" x-model="phone"
                                 placeholder="77 123 45 67"
                                 class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
-                                required autofocus>
+                                required>
                         </div>
                     </div>
 
                     <!-- Mot de passe -->
-                    <div class="mb-6">
+                    <div class="mb-5">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Mot de passe</label>
                         <div class="relative">
                             <input :type="showPassword ? 'text' : 'password'" x-model="password"
-                                placeholder="Votre mot de passe"
+                                placeholder="Minimum 6 caractères"
+                                @input="checkPasswordStrength()"
                                 class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                 required>
                             <button type="button" @click="showPassword = !showPassword"
@@ -72,15 +81,41 @@
                                 </svg>
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">
-                            Ancien utilisateur ? Utilisez votre code à 6 chiffres reçu par SMS
+                        <!-- Force du mot de passe -->
+                        <div x-show="password.length > 0" class="mt-2">
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div :class="{
+                                    'bg-red-500': passwordStrength === 'weak',
+                                    'bg-yellow-500': passwordStrength === 'medium',
+                                    'bg-green-500': passwordStrength === 'strong'
+                                }"
+                                :style="'width: ' + passwordStrengthPercent + '%'"
+                                class="h-full transition-all"></div>
+                            </div>
+                            <p class="text-xs mt-1" :class="{
+                                'text-red-600': passwordStrength === 'weak',
+                                'text-yellow-600': passwordStrength === 'medium',
+                                'text-green-600': passwordStrength === 'strong'
+                            }" x-text="passwordStrengthText"></p>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation mot de passe -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Confirmer le mot de passe</label>
+                        <input :type="showPasswordConfirm ? 'text' : 'password'" x-model="passwordConfirm"
+                            placeholder="Retapez votre mot de passe"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
+                            required>
+                        <p x-show="passwordConfirm && password !== passwordConfirm" class="text-xs text-red-600 mt-1">
+                            Les mots de passe ne correspondent pas
                         </p>
                     </div>
 
-                    <!-- Bouton de connexion -->
-                    <button type="submit" :disabled="loading"
+                    <!-- Bouton d'inscription -->
+                    <button type="submit" :disabled="loading || (password && password !== passwordConfirm)"
                         class="w-full bg-soboa-orange hover:bg-soboa-orange-dark disabled:bg-gray-400 text-black font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 mb-4">
-                        <span x-show="!loading">Se connecter</span>
+                        <span x-show="!loading">Créer mon compte</span>
                         <span x-show="loading" class="flex items-center gap-2">
                             <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24">
@@ -90,22 +125,22 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            Connexion...
+                            Création en cours...
                         </span>
                     </button>
 
-                    <!-- Lien inscription -->
+                    <!-- Lien connexion -->
                     <div class="text-center pt-4 border-t border-gray-100">
-                        <p class="text-sm text-gray-600 mb-2">Pas encore de compte ?</p>
-                        <a href="/register" class="text-soboa-orange hover:underline font-bold">
-                            Créer un compte
+                        <p class="text-sm text-gray-600 mb-2">Vous avez déjà un compte ?</p>
+                        <a href="/login" class="text-soboa-orange hover:underline font-bold">
+                            Se connecter
                         </a>
                     </div>
                 </form>
 
                 <!-- Conditions -->
                 <p class="text-xs text-gray-500 text-center mt-6">
-                    En vous connectant, vous acceptez nos
+                    En vous inscrivant, vous acceptez nos
                     <a href="/conditions" class="text-soboa-blue hover:underline">conditions d'utilisation</a>
                 </p>
             </div>
@@ -113,23 +148,21 @@
     </div>
 
     <script>
-        function loginForm() {
+        function registerForm() {
             return {
+                name: '',
                 phone: '',
                 password: '',
+                passwordConfirm: '',
                 showPassword: false,
+                showPasswordConfirm: false,
                 loading: false,
                 error: '',
                 success: '',
                 countryCode: '+221', // Sénégal uniquement
-
-                init() {
-                    // Restaurer le numéro si sauvegardé
-                    const savedPhone = localStorage.getItem('user_phone');
-                    if (savedPhone) {
-                        this.phone = savedPhone;
-                    }
-                },
+                passwordStrength: '',
+                passwordStrengthPercent: 0,
+                passwordStrengthText: '',
 
                 get fullPhone() {
                     return this.countryCode + this.formatPhoneNumber(this.phone);
@@ -147,8 +180,33 @@
                     return phoneDigits.length === 9 && phoneDigits.startsWith('7');
                 },
 
-                async login() {
-                    if (!this.phone.trim() || !this.password.trim()) {
+                checkPasswordStrength() {
+                    const pwd = this.password;
+                    let strength = 0;
+
+                    if (pwd.length >= 6) strength += 1;
+                    if (pwd.length >= 8) strength += 1;
+                    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength += 1;
+                    if (/[0-9]/.test(pwd)) strength += 1;
+                    if (/[^a-zA-Z0-9]/.test(pwd)) strength += 1;
+
+                    if (strength <= 2) {
+                        this.passwordStrength = 'weak';
+                        this.passwordStrengthPercent = 33;
+                        this.passwordStrengthText = 'Faible';
+                    } else if (strength <= 3) {
+                        this.passwordStrength = 'medium';
+                        this.passwordStrengthPercent = 66;
+                        this.passwordStrengthText = 'Moyen';
+                    } else {
+                        this.passwordStrength = 'strong';
+                        this.passwordStrengthPercent = 100;
+                        this.passwordStrengthText = 'Fort';
+                    }
+                },
+
+                async register() {
+                    if (!this.name.trim() || !this.phone.trim() || !this.password.trim()) {
                         this.error = 'Veuillez remplir tous les champs.';
                         return;
                     }
@@ -159,37 +217,48 @@
                         return;
                     }
 
+                    // Vérifier la longueur du mot de passe
+                    if (this.password.length < 6) {
+                        this.error = 'Le mot de passe doit contenir au moins 6 caractères.';
+                        return;
+                    }
+
+                    // Vérifier la confirmation
+                    if (this.password !== this.passwordConfirm) {
+                        this.error = 'Les mots de passe ne correspondent pas.';
+                        return;
+                    }
+
                     this.loading = true;
                     this.error = '';
                     this.success = '';
 
                     try {
-                        const response = await fetch('/auth/login', {
+                        const response = await fetch('/auth/register', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             },
                             body: JSON.stringify({
+                                name: this.name,
                                 phone: this.fullPhone,
-                                password: this.password
+                                password: this.password,
+                                password_confirmation: this.passwordConfirm
                             })
                         });
 
                         const data = await response.json();
 
                         if (response.ok && data.success) {
-                            // Sauvegarder le numéro pour la prochaine fois
-                            localStorage.setItem('user_phone', this.phone);
-
-                            this.success = 'Connexion réussie !';
+                            this.success = 'Compte créé avec succès !';
 
                             // Redirection après succès
                             setTimeout(() => {
                                 window.location.href = data.redirect || '/matches';
-                            }, 500);
+                            }, 1000);
                         } else {
-                            this.error = data.message || 'Identifiants incorrects.';
+                            this.error = data.message || 'Erreur lors de l\'inscription.';
                         }
                     } catch (err) {
                         console.error('Erreur:', err);

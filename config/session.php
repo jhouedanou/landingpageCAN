@@ -32,7 +32,9 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
+    // Session lifetime jusqu'en février 2026 (en minutes)
+    // Calcul: environ 14 mois * 30 jours * 24 heures * 60 minutes = ~604800 minutes
+    'lifetime' => (int) env('SESSION_LIFETIME', 604800),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

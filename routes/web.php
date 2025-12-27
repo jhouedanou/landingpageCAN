@@ -21,9 +21,18 @@ Route::get('/conditions', function () {
     return view('terms');
 })->name('terms');
 
-// Authentification publique (Sénégal + exceptions test CI)
-// Rate limiting: 5 tentatives par minute pour l'envoi d'OTP
+// Authentification publique (login classique avec mot de passe)
+// Rate limiting pour éviter les abus
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/auth/login', [AuthController::class, 'login'])
+    ->middleware('throttle:10,1')
+    ->name('auth.login');
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/auth/register', [AuthController::class, 'register'])
+    ->middleware('throttle:5,1')
+    ->name('auth.register');
+
+// Ancien système OTP (conservé pour compatibilité si nécessaire)
 Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])
     ->middleware('throttle:5,1')
     ->name('auth.send-otp');
@@ -33,6 +42,7 @@ Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
 Route::post('/auth/request-new-code', [AuthController::class, 'requestNewCode'])
     ->middleware('throttle:2,60') // Max 2 demandes par heure
     ->name('auth.request-new-code');
+
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Authentification administrateur (par mot de passe)

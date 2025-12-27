@@ -29,10 +29,10 @@ class AuthController extends Controller
                 // Bonus connexion quotidienne (+1 point/jour)
                 $pointsService = app(\App\Services\PointsService::class);
                 $pointsService->awardDailyLoginPoints($user);
-                
+
                 // Recharger l'utilisateur pour avoir les points mis à jour
                 $user->refresh();
-                
+
                 // Reconnecter automatiquement
                 session([
                     'user_id' => $user->id,
@@ -40,13 +40,210 @@ class AuthController extends Controller
                     'predictor_name' => $user->name
                 ]);
                 $user->update(['last_login_at' => now()]);
-                
+
                 Log::info('Reconnexion automatique via remember_token', ['user_id' => $user->id]);
                 return redirect('/matches');
             }
         }
 
         return view('auth.login');
+    }
+
+    public function showRegisterForm()
+    {
+        // Si déjà connecté via session
+        if (session('user_id')) {
+            return redirect('/matches');
+        }
+
+        return view('auth.register');
+    }
+
+    /**
+     * Login classique avec numéro + mot de passe
+     * Compatible avec les anciens utilisateurs (code OTP stocké dans otp_password)
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        try {
+            $phone = $this->formatPhone($request->phone);
+
+            // Vérifier que le numéro est autorisé
+            if (!str_starts_with($phone, '+221')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seuls les numéros sénégalais (+221) sont autorisés.',
+                ], 403);
+            }
+
+            // VALIDATION FORMAT sénégalais
+            $phoneWithoutPrefix = substr($phone, 4);
+            if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format de numéro invalide.',
+                ], 400);
+            }
+
+            // Trouver l'utilisateur
+            $user = User::where('phone', $phone)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun compte trouvé avec ce numéro. Veuillez vous inscrire.',
+                ], 404);
+            }
+
+            // Vérifier le mot de passe
+            // Anciens utilisateurs: vérifier contre otp_password
+            // Nouveaux utilisateurs: vérifier contre password
+            $isValidPassword = false;
+
+            if ($user->password && Hash::check($request->password, $user->password)) {
+                // Nouveau système: mot de passe principal
+                $isValidPassword = true;
+            } elseif ($user->otp_password && Hash::check($request->password, $user->otp_password)) {
+                // Ancien système: code OTP comme mot de passe
+                $isValidPassword = true;
+            }
+
+            if (!$isValidPassword) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mot de passe incorrect.',
+                ], 401);
+            }
+
+            // Connexion réussie
+            Log::info('Connexion réussie', ['phone' => $phone, 'user_id' => $user->id]);
+
+            $user->update(['last_login_at' => now()]);
+
+            // Bonus connexion quotidienne (+1 point/jour)
+            $pointsService = app(\App\Services\PointsService::class);
+            $pointsService->awardDailyLoginPoints($user);
+
+            $user->refresh();
+
+            // Générer un token "remember me" qui expire en février 2026
+            $rememberToken = Str::random(60);
+            $user->update(['remember_token' => $rememberToken]);
+
+            session([
+                'user_id' => $user->id,
+                'user_points' => $user->points_total ?? 0,
+                'predictor_name' => $user->name
+            ]);
+
+            // Cookie qui expire en février 2026 (nombre de minutes jusqu'à février 2026)
+            $minutesUntilFeb2026 = now()->diffInMinutes('2026-02-28 23:59:59');
+            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, true, true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Connexion réussie !',
+                'redirect' => '/matches',
+            ])->cookie($cookie);
+
+        } catch (\Exception $e) {
+            Log::error('Exception login', ['message' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur technique. Réessayez.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Inscription classique avec mot de passe personnalisé
+     */
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        try {
+            $phone = $this->formatPhone($request->phone);
+
+            // Vérifier que le numéro est autorisé
+            if (!str_starts_with($phone, '+221')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seuls les numéros sénégalais (+221) sont autorisés.',
+                ], 403);
+            }
+
+            // VALIDATION FORMAT sénégalais
+            $phoneWithoutPrefix = substr($phone, 4);
+            if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format de numéro invalide. Le numéro doit contenir 9 chiffres commençant par 7.',
+                ], 400);
+            }
+
+            // Vérifier si l'utilisateur existe déjà
+            $existingUser = User::where('phone', $phone)->first();
+
+            if ($existingUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce numéro est déjà enregistré. Veuillez vous connecter.',
+                ], 409);
+            }
+
+            // Créer le nouvel utilisateur
+            $user = User::create([
+                'name' => $request->name,
+                'phone' => $phone,
+                'password' => Hash::make($request->password),
+                'last_login_at' => now(),
+            ]);
+
+            Log::info('Nouveau compte créé avec mot de passe', ['phone' => $phone, 'user_id' => $user->id]);
+
+            // Bonus connexion quotidienne (+1 point/jour)
+            $pointsService = app(\App\Services\PointsService::class);
+            $pointsService->awardDailyLoginPoints($user);
+
+            $user->refresh();
+
+            // Générer un token "remember me" qui expire en février 2026
+            $rememberToken = Str::random(60);
+            $user->update(['remember_token' => $rememberToken]);
+
+            session([
+                'user_id' => $user->id,
+                'user_points' => $user->points_total ?? 0,
+                'predictor_name' => $user->name
+            ]);
+
+            // Cookie qui expire en février 2026
+            $minutesUntilFeb2026 = now()->diffInMinutes('2026-02-28 23:59:59');
+            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, true, true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Compte créé avec succès !',
+                'redirect' => '/matches',
+            ])->cookie($cookie);
+
+        } catch (\Exception $e) {
+            Log::error('Exception register', ['message' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur technique. Réessayez.',
+            ], 500);
+        }
     }
 
     public function sendOtp(Request $request)
