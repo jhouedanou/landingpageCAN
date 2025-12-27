@@ -59,14 +59,12 @@
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Numéro de téléphone</label>
                             <div class="flex gap-2">
-                                <!-- Sélecteur de pays -->
-                                <select x-model="countryCode" 
-                                    class="px-3 py-3 border-2 border-gray-200 bg-white rounded-xl text-sm font-bold text-gray-700 focus:border-soboa-orange focus:ring-0">
-                                    <option value="+221">🇸🇳 +221</option>
-                                    <option value="+225">🇨🇮 +225</option>
-                                </select>
-                                <input type="tel" x-model="phone" 
-                                    :placeholder="getPlaceholder()"
+                                <!-- Indicatif Sénégal uniquement -->
+                                <div class="px-4 py-3 border-2 border-gray-200 bg-gray-50 rounded-xl text-sm font-bold text-gray-700 flex items-center">
+                                    🇸🇳 +221
+                                </div>
+                                <input type="tel" x-model="phone"
+                                    placeholder="77 123 45 67"
                                     class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                     required>
                             </div>
@@ -251,7 +249,7 @@
                 step: 1,
                 name: '',
                 phone: '',
-                countryCode: '+221', // Sénégal uniquement
+                countryCode: '+221', // Sénégal uniquement (fixe)
                 code: '',
                 loading: false,
                 error: '',
@@ -297,38 +295,20 @@
                     return this.countryCode + this.formatPhoneNumber(this.phone);
                 },
 
-                getPlaceholder() {
-                    // Côte d'Ivoire: 10 chiffres, Sénégal: 9 chiffres
-                    return this.countryCode === '+225' ? '05 45 02 97 21' : '77 123 45 67';
-                },
-
                 formatPhoneNumber(phone) {
-                    // Supprimer tout sauf les chiffres - ne rien retirer d'autre
-                    // SMS: on garde le numéro tel quel (avec le 0 initial si présent)
+                    // Supprimer tout sauf les chiffres
                     return phone.replace(/\D/g, '');
                 },
 
-                // Valider le format du numéro selon le pays
+                // Valider le format du numéro (Sénégal uniquement)
                 isValidPhone() {
                     const phoneDigits = this.formatPhoneNumber(this.phone);
-                    
-                    if (this.countryCode === '+221') {
-                        // Sénégal: 9 chiffres commençant par 7
-                        return phoneDigits.length === 9 && phoneDigits.startsWith('7');
-                    } else if (this.countryCode === '+225') {
-                        // Côte d'Ivoire: 10 chiffres commençant par 0
-                        return phoneDigits.length === 10 && phoneDigits.startsWith('0');
-                    }
-                    return false;
+                    // Sénégal: 9 chiffres commençant par 7
+                    return phoneDigits.length === 9 && phoneDigits.startsWith('7');
                 },
 
                 getPhoneFormatError() {
-                    if (this.countryCode === '+221') {
-                        return 'Le numéro sénégalais doit contenir 9 chiffres commençant par 7 (ex: 77 123 45 67).';
-                    } else if (this.countryCode === '+225') {
-                        return 'Le numéro ivoirien doit contenir 10 chiffres commençant par 0 (ex: 07 XX XX XX XX).';
-                    }
-                    return 'Format de numéro invalide.';
+                    return 'Le numéro doit contenir 9 chiffres commençant par 7 (ex: 77 123 45 67).';
                 },
 
                 async sendOtp() {
