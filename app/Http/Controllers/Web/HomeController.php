@@ -494,4 +494,27 @@ class HomeController extends Controller
 
         return view('highlights', compact('animations', 'animationsByDate', 'venues', 'zones', 'types', 'venueId', 'zone', 'type'));
     }
+
+    /**
+     * Calendrier complet des matchs (passés et à venir)
+     */
+    public function calendar(Request $request)
+    {
+        // Récupérer TOUS les matchs (passés et à venir)
+        $matches = MatchGame::with(['homeTeam', 'awayTeam', 'stadium'])
+            ->orderBy('match_date', 'desc')
+            ->get();
+
+        // Grouper par date
+        $matchesByDate = $matches->groupBy(function($match) {
+            return \Carbon\Carbon::parse($match->match_date)->format('Y-m-d');
+        });
+
+        // Statistiques
+        $totalMatches = $matches->count();
+        $finishedMatches = $matches->where('status', 'finished')->count();
+        $upcomingMatches = $matches->where('status', '!=', 'finished')->count();
+
+        return view('calendar', compact('matches', 'matchesByDate', 'totalMatches', 'finishedMatches', 'upcomingMatches'));
+    }
 }
