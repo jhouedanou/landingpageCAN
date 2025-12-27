@@ -425,6 +425,151 @@ class AdminController extends Controller
         return back()->with('success', 'Calcul des points en cours... Rafraîchissez la page dans quelques secondes.');
     }
 
+    /**
+     * Import matches from JSON data
+     * Format attendu :
+     * {
+     *   "matchs_termines": [
+     *     {"date": "2025-01-21", "groupe": "A", "equipe_1": "Maroc", "score_1": 2, "equipe_2": "Comores", "score_2": 0},
+     *     ...
+     *   ]
+     * }
+     */
+    public function importMatchesJson(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Accès non autorisé.'], 403);
+        }
+
+        try {
+            $jsonData = $request->input('json_data');
+            
+            if (empty($jsonData)) {
+                return response()->json(['success' => false, 'message' => 'Données JSON vides.']);
+            }
+
+            // Décoder le JSON
+            $data = json_decode($jsonData, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json(['success' => false, 'message' => 'JSON invalide: ' . json_last_error_msg()]);
+            }
+
+            // Vérifier la structure
+            if (!isset($data['matchs_termines']) || !is_array($data['matchs_termines'])) {
+                return response()->json(['success' => false, 'message' => 'Structure JSON invalide. Attendu: {"matchs_termines": [...]}']);
+            }
+
+            $matchesData = $data['matchs_termines'];
+            $updated = 0;
+            $created = 0;
+            $errors = [];
+
+            foreach ($matchesData as $matchData) {
+                // Valider les champs requis
+                if (!isset($matchData['equipe_1'], $matchData['equipe_2'], $matchData['score_1'], $matchData['score_2'])) {
+                    $errors[] = "Match avec données incomplètes: " . json_encode($matchData);
+                    continue;
+                }
+
+                $team1Name = trim($matchData['equipe_1']);
+                $team2Name = trim($matchData['equipe_2']);
+                $score1 = (int)$matchData['score_1'];
+                $score2 = (int)$matchData['score_2'];
+                $matchDate = $matchData['date'] ?? now()->format('Y-m-d');
+                $groupName = $matchData['groupe'] ?? null;
+
+                // Rechercher les équipes (correspondance exacte d'abord, puis partielle)
+                $team1 = Team::where('name', $team1Name)->first() 
+                      ?? Team::where('name', 'like', "%{$team1Name}%")->first();
+                $team2 = Team::where('name', $team2Name)->first() 
+                      ?? Team::where('name', 'like', "%{$team2Name}%")->first();
+
+                if (!$team1 || !$team2) {
+                    $notFoundTeams = [];
+                    if (!$team1) $notFoundTeams[] = $team1Name;
+                    if (!$team2) $notFoundTeams[] = $team2Name;
+                    $errors[] = "Équipe(s) non trouvée(s): " . implode(', ', $notFoundTeams);
+                    continue;
+                }
+
+                // Rechercher le match correspondant (dans les deux sens)
+                $match = MatchGame::where(function ($query) use ($team1, $team2) {
+                    $query->where(function ($q) use ($team1, $team2) {
+                        $q->where('home_team_id', $team1->id)
+                          ->where('away_team_id', $team2->id);
+                    })->orWhere(function ($q) use ($team1, $team2) {
+                        $q->where('home_team_id', $team2->id)
+                          ->where('away_team_id', $team1->id);
+                    });
+                })->first();
+
+                // Si le match n'existe pas, le créer
+                if (!$match) {
+                    $match = new MatchGame();
+                    $match->home_team_id = $team1->id;
+                    $match->away_team_id = $team2->id;
+                    $match->team_a = $team1->name;
+                    $match->team_b = $team2->name;
+                    $match->match_date = $matchDate . ' 17:00:00'; // Heure par défaut
+                    $match->group_name = $groupName;
+                    $match->phase = $groupName ? 'Poules' : null;
+                    $match->stadium = 'Stade CAN 2025';
+                    $created++;
+                } else {
+                    $updated++;
+                }
+
+                // Déterminer l'ordre des scores selon l'équipe domicile/extérieure
+                if ($match->home_team_id === $team1->id) {
+                    $match->score_a = $score1;
+                    $match->score_b = $score2;
+                } else {
+                    $match->score_a = $score2;
+                    $match->score_b = $score1;
+                }
+
+                // Mettre à jour le statut et la date si fournie
+                $match->status = 'finished';
+                
+                if (isset($matchData['date'])) {
+                    // Garder l'heure existante si le match existe, sinon 17:00 par défaut
+                    $existingTime = $match->exists ? \Carbon\Carbon::parse($match->match_date)->format('H:i:s') : '17:00:00';
+                    $match->match_date = $matchData['date'] . ' ' . $existingTime;
+                }
+
+                $match->save();
+
+                // Déclencher le calcul des points
+                ProcessMatchPoints::dispatch($match->id);
+            }
+
+            $message = "Import terminé: {$created} match(s) créé(s), {$updated} match(s) mis à jour.";
+            if (!empty($errors)) {
+                $message .= " Erreurs: " . implode('; ', array_slice($errors, 0, 5));
+                if (count($errors) > 5) {
+                    $message .= " ... et " . (count($errors) - 5) . " autre(s) erreur(s).";
+                }
+            }
+
+            return response()->json([
+                'success' => ($created + $updated) > 0,
+                'message' => $message,
+                'stats' => [
+                    'created' => $created,
+                    'updated' => $updated,
+                    'errors' => count($errors),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ]);
+        }
+    }
+
     // ==================== USERS ====================
 
     /**

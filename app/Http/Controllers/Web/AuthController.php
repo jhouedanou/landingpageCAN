@@ -143,7 +143,9 @@ class AuthController extends Controller
 
             // Cookie qui expire en février 2026 (nombre de minutes jusqu'à février 2026)
             $minutesUntilFeb2026 = now()->diffInMinutes('2026-02-28 23:59:59');
-            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, true, true);
+            // secure = true seulement en production (HTTPS), false en local (HTTP)
+            $isSecure = app()->environment('production') || request()->isSecure();
+            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, $isSecure, true, false, 'Lax');
 
             return response()->json([
                 'success' => true,
@@ -229,7 +231,8 @@ class AuthController extends Controller
 
             // Cookie qui expire en février 2026
             $minutesUntilFeb2026 = now()->diffInMinutes('2026-02-28 23:59:59');
-            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, true, true);
+            $isSecure = app()->environment('production') || request()->isSecure();
+            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, $isSecure, true, false, 'Lax');
 
             return response()->json([
                 'success' => true,
@@ -523,7 +526,7 @@ class AuthController extends Controller
                 
                 $existingUser->refresh();
 
-                // Générer un token "remember me" pour 30 jours
+                // Générer un token "remember me" pour février 2026
                 $rememberToken = Str::random(60);
                 $existingUser->update(['remember_token' => $rememberToken]);
 
@@ -533,7 +536,9 @@ class AuthController extends Controller
                     'predictor_name' => $existingUser->name
                 ]);
 
-                $cookie = cookie('remember_token', $rememberToken, 60 * 24 * 30, '/', null, true, true);
+                $minutesUntilFeb2026 = now()->diffInMinutes('2026-02-28 23:59:59');
+                $isSecure = app()->environment('production') || request()->isSecure();
+                $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, $isSecure, true, false, 'Lax');
 
                 return response()->json([
                     'success' => true,
@@ -642,7 +647,7 @@ class AuthController extends Controller
             
             $user->refresh();
 
-            // Générer un token "remember me" pour 30 jours
+            // Générer un token "remember me" pour février 2026
             $rememberToken = Str::random(60);
             $user->update(['remember_token' => $rememberToken]);
 
@@ -652,7 +657,9 @@ class AuthController extends Controller
                 'predictor_name' => $user->name
             ]);
 
-            $cookie = cookie('remember_token', $rememberToken, 60 * 24 * 30, '/', null, true, true);
+            $minutesUntilFeb2026 = now()->diffInMinutes('2026-02-28 23:59:59');
+            $isSecure = app()->environment('production') || request()->isSecure();
+            $cookie = cookie('remember_token', $rememberToken, $minutesUntilFeb2026, '/', null, $isSecure, true, false, 'Lax');
 
             return response()->json([
                 'success' => true,

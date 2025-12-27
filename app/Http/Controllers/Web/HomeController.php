@@ -501,7 +501,7 @@ class HomeController extends Controller
     public function calendar(Request $request)
     {
         // Récupérer TOUS les matchs (passés et à venir)
-        $matches = MatchGame::with(['homeTeam', 'awayTeam', 'stadium'])
+        $matches = MatchGame::with(['homeTeam', 'awayTeam'])
             ->orderBy('match_date', 'desc')
             ->get();
 
@@ -515,6 +515,25 @@ class HomeController extends Controller
         $finishedMatches = $matches->where('status', 'finished')->count();
         $upcomingMatches = $matches->where('status', '!=', 'finished')->count();
 
-        return view('calendar', compact('matches', 'matchesByDate', 'totalMatches', 'finishedMatches', 'upcomingMatches'));
+        // Préparer les données JSON pour Alpine.js
+        $matchesJson = $matches->map(function($match) {
+            return [
+                'id' => $match->id,
+                'date' => \Carbon\Carbon::parse($match->match_date)->format('Y-m-d'),
+                'time' => \Carbon\Carbon::parse($match->match_date)->format('H:i'),
+                'homeTeam' => $match->homeTeam?->name ?? $match->team_a ?? 'À déterminer',
+                'awayTeam' => $match->awayTeam?->name ?? $match->team_b ?? 'À déterminer',
+                'homeIso' => $match->homeTeam?->iso_code ?? null,
+                'awayIso' => $match->awayTeam?->iso_code ?? null,
+                'homeScore' => $match->score_a,
+                'awayScore' => $match->score_b,
+                'status' => $match->status,
+                'stadium' => $match->stadium ?? 'Stade CAN 2025',
+                'group' => $match->group_name,
+                'phase' => $match->phase,
+            ];
+        })->values()->toArray();
+
+        return view('calendar', compact('matches', 'matchesByDate', 'totalMatches', 'finishedMatches', 'upcomingMatches', 'matchesJson'));
     }
 }

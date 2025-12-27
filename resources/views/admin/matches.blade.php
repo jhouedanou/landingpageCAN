@@ -1,5 +1,5 @@
 <x-layouts.app title="Admin - Matchs">
-    <div class="bg-gray-100 min-h-screen py-8">
+    <div class="bg-gray-100 min-h-screen py-8" x-data="importMatchesApp()">
         <div class="max-w-7xl mx-auto px-4">
             
             <!-- Header -->
@@ -8,9 +8,78 @@
                     <a href="{{ route('admin.dashboard') }}" class="text-soboa-orange hover:underline text-sm font-bold mb-2 inline-block">← Retour au dashboard</a>
                     <h1 class="text-3xl font-black text-soboa-blue">Gestion des Matchs</h1>
                 </div>
-                <a href="{{ route('admin.create-match') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
-                    <span>+</span> Nouveau Match
-                </a>
+                <div class="flex gap-3">
+                    <button @click="showImportModal = true" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Importer (JSON)
+                    </button>
+                    <a href="{{ route('admin.create-match') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
+                        <span>+</span> Nouveau Match
+                    </a>
+                </div>
+            </div>
+
+            <!-- Modal Import JSON -->
+            <div x-show="showImportModal" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+                 @click.self="showImportModal = false"
+                 x-cloak>
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden" @click.stop>
+                    <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Importer des matchs (JSON)</h3>
+                            <p class="text-green-100 text-sm">Collez le JSON des matchs terminés</p>
+                        </div>
+                        <button @click="showImportModal = false" class="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Format attendu :</label>
+                            <pre class="bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto text-gray-600">{
+  "matchs_termines": [
+    {"date": "2025-12-21", "groupe": "A", "equipe_1": "Maroc", "score_1": 2, "equipe_2": "Comores", "score_2": 0},
+    ...
+  ]
+}</pre>
+                        </div>
+                        <div class="mb-4">
+                            <label for="jsonData" class="block text-sm font-bold text-gray-700 mb-2">Données JSON :</label>
+                            <textarea 
+                                id="jsonData"
+                                x-model="jsonData"
+                                rows="12"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                                placeholder='{"matchs_termines": [...]}'></textarea>
+                        </div>
+                        <div x-show="importMessage" class="mb-4 p-3 rounded-lg" :class="importSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                            <span x-text="importMessage"></span>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button @click="showImportModal = false" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg">
+                                Annuler
+                            </button>
+                            <button @click="importMatches()" :disabled="importing" class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold rounded-lg flex items-center gap-2">
+                                <svg x-show="importing" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span x-text="importing ? 'Import en cours...' : 'Importer'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             @if(session('success'))
@@ -717,6 +786,60 @@
                         console.error('Erreur:', error);
                         alert('Erreur lors de la mise à jour');
                     }
+                }
+
+                // Alpine.js app for import modal
+                function importMatchesApp() {
+                    return {
+                        showImportModal: false,
+                        jsonData: '',
+                        importing: false,
+                        importMessage: '',
+                        importSuccess: false,
+
+                        async importMatches() {
+                            if (!this.jsonData.trim()) {
+                                this.importMessage = 'Veuillez coller les données JSON';
+                                this.importSuccess = false;
+                                return;
+                            }
+
+                            this.importing = true;
+                            this.importMessage = '';
+
+                            try {
+                                const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                                const response = await fetch('/admin/matches/import-json', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': csrfToken,
+                                        'Accept': 'application/json',
+                                    },
+                                    body: JSON.stringify({ json_data: this.jsonData }),
+                                });
+
+                                const result = await response.json();
+
+                                if (result.success) {
+                                    this.importSuccess = true;
+                                    this.importMessage = result.message;
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 2000);
+                                } else {
+                                    this.importSuccess = false;
+                                    this.importMessage = result.message || 'Erreur lors de l\'import';
+                                }
+                            } catch (error) {
+                                console.error('Erreur:', error);
+                                this.importSuccess = false;
+                                this.importMessage = 'Erreur technique lors de l\'import';
+                            } finally {
+                                this.importing = false;
+                            }
+                        }
+                    };
                 }
             </script>
 
