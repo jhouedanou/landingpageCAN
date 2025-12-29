@@ -991,6 +991,26 @@ class AdminController extends Controller
     }
 
     /**
+     * Google Analytics Dashboard
+     */
+    public function analytics()
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        // Déterminer le rôle de l'utilisateur connecté
+        $currentUser = session('admin_user') ?? session('user');
+        $isAdmin = $currentUser && $currentUser->role === 'admin';
+        $isSoboa = $currentUser && $currentUser->role === 'soboa';
+
+        // Configuration Google Analytics
+        $gaPropertyId = 'G-PZ3EWMZ408';
+        
+        return view('admin.analytics', compact('gaPropertyId', 'isAdmin', 'isSoboa'));
+    }
+
+    /**
      * Weekly leaderboard for admin
      */
     public function weeklyLeaderboard(Request $request)

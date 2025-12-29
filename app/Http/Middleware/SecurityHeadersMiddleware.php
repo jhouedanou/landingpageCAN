@@ -32,7 +32,7 @@ class SecurityHeadersMiddleware
             "font-src 'self' data: https://fonts.gstatic.com; " .
             "img-src 'self' data: https: blob: https://flagcdn.com https://tile.openstreetmap.org https://www.googletagmanager.com https://ls.soccersapi.com https://img.youtube.com https://i.ytimg.com; " .
             "connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://tile.openstreetmap.org https://nominatim.openstreetmap.org https://ls.soccersapi.com https://unpkg.com; " .
-            "frame-src 'self' https://ls.soccersapi.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://www.facebook.com https://facebook.com https://www.tiktok.com https://tiktok.com; " .
+            "frame-src 'self' https://ls.soccersapi.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://www.facebook.com https://facebook.com https://www.tiktok.com https://tiktok.com https://lookerstudio.google.com; " .
             "frame-ancestors 'self';"
         );
 

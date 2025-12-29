@@ -109,6 +109,9 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/checkins', [AdminController::class, 'checkins'])->name('checkins');
     Route::get('/checkins/export', [AdminController::class, 'exportCheckins'])->name('export-checkins');
     
+    // Google Analytics
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+    
     // Classement hebdomadaire
     Route::get('/weekly-leaderboard', [AdminController::class, 'weeklyLeaderboard'])->name('weekly-leaderboard');
     Route::get('/weekly-leaderboard/user/{id}', [AdminController::class, 'weeklyLeaderboardUserDetails'])->name('weekly-leaderboard-user-details');
