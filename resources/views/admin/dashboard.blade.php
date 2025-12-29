@@ -5,9 +5,15 @@
             <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                    <span class="text-4xl">⚙️</span> Dashboard Administrateur
+                    <span class="text-4xl">⚙️</span> Dashboard {{ $isSoboa ? 'SOBOA' : 'Administrateur' }}
                 </h1>
-                <p class="text-gray-600 mt-2">Gérez les matchs, les scores, les utilisateurs et plus encore</p>
+                <p class="text-gray-600 mt-2">
+                    @if($isSoboa)
+                        Consultez les check-ins et le classement des utilisateurs
+                    @else
+                        Gérez les matchs, les scores, les utilisateurs et plus encore
+                    @endif
+                </p>
             </div>
 
             <!-- Stats Cards -->
@@ -48,57 +54,31 @@
 
             <!-- Quick Actions -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                {{-- Boutons réservés Admin uniquement --}}
+                @if($isAdmin)
                 <a href="{{ route('admin.matches') }}" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">⚽</span>
                     <span class="font-bold text-sm text-center">Matchs</span>
                 </a>
-                <a href="{{ route('admin.users') }}" class="bg-soboa-orange hover:bg-soboa-orange/90 text-black rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">👥</span>
-                    <span class="font-bold text-sm text-center">Utilisateurs</span>
-                </a>
                 <a href="{{ route('admin.bars') }}" class="bg-green-600 hover:bg-green-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">�</span>
+                    <span class="text-3xl">🍺</span>
                     <span class="font-bold text-sm text-center">Points de Vente</span>
                 </a>
                 <a href="{{ route('admin.teams') }}" class="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">🏳️</span>
+                    <span class="text-3xl">�️</span>
                     <span class="font-bold text-sm text-center">Équipes</span>
                 </a>
                 <a href="{{ route('admin.tournament') }}" class="bg-blue-800 hover:bg-blue-900 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">🏆</span>
-                    <span class="font-bold text-sm text-center">Tournoi</span>
-                </a>
-                <a href="{{ route('admin.predictions') }}" class="bg-pink-600 hover:bg-pink-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">�</span>
-                    <span class="font-bold text-sm text-center">Pronostics</span>
+                    <span class="font-bold text-sm text-center">Tournoi</span>
                 </a>
                 <a href="{{ route('admin.settings') }}" class="bg-gray-700 hover:bg-gray-800 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">⚙️</span>
                     <span class="font-bold text-sm text-center">Paramètres</span>
                 </a>
-                <a href="{{ route('admin.point-logs') }}" class="bg-amber-600 hover:bg-amber-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">📊</span>
-                    <span class="font-bold text-sm text-center">Historique Points</span>
-                </a>
-                <a href="{{ route('admin.weekly-leaderboard') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">🏆</span>
-                    <span class="font-bold text-sm text-center">Classement Hebdo</span>
-                </a>
-                <a href="{{ route('admin.checkins') }}" class="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">📍</span>
-                    <span class="font-bold text-sm text-center">Check-ins</span>
-                </a>
                 <a href="{{ route('admin.otp-logs') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">📋</span>
                     <span class="font-bold text-sm text-center">Logs OTP</span>
-                </a>
-                <a href="{{ route('admin.animations') }}" class="bg-teal-600 hover:bg-teal-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">🎬</span>
-                    <span class="font-bold text-sm text-center">Animations</span>
-                </a>
-                <a href="{{ route('admin.media') }}" class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                    <span class="text-3xl">📸</span>
-                    <span class="font-bold text-sm text-center">Médias</span>
                 </a>
                 <a href="{{ route('admin.calendar') }}" class="bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">📅</span>
@@ -115,14 +95,46 @@
                 <form action="{{ route('admin.clear-cache') }}" method="POST" onsubmit="return confirm('Vider le cache de l\'application ?')">
                     @csrf
                     <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
-                        <span class="text-3xl">🗑️</span>
+                        <span class="text-3xl">�️</span>
                         <span class="font-bold text-sm text-center">Vider Cache</span>
                     </button>
                 </form>
+                @endif
+
+                {{-- Boutons accessibles à Admin ET Soboa --}}
+                <a href="{{ route('admin.users') }}" class="bg-soboa-orange hover:bg-soboa-orange/90 text-black rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Utilisateurs</span>
+                </a>
+                <a href="{{ route('admin.predictions') }}" class="bg-pink-600 hover:bg-pink-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Pronostics</span>
+                </a>
+                <a href="{{ route('admin.point-logs') }}" class="bg-amber-600 hover:bg-amber-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Historique Points</span>
+                </a>
+                <a href="{{ route('admin.weekly-leaderboard') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">🏆</span>
+                    <span class="font-bold text-sm text-center">Classement Hebdo</span>
+                </a>
+                <a href="{{ route('admin.checkins') }}" class="bg-purple-600 hover:bg-purple-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Check-ins</span>
+                </a>
+                <a href="{{ route('admin.animations') }}" class="bg-teal-600 hover:bg-teal-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">🎬</span>
+                    <span class="font-bold text-sm text-center">Animations</span>
+                </a>
+                <a href="{{ route('admin.media') }}" class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">�</span>
+                    <span class="font-bold text-sm text-center">Médias</span>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Recent Matches -->
+                @if($isAdmin)
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h2 class="text-xl font-bold text-soboa-blue mb-4 flex items-center gap-2">
                         <span>⚽</span> Matchs Récents
@@ -162,9 +174,10 @@
                         Voir tous les matchs →
                     </a>
                 </div>
+                @endif
 
                 <!-- Top Users -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 {{ $isSoboa ? 'lg:col-span-2' : '' }}">
                     <h2 class="text-xl font-bold text-soboa-blue mb-4 flex items-center gap-2">
                         <span>🏆</span> Top 10 Joueurs
                     </h2>
@@ -187,8 +200,8 @@
                         </div>
                         @endforeach
                     </div>
-                    <a href="{{ route('admin.users') }}" class="block mt-4 text-center text-soboa-orange font-bold hover:underline">
-                        Voir tous les utilisateurs →
+                    <a href="{{ route('admin.weekly-leaderboard') }}" class="block mt-4 text-center text-soboa-orange font-bold hover:underline">
+                        Voir le classement hebdomadaire →
                     </a>
                 </div>
             </div>

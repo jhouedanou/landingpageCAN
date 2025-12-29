@@ -239,6 +239,7 @@
             </div>
 
             <!-- Actions -->
+            @if($isAdmin)
             <div class="mt-6 flex gap-4 justify-center">
                 <a href="{{ route('admin.edit-user', $user->id) }}" class="bg-soboa-blue hover:bg-blue-800 text-white px-6 py-2 rounded-lg transition">
                     Modifier l'utilisateur
@@ -247,6 +248,7 @@
                     Voir tout l'historique
                 </a>
             </div>
+            @endif
         </div>
     </div>
 </x-layouts.app>

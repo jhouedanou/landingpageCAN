@@ -293,7 +293,7 @@
                                                     OSM
                                                 </a>
                                             @endif
-                                            @if($checkin->user)
+                                            @if($checkin->user && $isAdmin)
                                                 <a href="{{ route('admin.edit-user', $checkin->user->id) }}" 
                                                    class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition text-xs"
                                                    title="Voir l'utilisateur">

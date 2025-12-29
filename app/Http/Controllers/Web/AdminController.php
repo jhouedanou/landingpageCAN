@@ -82,7 +82,12 @@ class AdminController extends Controller
 
         $topUsers = User::orderBy('points_total', 'desc')->take(10)->get();
 
-        return view('admin.dashboard', compact('stats', 'recentMatches', 'topUsers'));
+        // Déterminer le rôle de l'utilisateur connecté
+        $user = session('admin_user') ?? session('user');
+        $isAdmin = $user && $user->role === 'admin';
+        $isSoboa = $user && $user->role === 'soboa';
+
+        return view('admin.dashboard', compact('stats', 'recentMatches', 'topUsers', 'isAdmin', 'isSoboa'));
     }
 
     // ==================== MATCHES ====================
@@ -865,6 +870,11 @@ class AdminController extends Controller
             ->with('user')
             ->get();
 
+        // Déterminer le rôle de l'utilisateur connecté
+        $currentUser = session('admin_user') ?? session('user');
+        $isAdmin = $currentUser && $currentUser->role === 'admin';
+        $isSoboa = $currentUser && $currentUser->role === 'soboa';
+
         return view('admin.checkins', compact(
             'checkins',
             'users',
@@ -873,7 +883,9 @@ class AdminController extends Controller
             'availablePeriods',
             'stats',
             'topVenues',
-            'topUsers'
+            'topUsers',
+            'isAdmin',
+            'isSoboa'
         ));
     }
 
@@ -1073,6 +1085,11 @@ class AdminController extends Controller
         $selectedWeek = $selectedPeriod;
         $availableWeeks = $availablePeriods;
 
+        // Déterminer le rôle de l'utilisateur connecté
+        $currentUser = session('admin_user') ?? session('user');
+        $isAdmin = $currentUser && $currentUser->role === 'admin';
+        $isSoboa = $currentUser && $currentUser->role === 'soboa';
+
         return view('admin.weekly-leaderboard', compact(
             'weeklyData',
             'weeklyStats',
@@ -1080,7 +1097,9 @@ class AdminController extends Controller
             'weekStart',
             'weekEnd',
             'availableWeeks',
-            'selectedPeriod'
+            'selectedPeriod',
+            'isAdmin',
+            'isSoboa'
         ));
     }
 
@@ -1143,6 +1162,11 @@ class AdminController extends Controller
         // Variables pour compatibilité avec la vue
         $selectedWeek = $selectedPeriod;
 
+        // Déterminer le rôle de l'utilisateur connecté
+        $currentUser = session('admin_user') ?? session('user');
+        $isAdmin = $currentUser && $currentUser->role === 'admin';
+        $isSoboa = $currentUser && $currentUser->role === 'soboa';
+
         return view('admin.weekly-leaderboard-user', compact(
             'user',
             'pointLogs',
@@ -1152,7 +1176,9 @@ class AdminController extends Controller
             'selectedPeriod',
             'weekStart',
             'weekEnd',
-            'rank'
+            'rank',
+            'isAdmin',
+            'isSoboa'
         ));
     }
 
@@ -2569,7 +2595,7 @@ class AdminController extends Controller
      */
     public function createAnimation()
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -2584,7 +2610,7 @@ class AdminController extends Controller
      */
     public function storeAnimation(Request $request)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -2658,7 +2684,7 @@ class AdminController extends Controller
      */
     public function editAnimation($id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -2674,7 +2700,7 @@ class AdminController extends Controller
      */
     public function updateAnimation(Request $request, $id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -2751,7 +2777,7 @@ class AdminController extends Controller
      */
     public function toggleAnimation($id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -2767,7 +2793,7 @@ class AdminController extends Controller
      */
     public function deleteAnimation($id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -3019,7 +3045,7 @@ class AdminController extends Controller
 
     public function media()
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -3057,7 +3083,7 @@ class AdminController extends Controller
 
     public function storeMedia(Request $request)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -3104,7 +3130,7 @@ class AdminController extends Controller
 
     public function editMedia($id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -3116,7 +3142,7 @@ class AdminController extends Controller
 
     public function updateMedia(Request $request, $id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
@@ -3174,7 +3200,7 @@ class AdminController extends Controller
 
     public function deleteMedia($id)
     {
-        if (!$this->checkAdmin()) {
+        if (!$this->checkAdminOrSoboa()) {
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
