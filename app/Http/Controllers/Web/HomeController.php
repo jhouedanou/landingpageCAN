@@ -506,6 +506,9 @@ class HomeController extends Controller
      */
     public function calendar(Request $request)
     {
+        // Onglet actif
+        $tab = $request->input('tab', 'calendar');
+
         // Récupérer TOUS les matchs (passés et à venir)
         $matches = MatchGame::with(['homeTeam', 'awayTeam'])
             ->orderBy('match_date', 'desc')
@@ -540,6 +543,71 @@ class HomeController extends Controller
             ];
         })->values()->toArray();
 
-        return view('calendar', compact('matches', 'matchesByDate', 'totalMatches', 'finishedMatches', 'upcomingMatches', 'matchesJson'));
+        // ===== CLASSEMENT DES GROUPES =====
+        $teams = Team::all();
+        $groupMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->where('phase', 'group_stage')
+            ->where('status', 'finished')
+            ->get();
+
+        $standings = [];
+        foreach ($teams as $team) {
+            $played = 0;
+            $wins = 0;
+            $draws = 0;
+            $losses = 0;
+            $goalsFor = 0;
+            $goalsAgainst = 0;
+
+            foreach ($groupMatches as $match) {
+                if ($match->home_team_id == $team->id) {
+                    $played++;
+                    $goalsFor += $match->score_a ?? 0;
+                    $goalsAgainst += $match->score_b ?? 0;
+                    if ($match->score_a > $match->score_b) $wins++;
+                    elseif ($match->score_a == $match->score_b) $draws++;
+                    else $losses++;
+                } elseif ($match->away_team_id == $team->id) {
+                    $played++;
+                    $goalsFor += $match->score_b ?? 0;
+                    $goalsAgainst += $match->score_a ?? 0;
+                    if ($match->score_b > $match->score_a) $wins++;
+                    elseif ($match->score_a == $match->score_b) $draws++;
+                    else $losses++;
+                }
+            }
+
+            $standings[] = [
+                'team' => $team,
+                'played' => $played,
+                'wins' => $wins,
+                'draws' => $draws,
+                'losses' => $losses,
+                'goals_for' => $goalsFor,
+                'goals_against' => $goalsAgainst,
+                'goal_diff' => $goalsFor - $goalsAgainst,
+                'points' => ($wins * 3) + $draws,
+                'group' => $team->group,
+            ];
+        }
+
+        // Grouper par groupe et trier
+        $groupedStandings = collect($standings)->groupBy('group')->map(function ($group) {
+            return $group->sortByDesc(function ($team) {
+                return [$team['points'], $team['goal_diff'], $team['goals_for']];
+            })->values();
+        })->sortKeys();
+
+        // ===== PHASES FINALES (BRACKET) =====
+        $knockoutMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->whereIn('phase', ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
+            ->orderBy('match_date')
+            ->get()
+            ->groupBy('phase');
+
+        return view('calendar', compact(
+            'matches', 'matchesByDate', 'totalMatches', 'finishedMatches', 'upcomingMatches', 'matchesJson',
+            'tab', 'groupedStandings', 'knockoutMatches'
+        ));
     }
 }

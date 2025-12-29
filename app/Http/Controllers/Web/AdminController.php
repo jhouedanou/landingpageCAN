@@ -2980,6 +2980,7 @@ class AdminController extends Controller
         // Get current month/year or from request
         $month = $request->input('month', now()->month);
         $year = $request->input('year', now()->year);
+        $tab = $request->input('tab', 'calendar'); // calendar, standings, bracket
 
         // Create date object
         $date = \Carbon\Carbon::create($year, $month, 1);
@@ -2998,7 +2999,73 @@ class AdminController extends Controller
         $prevMonth = $date->copy()->subMonth();
         $nextMonth = $date->copy()->addMonth();
 
-        return view('admin.calendar', compact('matches', 'date', 'prevMonth', 'nextMonth'));
+        // Get standings (classement des groupes)
+        $teams = Team::all();
+        $allMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->where('phase', 'group_stage')
+            ->where('status', 'finished')
+            ->get();
+
+        // Calculate standings for each team
+        $standings = [];
+        foreach ($teams as $team) {
+            $played = 0;
+            $wins = 0;
+            $draws = 0;
+            $losses = 0;
+            $goalsFor = 0;
+            $goalsAgainst = 0;
+
+            foreach ($allMatches as $match) {
+                if ($match->home_team_id == $team->id) {
+                    $played++;
+                    $goalsFor += $match->score_a ?? 0;
+                    $goalsAgainst += $match->score_b ?? 0;
+                    if ($match->score_a > $match->score_b) $wins++;
+                    elseif ($match->score_a == $match->score_b) $draws++;
+                    else $losses++;
+                } elseif ($match->away_team_id == $team->id) {
+                    $played++;
+                    $goalsFor += $match->score_b ?? 0;
+                    $goalsAgainst += $match->score_a ?? 0;
+                    if ($match->score_b > $match->score_a) $wins++;
+                    elseif ($match->score_a == $match->score_b) $draws++;
+                    else $losses++;
+                }
+            }
+
+            $standings[] = [
+                'team' => $team,
+                'played' => $played,
+                'wins' => $wins,
+                'draws' => $draws,
+                'losses' => $losses,
+                'goals_for' => $goalsFor,
+                'goals_against' => $goalsAgainst,
+                'goal_diff' => $goalsFor - $goalsAgainst,
+                'points' => ($wins * 3) + $draws,
+                'group' => $team->group,
+            ];
+        }
+
+        // Group standings by group and sort
+        $groupedStandings = collect($standings)->groupBy('group')->map(function ($group) {
+            return $group->sortByDesc(function ($team) {
+                return [$team['points'], $team['goal_diff'], $team['goals_for']];
+            })->values();
+        })->sortKeys();
+
+        // Get knockout matches for bracket
+        $knockoutMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->whereIn('phase', ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
+            ->orderBy('match_date')
+            ->get()
+            ->groupBy('phase');
+
+        return view('admin.calendar', compact(
+            'matches', 'date', 'prevMonth', 'nextMonth', 
+            'tab', 'groupedStandings', 'knockoutMatches'
+        ));
     }
 
     /**

@@ -4,6 +4,7 @@ use Carbon\Carbon;
 $currentDate = Carbon::now();
 $year = request('year', $currentDate->year);
 $month = request('month', $currentDate->month);
+$activeTab = $tab ?? 'calendar';
 
 $startOfMonth = Carbon::create($year, $month, 1);
 $endOfMonth = $startOfMonth->copy()->endOfMonth();
@@ -36,27 +37,47 @@ $matchesByDate = $matches->groupBy(function($match) {
     return Carbon::parse($match->match_date)->format('Y-m-d');
 });
 
-// Pour le mobile : liste des jours avec matchs seulement
 $daysWithMatches = collect($calendarDays)->filter(function($day) use ($matchesByDate) {
     return $matchesByDate->has($day['fullDate']) && $day['isCurrentMonth'];
 });
 
-$prevMonthLink = route('calendar', ['year' => $prevMonth->year, 'month' => $prevMonth->month]);
-$nextMonthLink = route('calendar', ['year' => $nextMonth->year, 'month' => $nextMonth->month]);
+$prevMonthLink = route('calendar', ['year' => $prevMonth->year, 'month' => $prevMonth->month, 'tab' => 'calendar']);
+$nextMonthLink = route('calendar', ['year' => $nextMonth->year, 'month' => $nextMonth->month, 'tab' => 'calendar']);
 $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 @endphp
 
-<x-layouts.app title="Calendrier des matchs">
+<x-layouts.app title="Calendrier & Classement CAN 2025">
 <div class="min-h-screen bg-gradient-to-br from-soboa-blue via-blue-800 to-blue-900 py-4 px-2 md:px-4">
 
 {{-- Header --}}
 <div class="max-w-7xl mx-auto mb-4">
     <div class="text-center">
-        <h1 class="text-xl md:text-4xl font-black text-white mb-2">Calendrier des matchs</h1>
+        <h1 class="text-xl md:text-4xl font-black text-white mb-2">CAN 2025</h1>
         <p class="text-blue-200 text-xs md:text-sm">{{ $totalMatches }} matchs - {{ $finishedMatches }} terminés - {{ $upcomingMatches }} à venir</p>
     </div>
 </div>
+
+{{-- Navigation Onglets --}}
+<div class="max-w-7xl mx-auto mb-4">
+    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-1 flex">
+        <a href="{{ route('calendar', ['tab' => 'calendar', 'year' => $year, 'month' => $month]) }}" 
+           class="flex-1 py-3 px-4 text-center font-bold rounded-lg transition {{ $activeTab === 'calendar' ? 'bg-white text-soboa-blue' : 'text-white hover:bg-white/10' }}">
+            <span class="text-lg mr-1">📅</span> <span class="hidden sm:inline">Calendrier</span>
+        </a>
+        <a href="{{ route('calendar', ['tab' => 'standings']) }}" 
+           class="flex-1 py-3 px-4 text-center font-bold rounded-lg transition {{ $activeTab === 'standings' ? 'bg-white text-soboa-blue' : 'text-white hover:bg-white/10' }}">
+            <span class="text-lg mr-1">📊</span> <span class="hidden sm:inline">Classement</span>
+        </a>
+        <a href="{{ route('calendar', ['tab' => 'bracket']) }}" 
+           class="flex-1 py-3 px-4 text-center font-bold rounded-lg transition {{ $activeTab === 'bracket' ? 'bg-white text-soboa-blue' : 'text-white hover:bg-white/10' }}">
+            <span class="text-lg mr-1">🏆</span> <span class="hidden sm:inline">Phases Finales</span>
+        </a>
+    </div>
+</div>
+
+@if($activeTab === 'calendar')
+{{-- ==================== ONGLET CALENDRIER ==================== --}}
 
 {{-- Navigation Mois --}}
 <div class="max-w-7xl mx-auto mb-4">
@@ -79,7 +100,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
             $dateObj = Carbon::parse($day['fullDate']);
         @endphp
         <div class="bg-white rounded-xl shadow-lg overflow-hidden @if($day['isToday']) ring-2 ring-soboa-orange @endif">
-            {{-- En-tête du jour --}}
             <div class="bg-gradient-to-r from-soboa-blue to-blue-700 px-4 py-2 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-2xl font-black text-white">{{ $day['date'] }}</span>
@@ -91,12 +111,10 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                 <span class="bg-white/20 text-white text-xs px-2 py-1 rounded-full">{{ $dayMatches->count() }} match{{ $dayMatches->count() > 1 ? 's' : '' }}</span>
             </div>
             
-            {{-- Liste des matchs --}}
             <div class="divide-y divide-gray-100">
                 @foreach($dayMatches as $match)
                     <a href="{{ route('matches') }}#match-{{ $match->id }}" class="block p-3 hover:bg-gray-50 transition-colors">
                         <div class="flex items-center justify-between">
-                            {{-- Équipe domicile --}}
                             <div class="flex items-center gap-2 flex-1">
                                 @if($match->homeTeam && $match->homeTeam->iso_code)
                                     <img src="https://flagcdn.com/w40/{{ $match->homeTeam->iso_code }}.png" class="w-8 h-5 object-cover rounded shadow-sm" alt="">
@@ -104,7 +122,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                                 <span class="font-semibold text-gray-800 text-sm truncate">{{ $match->homeTeam->name ?? $match->team_a ?? '?' }}</span>
                             </div>
                             
-                            {{-- Score ou heure --}}
                             <div class="flex-shrink-0 mx-2">
                                 @if($match->status === 'finished')
                                     <div class="flex flex-col items-center">
@@ -113,7 +130,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                                             <span class="text-gray-400 font-bold">-</span>
                                             <span class="text-lg font-black text-green-700">{{ $match->score_b }}</span>
                                         </div>
-                                        <span class="text-xs text-gray-400 mt-0.5">{{ Carbon::parse($match->match_date)->format('H:i') }}</span>
                                     </div>
                                 @else
                                     <div class="bg-blue-50 px-3 py-1 rounded-lg">
@@ -122,7 +138,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                                 @endif
                             </div>
                             
-                            {{-- Équipe extérieur --}}
                             <div class="flex items-center gap-2 flex-1 justify-end">
                                 <span class="font-semibold text-gray-800 text-sm truncate text-right">{{ $match->awayTeam->name ?? $match->team_b ?? '?' }}</span>
                                 @if($match->awayTeam && $match->awayTeam->iso_code)
@@ -130,12 +145,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                                 @endif
                             </div>
                         </div>
-                        {{-- Infos supplémentaires --}}
-                        @if($match->group)
-                            <div class="mt-2 flex items-center justify-center gap-3 text-xs text-gray-500">
-                                <span class="bg-gray-100 px-2 py-0.5 rounded">Groupe {{ $match->group }}</span>
-                            </div>
-                        @endif
                     </a>
                 @endforeach
             </div>
@@ -150,8 +159,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
 {{-- VERSION DESKTOP : Grille calendrier --}}
 <div class="hidden md:block max-w-7xl mx-auto">
     <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-        
-        {{-- En-tête jours de la semaine --}}
         <div style="display: grid; grid-template-columns: repeat(7, 1fr);" class="bg-gradient-to-r from-soboa-blue to-blue-700">
             <div class="py-3 text-center text-white font-bold text-sm border-r border-white/20">Lun</div>
             <div class="py-3 text-center text-white font-bold text-sm border-r border-white/20">Mar</div>
@@ -162,7 +169,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
             <div class="py-3 text-center text-white font-bold text-sm">Dim</div>
         </div>
         
-        {{-- Grille des jours --}}
         <div style="display: grid; grid-template-columns: repeat(7, 1fr);">
             @foreach($calendarDays as $day)
                 @php $dayMatches = $matchesByDate->get($day['fullDate'], collect()); @endphp
@@ -204,7 +210,6 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
                 </div>
             @endforeach
         </div>
-        
     </div>
 </div>
 
@@ -225,6 +230,172 @@ $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'D
         </div>
     </div>
 </div>
+
+@elseif($activeTab === 'standings')
+{{-- ==================== ONGLET CLASSEMENT ==================== --}}
+
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        @foreach($groupedStandings as $groupName => $teams)
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-soboa-blue to-blue-700 px-4 py-3">
+                    <h3 class="text-lg font-black text-white">Groupe {{ $groupName }}</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500">#</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500">Équipe</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500">J</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500">G</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500">N</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500">P</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500 hidden sm:table-cell">BP</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500 hidden sm:table-cell">BC</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500">+/-</th>
+                                <th class="px-2 py-2 text-center text-xs font-bold text-gray-500">Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($teams as $index => $teamData)
+                                <tr class="{{ $index < 2 ? 'bg-green-50' : ($index == 2 ? 'bg-yellow-50' : '') }}">
+                                    <td class="px-2 py-2 font-bold text-gray-600">{{ $index + 1 }}</td>
+                                    <td class="px-2 py-2">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://flagcdn.com/w40/{{ $teamData['team']->iso_code }}.png" class="w-6 h-4 rounded shadow">
+                                            <span class="font-bold text-gray-800 text-xs sm:text-sm">{{ $teamData['team']->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-2 py-2 text-center text-gray-600">{{ $teamData['played'] }}</td>
+                                    <td class="px-2 py-2 text-center text-green-600 font-bold">{{ $teamData['wins'] }}</td>
+                                    <td class="px-2 py-2 text-center text-gray-600">{{ $teamData['draws'] }}</td>
+                                    <td class="px-2 py-2 text-center text-red-600">{{ $teamData['losses'] }}</td>
+                                    <td class="px-2 py-2 text-center text-gray-600 hidden sm:table-cell">{{ $teamData['goals_for'] }}</td>
+                                    <td class="px-2 py-2 text-center text-gray-600 hidden sm:table-cell">{{ $teamData['goals_against'] }}</td>
+                                    <td class="px-2 py-2 text-center font-bold {{ $teamData['goal_diff'] > 0 ? 'text-green-600' : ($teamData['goal_diff'] < 0 ? 'text-red-600' : 'text-gray-600') }}">
+                                        {{ $teamData['goal_diff'] > 0 ? '+' : '' }}{{ $teamData['goal_diff'] }}
+                                    </td>
+                                    <td class="px-2 py-2 text-center font-black text-soboa-blue text-lg">{{ $teamData['points'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-3 py-2 bg-gray-50 text-xs text-gray-500 flex flex-wrap gap-2">
+                    <span><span class="inline-block w-3 h-3 bg-green-200 rounded mr-1"></span>Qualifié</span>
+                    <span><span class="inline-block w-3 h-3 bg-yellow-200 rounded mr-1"></span>3ème</span>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+
+@elseif($activeTab === 'bracket')
+{{-- ==================== ONGLET PHASES FINALES ==================== --}}
+
+<div class="max-w-7xl mx-auto space-y-6">
+    
+    {{-- 1/8 de Finale --}}
+    @if(isset($knockoutMatches['round_of_16']) && $knockoutMatches['round_of_16']->count() > 0)
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-4 py-3">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>🏟️</span> Huitièmes de Finale
+            </h3>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                @foreach($knockoutMatches['round_of_16'] as $match)
+                    @include('partials.bracket-match-public', ['match' => $match])
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 1/4 de Finale --}}
+    @if(isset($knockoutMatches['quarter_final']) && $knockoutMatches['quarter_final']->count() > 0)
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 px-4 py-3">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>🏟️</span> Quarts de Finale
+            </h3>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                @foreach($knockoutMatches['quarter_final'] as $match)
+                    @include('partials.bracket-match-public', ['match' => $match])
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 1/2 Finale --}}
+    @if(isset($knockoutMatches['semi_final']) && $knockoutMatches['semi_final']->count() > 0)
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-pink-600 to-pink-800 px-4 py-3">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+                <span>🏟️</span> Demi-Finales
+            </h3>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                @foreach($knockoutMatches['semi_final'] as $match)
+                    @include('partials.bracket-match-public', ['match' => $match])
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 3ème place & Finale --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{-- 3ème place --}}
+        @if(isset($knockoutMatches['third_place']) && $knockoutMatches['third_place']->count() > 0)
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-700 px-4 py-3">
+                <h3 class="text-lg font-black text-white flex items-center gap-2">
+                    <span>🥉</span> 3ème Place
+                </h3>
+            </div>
+            <div class="p-4">
+                @foreach($knockoutMatches['third_place'] as $match)
+                    @include('partials.bracket-match-public', ['match' => $match, 'large' => true])
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Finale --}}
+        @if(isset($knockoutMatches['final']) && $knockoutMatches['final']->count() > 0)
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-yellow-500 via-yellow-600 to-yellow-700 px-4 py-3">
+                <h3 class="text-lg font-black text-white flex items-center gap-2">
+                    <span>🏆</span> FINALE
+                </h3>
+            </div>
+            <div class="p-4">
+                @foreach($knockoutMatches['final'] as $match)
+                    @include('partials.bracket-match-public', ['match' => $match, 'large' => true])
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+
+    @if((!isset($knockoutMatches['round_of_16']) || $knockoutMatches['round_of_16']->count() == 0) && (!isset($knockoutMatches['quarter_final']) || $knockoutMatches['quarter_final']->count() == 0) && (!isset($knockoutMatches['semi_final']) || $knockoutMatches['semi_final']->count() == 0) && (!isset($knockoutMatches['final']) || $knockoutMatches['final']->count() == 0))
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 text-center">
+            <span class="text-6xl mb-4 block">🏆</span>
+            <p class="text-xl font-bold text-white">Les phases finales n'ont pas encore commencé</p>
+            <p class="text-white/70 mt-2">Les matchs à élimination directe apparaîtront ici</p>
+        </div>
+    @endif
+
+</div>
+
+@endif
 
 </div>
 </x-layouts.app>
