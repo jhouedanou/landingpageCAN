@@ -164,6 +164,7 @@ class HomeController extends Controller
         
         // Forcer rafraîchissement du cache si demandé
         if ($request->has('refresh')) {
+            \Illuminate\Support\Facades\Cache::forget("leaderboard_top15_{$period}");
             \Illuminate\Support\Facades\Cache::forget("leaderboard_top5_{$period}");
             \Illuminate\Support\Facades\Cache::forget("leaderboard_top20_{$period}");
         }

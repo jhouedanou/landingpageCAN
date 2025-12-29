@@ -11,7 +11,16 @@ use Illuminate\Support\Facades\DB;
 class LeaderboardService
 {
     /**
-     * Récupère le TOP 5 national pour une période donnée
+     * Récupère le TOP 15 national pour une période donnée
+     * avec noms abrégés (Prénom + initiale du nom)
+     */
+    public function getTop15(string $period = 'global'): array
+    {
+        return $this->getTopN($period, 15);
+    }
+
+    /**
+     * Récupère le TOP 5 national pour une période donnée (legacy)
      * avec noms abrégés (Prénom + initiale du nom)
      */
     public function getTop5(string $period = 'global'): array
@@ -202,12 +211,12 @@ class LeaderboardService
     }
 
     /**
-     * Récupère les gagnants d'une semaine (TOP 5)
+     * Récupère les gagnants d'une semaine (TOP 15)
      */
     public function getWeeklyWinners(string $period): array
     {
         $rankings = $this->calculatePeriodRankings($period);
-        return array_slice($rankings, 0, 5);
+        return array_slice($rankings, 0, 15);
     }
 
     /**
@@ -226,42 +235,55 @@ class LeaderboardService
                 [
                     'points' => $entry['points'],
                     'rank' => $entry['rank'],
-                    'is_winner' => $index < 5, // Top 5 sont gagnants
+                    'is_winner' => $index < 15, // Top 15 sont gagnants
                 ]
             );
         }
 
         // Invalider le cache
+        Cache::forget("leaderboard_top15_{$period}");
         Cache::forget("leaderboard_top5_{$period}");
     }
 
     /**
      * Récupère les données complètes du leaderboard pour l'affichage
+     * - Global: Top 20
+     * - Hebdomadaire: Top 15
      */
     public function getLeaderboardData(?int $userId = null, string $period = 'global'): array
     {
-        $top5 = $this->getTop5($period);
-        $top20 = $this->getTop20($period);
+        // Déterminer si c'est une période hebdomadaire
+        $isWeekly = str_starts_with($period, 'week_');
+        
+        // Global = Top 20, Hebdomadaire = Top 15
+        $topLimit = $isWeekly ? 15 : 20;
+        $topUsers = $this->getTopN($period, $topLimit);
+        
         $userPosition = $userId ? $this->getUserPosition($userId, $period) : null;
         $availablePeriods = WeeklyRanking::getAvailablePeriods();
         $currentPeriod = WeeklyRanking::getCurrentPeriod();
 
-        // Vérifier si l'utilisateur est dans le TOP 5
-        $userInTop5 = false;
+        // Vérifier si l'utilisateur est dans le classement gagnant
+        $userInTop = false;
         if ($userId) {
-            foreach ($top5 as $entry) {
+            foreach ($topUsers as $entry) {
                 if ($entry['user_id'] === $userId) {
-                    $userInTop5 = true;
+                    $userInTop = true;
                     break;
                 }
             }
         }
 
         return [
-            'top5' => $top5,
-            'top20' => $top20,
+            'top15' => $isWeekly ? $topUsers : array_slice($topUsers, 0, 15),
+            'top20' => !$isWeekly ? $topUsers : [],
+            'top5' => array_slice($topUsers, 0, 5), // Compatibilité
             'user_position' => $userPosition,
-            'user_in_top5' => $userInTop5,
+            'user_in_top15' => $userInTop,
+            'user_in_top20' => $userInTop,
+            'user_in_top5' => $userInTop, // Compatibilité
+            'is_weekly' => $isWeekly,
+            'top_limit' => $topLimit,
             'available_periods' => $availablePeriods,
             'current_period' => $currentPeriod,
             'selected_period' => $period,

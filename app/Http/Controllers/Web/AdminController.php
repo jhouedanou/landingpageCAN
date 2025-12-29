@@ -782,49 +782,53 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        // Déterminer la semaine à afficher
-        $selectedWeek = $request->get('week', now()->format('Y-W'));
+        // Déterminer la semaine à afficher (par défaut: semaine en cours)
+        $selectedWeek = $request->get('week', now()->format('o-W'));
         
         // Parser la semaine sélectionnée
-        list($year, $week) = explode('-', $selectedWeek);
+        $parts = explode('-', $selectedWeek);
+        $year = (int) $parts[0];
+        $week = (int) $parts[1];
+        
         $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
         $weekEnd = $weekStart->copy()->endOfWeek();
 
-        // Récupérer tous les utilisateurs avec leurs points de la semaine
-        $weeklyData = User::select('users.*')
-            ->selectRaw('COALESCE((
-                SELECT SUM(points) 
-                FROM point_logs 
-                WHERE point_logs.user_id = users.id 
-                AND point_logs.created_at >= ? 
-                AND point_logs.created_at <= ?
-            ), 0) as weekly_points', [$weekStart, $weekEnd])
-            ->selectRaw('COALESCE((
-                SELECT COUNT(*) 
-                FROM predictions 
-                WHERE predictions.user_id = users.id 
-                AND predictions.created_at >= ? 
-                AND predictions.created_at <= ?
-            ), 0) as weekly_predictions', [$weekStart, $weekEnd])
-            ->selectRaw('COALESCE((
-                SELECT COUNT(*) 
-                FROM point_logs 
-                WHERE point_logs.user_id = users.id 
-                AND point_logs.source = "check_in"
-                AND point_logs.created_at >= ? 
-                AND point_logs.created_at <= ?
-            ), 0) as weekly_checkins', [$weekStart, $weekEnd])
-            ->selectRaw('COALESCE((
-                SELECT COUNT(*) 
-                FROM point_logs 
-                WHERE point_logs.user_id = users.id 
-                AND point_logs.source = "prediction"
-                AND point_logs.created_at >= ? 
-                AND point_logs.created_at <= ?
-            ), 0) as weekly_prediction_points', [$weekStart, $weekEnd])
-            ->having('weekly_points', '>', 0)
-            ->orderByDesc('weekly_points')
-            ->get();
+        // Méthode alternative : d'abord récupérer les user_ids avec des points cette semaine
+        $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
+            ->select('user_id')
+            ->groupBy('user_id')
+            ->pluck('user_id')
+            ->toArray();
+
+        // Si aucun utilisateur n'a de points cette semaine, retourner une collection vide
+        if (empty($userIdsWithPoints)) {
+            $weeklyData = collect();
+        } else {
+            // Récupérer les utilisateurs avec leurs statistiques
+            $weeklyData = User::whereIn('id', $userIdsWithPoints)
+                ->get()
+                ->map(function ($user) use ($weekStart, $weekEnd) {
+                    $user->weekly_points = PointLog::where('user_id', $user->id)
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->sum('points');
+                    
+                    $user->weekly_predictions = Prediction::where('user_id', $user->id)
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->count();
+                    
+                    $user->weekly_checkins = PointLog::where('user_id', $user->id)
+                        ->where('source', 'check_in')
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->count();
+                    
+                    return $user;
+                })
+                ->filter(function ($user) {
+                    return $user->weekly_points > 0;
+                })
+                ->sortByDesc('weekly_points')
+                ->values();
+        }
 
         // Ajouter le rang
         $rank = 1;
@@ -841,14 +845,14 @@ class AdminController extends Controller
             'top_scorer' => $weeklyData->first(),
         ];
 
-        // Liste des semaines disponibles (depuis le début de la compétition)
+        // Liste des semaines disponibles (depuis le début de la compétition CAN 2025)
         $availableWeeks = [];
-        $startDate = \Carbon\Carbon::parse('2024-12-01'); // Date de début de la compétition
+        $startDate = \Carbon\Carbon::parse('2025-12-21'); // Début de la CAN 2025
         $currentDate = now();
         
         while ($startDate <= $currentDate) {
-            $weekNumber = $startDate->format('Y-W');
-            $weekLabel = 'Semaine ' . $startDate->isoWeek() . ' (' . $startDate->startOfWeek()->format('d/m') . ' - ' . $startDate->endOfWeek()->format('d/m/Y') . ')';
+            $weekNumber = $startDate->format('o-W');
+            $weekLabel = 'Semaine ' . $startDate->isoWeek() . ' (' . $startDate->copy()->startOfWeek()->format('d/m') . ' - ' . $startDate->copy()->endOfWeek()->format('d/m/Y') . ')';
             $availableWeeks[$weekNumber] = $weekLabel;
             $startDate->addWeek();
         }
@@ -876,8 +880,10 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         
         // Déterminer la semaine
-        $selectedWeek = $request->get('week', now()->format('Y-W'));
-        list($year, $week) = explode('-', $selectedWeek);
+        $selectedWeek = $request->get('week', now()->format('o-W'));
+        $parts = explode('-', $selectedWeek);
+        $year = (int) $parts[0];
+        $week = (int) $parts[1];
         $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
         $weekEnd = $weekStart->copy()->endOfWeek();
 
@@ -905,15 +911,13 @@ class AdminController extends Controller
         ];
 
         // Calculer le rang de l'utilisateur cette semaine
-        $rank = User::selectRaw('COALESCE((
-                SELECT SUM(points) 
-                FROM point_logs 
-                WHERE point_logs.user_id = users.id 
-                AND point_logs.created_at >= ? 
-                AND point_logs.created_at <= ?
-            ), 0) as weekly_points', [$weekStart, $weekEnd])
-            ->having('weekly_points', '>', $userWeeklyStats['total_points'])
-            ->count() + 1;
+        $higherRankedUsers = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
+            ->select('user_id')
+            ->groupBy('user_id')
+            ->havingRaw('SUM(points) > ?', [$userWeeklyStats['total_points']])
+            ->count();
+        
+        $rank = $higherRankedUsers + 1;
 
         return view('admin.weekly-leaderboard-user', compact(
             'user',
@@ -936,37 +940,47 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $selectedWeek = $request->get('week', now()->format('Y-W'));
-        list($year, $week) = explode('-', $selectedWeek);
+        $selectedWeek = $request->get('week', now()->format('o-W'));
+        $parts = explode('-', $selectedWeek);
+        $year = (int) $parts[0];
+        $week = (int) $parts[1];
         $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
         $weekEnd = $weekStart->copy()->endOfWeek();
 
-        $weeklyData = User::select('users.*')
-            ->selectRaw('COALESCE((
-                SELECT SUM(points) 
-                FROM point_logs 
-                WHERE point_logs.user_id = users.id 
-                AND point_logs.created_at >= ? 
-                AND point_logs.created_at <= ?
-            ), 0) as weekly_points', [$weekStart, $weekEnd])
-            ->selectRaw('COALESCE((
-                SELECT COUNT(*) 
-                FROM predictions 
-                WHERE predictions.user_id = users.id 
-                AND predictions.created_at >= ? 
-                AND predictions.created_at <= ?
-            ), 0) as weekly_predictions', [$weekStart, $weekEnd])
-            ->selectRaw('COALESCE((
-                SELECT COUNT(*) 
-                FROM point_logs 
-                WHERE point_logs.user_id = users.id 
-                AND point_logs.source = "check_in"
-                AND point_logs.created_at >= ? 
-                AND point_logs.created_at <= ?
-            ), 0) as weekly_checkins', [$weekStart, $weekEnd])
-            ->having('weekly_points', '>', 0)
-            ->orderByDesc('weekly_points')
-            ->get();
+        // Méthode alternative : d'abord récupérer les user_ids avec des points cette semaine
+        $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
+            ->select('user_id')
+            ->groupBy('user_id')
+            ->pluck('user_id')
+            ->toArray();
+
+        if (empty($userIdsWithPoints)) {
+            $weeklyData = collect();
+        } else {
+            $weeklyData = User::whereIn('id', $userIdsWithPoints)
+                ->get()
+                ->map(function ($user) use ($weekStart, $weekEnd) {
+                    $user->weekly_points = PointLog::where('user_id', $user->id)
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->sum('points');
+                    
+                    $user->weekly_predictions = Prediction::where('user_id', $user->id)
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->count();
+                    
+                    $user->weekly_checkins = PointLog::where('user_id', $user->id)
+                        ->where('source', 'check_in')
+                        ->whereBetween('created_at', [$weekStart, $weekEnd])
+                        ->count();
+                    
+                    return $user;
+                })
+                ->filter(function ($user) {
+                    return $user->weekly_points > 0;
+                })
+                ->sortByDesc('weekly_points')
+                ->values();
+        }
 
         $filename = 'classement_semaine_' . $week . '_' . $year . '.csv';
         

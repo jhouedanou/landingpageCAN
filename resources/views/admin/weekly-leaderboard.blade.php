@@ -121,7 +121,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse($weeklyData as $user)
-                                <tr class="hover:bg-gray-50 {{ $user->rank <= 3 ? 'bg-yellow-50' : '' }}">
+                                <tr class="hover:bg-gray-50 {{ $user->rank <= 3 ? 'bg-yellow-50' : ($user->rank <= 15 ? 'bg-green-50/50' : '') }}">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             @if($user->rank === 1)
@@ -130,6 +130,10 @@
                                                 <span class="text-2xl">🥈</span>
                                             @elseif($user->rank === 3)
                                                 <span class="text-2xl">🥉</span>
+                                            @elseif($user->rank <= 15)
+                                                <span class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center font-bold text-white">
+                                                    {{ $user->rank }}
+                                                </span>
                                             @else
                                                 <span class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">
                                                     {{ $user->rank }}
@@ -185,9 +189,27 @@
                 </div>
             </div>
 
+            <!-- Légende -->
+            <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
+                <span class="font-bold text-gray-700">Légende :</span>
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 bg-yellow-50 border border-yellow-200 rounded"></span>
+                    <span class="text-gray-600">Top 3 (podium)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 bg-green-50 border border-green-200 rounded"></span>
+                    <span class="text-gray-600">Top 4-15 (gagnants)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 bg-white border border-gray-200 rounded"></span>
+                    <span class="text-gray-600">Autres participants</span>
+                </div>
+            </div>
+
             <!-- Info mise à jour -->
             <div class="mt-6 text-center text-sm text-gray-500">
                 <p>🔄 Les données sont mises à jour en temps réel. Dernière consultation : {{ now()->format('d/m/Y à H:i') }}</p>
+                <p class="mt-1 text-green-600 font-medium">🏆 Les 15 premiers de chaque semaine sont gagnants</p>
             </div>
         </div>
     </div>

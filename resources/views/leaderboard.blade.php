@@ -40,51 +40,58 @@
             <div class="flex items-center gap-3">
                 <span class="text-3xl">🎁</span>
                 <div>
-                    <p class="font-bold">Classement Hebdomadaire</p>
-                    <p class="text-sm text-white/90">Les 5 premiers de cette semaine remportent des lots !</p>
+                    <p class="font-bold">Classement Hebdomadaire - Top 15</p>
+                    <p class="text-sm text-white/90">Les 15 premiers de cette semaine sont gagnants !</p>
                 </div>
             </div>
         </div>
-        @elseif($selected_period === 'semifinal')
-        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl shadow-lg p-4 text-white">
+        @elseif($selected_period === 'global')
+        <div class="bg-gradient-to-r from-soboa-blue to-blue-700 rounded-xl shadow-lg p-4 text-white">
             <div class="flex items-center gap-3">
-                <span class="text-3xl">🎟️</span>
+                <span class="text-3xl">🏆</span>
                 <div>
-                    <p class="font-bold">Classement Spécial Demi-Finale</p>
-                    <p class="text-sm text-white/90">Le numéro 1 gagne un billet pour la finale !</p>
+                    <p class="font-bold">Classement National - Top 20</p>
+                    <p class="text-sm text-white/90">Les meilleurs pronostiqueurs depuis le début de la compétition</p>
                 </div>
             </div>
         </div>
         @endif
 
-        <!-- TOP 5 National -->
+        @php
+            $isWeekly = str_starts_with($selected_period, 'week_');
+            $topData = $isWeekly ? $top15 : $top20;
+            $topLimit = $isWeekly ? 15 : 20;
+            $topLabel = $isWeekly ? 'TOP 15 Hebdomadaire' : 'TOP 20 National';
+        @endphp
+
+        <!-- Classement principal -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
             <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue/80 p-4">
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                    <span>🏅</span> TOP 5 {{ str_starts_with($selected_period, 'week_') ? 'de la Semaine' : 'National' }}
+                    <span>🏅</span> {{ $topLabel }}
                 </h2>
                 <p class="text-white/80 text-sm mt-1">
-                    @if(str_starts_with($selected_period, 'week_'))
+                    @if($isWeekly)
                         Points gagnés cette semaine
                     @else
-                        Les meilleurs pronostiqueurs
+                        Classement général depuis le 21 décembre 2025
                     @endif
                 </p>
             </div>
 
-            @if(count($top5) > 0)
+            @if(count($topData) > 0)
                 <!-- Podium visuel (Top 3) -->
                 <div class="bg-soboa-orange p-6 pb-8">
                     <div class="flex justify-center items-end gap-4">
                         <!-- 2ème place -->
-                        @if(isset($top5[1]))
+                        @if(isset($topData[1]))
                             <div class="flex flex-col items-center">
                                 <div class="w-14 h-14 rounded-full border-4 border-gray-300 bg-gray-700 flex items-center justify-center text-lg font-bold text-white mb-2">
-                                    {{ substr($top5[1]['name'], 0, 1) }}
+                                    {{ substr($topData[1]['name'], 0, 1) }}
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-bold text-sm text-black">{{ $top5[1]['name'] }}</div>
-                                    <div class="text-black/60 text-xs">{{ $top5[1]['points'] }} pts</div>
+                                    <div class="font-bold text-sm text-black">{{ $topData[1]['name'] }}</div>
+                                    <div class="text-black/60 text-xs">{{ $topData[1]['points'] }} pts</div>
                                 </div>
                                 <div class="h-16 w-14 bg-gradient-to-b from-gray-300 to-gray-400 mt-2 rounded-t-lg flex items-center justify-center text-xl font-bold text-gray-800 shadow-lg">
                                     2
@@ -93,14 +100,14 @@
                         @endif
 
                         <!-- 1ère place -->
-                        @if(isset($top5[0]))
+                        @if(isset($topData[0]))
                             <div class="flex flex-col items-center z-10">
                                 <div class="w-18 h-18 rounded-full border-4 border-yellow-400 bg-gray-700 flex items-center justify-center text-2xl font-bold text-yellow-400 mb-2" style="width: 4.5rem; height: 4.5rem;">
-                                    {{ substr($top5[0]['name'], 0, 1) }}
+                                    {{ substr($topData[0]['name'], 0, 1) }}
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-bold text-base text-black">{{ $top5[0]['name'] }}</div>
-                                    <div class="text-black/70 text-sm">{{ $top5[0]['points'] }} pts</div>
+                                    <div class="font-bold text-base text-black">{{ $topData[0]['name'] }}</div>
+                                    <div class="text-black/70 text-sm">{{ $topData[0]['points'] }} pts</div>
                                 </div>
                                 <div class="h-24 w-18 bg-gradient-to-b from-yellow-300 to-yellow-500 mt-2 rounded-t-lg flex items-center justify-center text-3xl font-bold text-yellow-900 shadow-lg" style="width: 4.5rem;">
                                     👑
@@ -109,14 +116,14 @@
                         @endif
 
                         <!-- 3ème place -->
-                        @if(isset($top5[2]))
+                        @if(isset($topData[2]))
                             <div class="flex flex-col items-center">
                                 <div class="w-14 h-14 rounded-full border-4 border-orange-400/50 bg-gray-700 flex items-center justify-center text-lg font-bold text-white mb-2">
-                                    {{ substr($top5[2]['name'], 0, 1) }}
+                                    {{ substr($topData[2]['name'], 0, 1) }}
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-bold text-sm text-black">{{ $top5[2]['name'] }}</div>
-                                    <div class="text-black/60 text-xs">{{ $top5[2]['points'] }} pts</div>
+                                    <div class="font-bold text-sm text-black">{{ $topData[2]['name'] }}</div>
+                                    <div class="text-black/60 text-xs">{{ $topData[2]['points'] }} pts</div>
                                 </div>
                                 <div class="h-12 w-14 bg-gradient-to-b from-orange-300 to-orange-500 mt-2 rounded-t-lg flex items-center justify-center text-xl font-bold text-orange-900 shadow-lg">
                                     3
@@ -126,20 +133,23 @@
                     </div>
                 </div>
 
-                <!-- 4ème et 5ème places -->
-                @if(isset($top5[3]) || isset($top5[4]))
+                <!-- Positions 4 à N (selon période) -->
+                @if(count($topData) > 3)
                     <div class="divide-y divide-gray-100">
-                        @foreach([$top5[3] ?? null, $top5[4] ?? null] as $entry)
+                        @foreach(array_slice($topData, 3) as $entry)
                             @if($entry)
-                                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                                <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition {{ ($isWeekly && $entry['rank'] <= 15) ? 'bg-green-50/30' : '' }}">
                                     <div class="flex items-center gap-3">
-                                        <span class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600 text-sm">
+                                        <span class="w-8 h-8 rounded-full {{ $entry['rank'] <= 10 ? 'bg-soboa-blue text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-sm">
                                             {{ $entry['rank'] }}
                                         </span>
                                         <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-700">
                                             {{ substr($entry['name'], 0, 1) }}
                                         </div>
                                         <span class="font-medium text-gray-800">{{ $entry['name'] }}</span>
+                                        @if($isWeekly && $entry['rank'] <= 15)
+                                            <span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Gagnant</span>
+                                        @endif
                                     </div>
                                     <span class="font-bold text-gray-700">{{ $entry['points'] }} pts</span>
                                 </div>
@@ -155,37 +165,15 @@
             @endif
         </div>
 
-        <!-- TOP 20 National (positions 6-20) -->
-        @if(count($top20) > 5)
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-                <div class="bg-soboa-blue p-4">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span>📊</span> TOP 20 National
-                    </h2>
-                    <p class="text-white/80 text-sm mt-1">Positions 6 à 20</p>
-                </div>
-
-                <div class="divide-y divide-gray-100">
-                    @foreach(array_slice($top20, 0) as $entry)
-                        <div class="p-4 flex items-center justify-between hover:bg-gray-50 transition {{ auth()->check() && auth()->id() === ($entry['user_id'] ?? null) ? 'bg-soboa-orange/10 border-l-4 border-soboa-orange' : '' }}">
-                            <div class="flex items-center gap-3">
-                                <span class="w-8 h-8 rounded-full {{ $entry['rank'] <= 10 ? 'bg-soboa-blue text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-sm">
-                                    {{ $entry['rank'] }}
-                                </span>
-                                <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-700">
-                                    {{ substr($entry['name'], 0, 1) }}
-                                </div>
-                                <span class="font-medium text-gray-800">{{ $entry['name'] }}</span>
-                            </div>
-                            <span class="font-bold text-gray-700">{{ $entry['points'] }} pts</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
         <!-- Position personnelle de l'utilisateur -->
         @if($user_position)
+            @php
+                $userInTop = $isWeekly 
+                    ? ($user_position['rank'] <= 15) 
+                    : ($user_position['rank'] <= 20);
+                $topThreshold = $isWeekly ? 15 : 20;
+                $topLabel2 = $isWeekly ? 'TOP 15' : 'TOP 20';
+            @endphp
             <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue/90 rounded-xl shadow-lg p-6 text-white">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                     <span>📍</span> Votre position
@@ -200,8 +188,11 @@
                             <div>
                                 <div class="text-xl font-bold">{{ $user_position['points'] }} points</div>
                                 <div class="text-white/70 text-sm">
-                                    @if($user_in_top5)
-                                        🎉 Vous êtes dans le TOP 5 !
+                                    @if($userInTop)
+                                        🎉 Vous êtes dans le {{ $topLabel2 }} !
+                                        @if($isWeekly)
+                                            <span class="text-green-300 font-bold">- Gagnant</span>
+                                        @endif
                                     @else
                                         sur {{ $user_position['total_users'] }} participants
                                     @endif
@@ -209,16 +200,16 @@
                             </div>
                         </div>
                         
-                        @if(!$user_in_top5 && $user_position['rank'] <= 10)
+                        @if(!$userInTop && $user_position['rank'] <= ($topThreshold + 5))
                             <div class="text-right">
                                 <div class="text-soboa-orange font-bold">Presque !</div>
-                                <div class="text-white/70 text-xs">Plus que {{ $user_position['rank'] - 5 }} place(s)</div>
+                                <div class="text-white/70 text-xs">Plus que {{ $user_position['rank'] - $topThreshold }} place(s)</div>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                @if(!$user_in_top5)
+                @if(!$userInTop)
                     <div class="mt-4 text-center">
                         <p class="text-white/80 text-sm">
                             💡 Continuez à pronostiquer et visitez les lieux partenaires pour gagner des points !
@@ -236,47 +227,6 @@
                 </a>
             </div>
         @endif
-
-        <!-- Informations sur les récompenses -->
-        <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span>🎁</span> Récompenses
-            </h3>
-            
-            <div class="space-y-4">
-                <!-- Classement hebdomadaire -->
-                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200">
-                    <div class="flex items-start gap-3">
-                        <span class="text-2xl">📅</span>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Classement Hebdomadaire</h4>
-                            <p class="text-gray-600 text-sm mt-1">
-                                Chaque semaine, les <strong>5 premiers</strong> du classement sont déclarés gagnants.
-                            </p>
-                            <p class="text-gray-500 text-xs mt-2">
-                                → 20 gagnants au total (4 semaines × 5 gagnants)
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Classement demi-finale -->
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-                    <div class="flex items-start gap-3">
-                        <span class="text-2xl">🏆</span>
-                        <div>
-                            <h4 class="font-bold text-gray-800">Classement Spécial Demi-finale</h4>
-                            <p class="text-gray-600 text-sm mt-1">
-                                Après les demi-finales, un classement global est recalculé.
-                            </p>
-                            <p class="text-soboa-blue font-bold text-sm mt-2">
-                                🎫 Le N°1 gagne un billet pour la finale !
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Légende des points -->
         <div class="bg-gradient-to-r from-soboa-blue/5 to-soboa-orange/5 rounded-xl p-4 border border-gray-200">
