@@ -75,6 +75,9 @@
                         <p class="text-xs text-gray-500 mt-2">
                             Ancien utilisateur ? Utilisez votre code à 6 chiffres reçu par SMS
                         </p>
+                        <a href="/forgot-password" class="text-xs text-soboa-orange hover:underline mt-1 inline-block">
+                            Mot de passe oublié ?
+                        </a>
                     </div>
 
                     <!-- Bouton de connexion -->

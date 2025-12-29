@@ -33,6 +33,12 @@ Route::post('/auth/register', [AuthController::class, 'register'])
     ->middleware('throttle:5,1')
     ->name('auth.register');
 
+// Récupération de mot de passe
+Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
+    ->middleware('throttle:3,1')
+    ->name('auth.reset-password');
+
 // Ancien système OTP (conservé pour compatibilité si nécessaire)
 Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])
     ->middleware('throttle:5,1')
@@ -98,6 +104,11 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     
     // Historique des points (logs)
     Route::get('/point-logs', [AdminController::class, 'pointLogs'])->name('point-logs');
+    
+    // Classement hebdomadaire
+    Route::get('/weekly-leaderboard', [AdminController::class, 'weeklyLeaderboard'])->name('weekly-leaderboard');
+    Route::get('/weekly-leaderboard/user/{id}', [AdminController::class, 'weeklyLeaderboardUserDetails'])->name('weekly-leaderboard-user-details');
+    Route::get('/weekly-leaderboard/export', [AdminController::class, 'exportWeeklyLeaderboard'])->name('export-weekly-leaderboard');
     
     // Points de vente (Bars)
     Route::get('/bars', [AdminController::class, 'bars'])->name('bars');

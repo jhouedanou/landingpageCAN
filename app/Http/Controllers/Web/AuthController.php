@@ -942,4 +942,94 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Afficher le formulaire de récupération de mot de passe
+     */
+    public function showForgotPasswordForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Réinitialiser le mot de passe et l'afficher à l'utilisateur
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+
+        try {
+            $phone = $this->formatPhone($request->phone);
+
+            // Vérifier que le numéro est autorisé (format sénégalais)
+            if (!str_starts_with($phone, '+221')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seuls les numéros sénégalais (+221) sont autorisés.',
+                ], 403);
+            }
+
+            // VALIDATION FORMAT sénégalais
+            $phoneWithoutPrefix = substr($phone, 4);
+            if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format de numéro invalide.',
+                ], 400);
+            }
+
+            // Trouver l'utilisateur
+            $user = User::where('phone', $phone)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Aucun compte trouvé avec ce numéro.',
+                ], 404);
+            }
+
+            // Générer un nouveau mot de passe aléatoire (8 caractères, facile à lire)
+            $newPassword = $this->generateReadablePassword();
+
+            // Mettre à jour le mot de passe
+            $user->update([
+                'password' => Hash::make($newPassword),
+            ]);
+
+            Log::info('Mot de passe réinitialisé', ['phone' => $phone, 'user_id' => $user->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Votre nouveau mot de passe a été généré.',
+                'user_name' => $user->name,
+                'phone' => $phone,
+                'new_password' => $newPassword,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Exception resetPassword', ['message' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur technique. Réessayez.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Générer un mot de passe facile à lire (sans caractères ambigus)
+     */
+    private function generateReadablePassword($length = 8)
+    {
+        // Caractères non ambigus (pas de 0/O, 1/l/I, etc.)
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $password = '';
+        
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+        
+        return $password;
+    }
 }

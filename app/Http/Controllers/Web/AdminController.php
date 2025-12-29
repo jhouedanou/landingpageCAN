@@ -774,6 +774,246 @@ class AdminController extends Controller
     }
 
     /**
+     * Weekly leaderboard for admin
+     */
+    public function weeklyLeaderboard(Request $request)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        // Déterminer la semaine à afficher
+        $selectedWeek = $request->get('week', now()->format('Y-W'));
+        
+        // Parser la semaine sélectionnée
+        list($year, $week) = explode('-', $selectedWeek);
+        $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
+        $weekEnd = $weekStart->copy()->endOfWeek();
+
+        // Récupérer tous les utilisateurs avec leurs points de la semaine
+        $weeklyData = User::select('users.*')
+            ->selectRaw('COALESCE((
+                SELECT SUM(points) 
+                FROM point_logs 
+                WHERE point_logs.user_id = users.id 
+                AND point_logs.created_at >= ? 
+                AND point_logs.created_at <= ?
+            ), 0) as weekly_points', [$weekStart, $weekEnd])
+            ->selectRaw('COALESCE((
+                SELECT COUNT(*) 
+                FROM predictions 
+                WHERE predictions.user_id = users.id 
+                AND predictions.created_at >= ? 
+                AND predictions.created_at <= ?
+            ), 0) as weekly_predictions', [$weekStart, $weekEnd])
+            ->selectRaw('COALESCE((
+                SELECT COUNT(*) 
+                FROM point_logs 
+                WHERE point_logs.user_id = users.id 
+                AND point_logs.source = "check_in"
+                AND point_logs.created_at >= ? 
+                AND point_logs.created_at <= ?
+            ), 0) as weekly_checkins', [$weekStart, $weekEnd])
+            ->selectRaw('COALESCE((
+                SELECT COUNT(*) 
+                FROM point_logs 
+                WHERE point_logs.user_id = users.id 
+                AND point_logs.source = "prediction"
+                AND point_logs.created_at >= ? 
+                AND point_logs.created_at <= ?
+            ), 0) as weekly_prediction_points', [$weekStart, $weekEnd])
+            ->having('weekly_points', '>', 0)
+            ->orderByDesc('weekly_points')
+            ->get();
+
+        // Ajouter le rang
+        $rank = 1;
+        foreach ($weeklyData as $user) {
+            $user->rank = $rank++;
+        }
+
+        // Statistiques de la semaine
+        $weeklyStats = [
+            'total_participants' => $weeklyData->count(),
+            'total_points' => $weeklyData->sum('weekly_points'),
+            'total_predictions' => $weeklyData->sum('weekly_predictions'),
+            'total_checkins' => $weeklyData->sum('weekly_checkins'),
+            'top_scorer' => $weeklyData->first(),
+        ];
+
+        // Liste des semaines disponibles (depuis le début de la compétition)
+        $availableWeeks = [];
+        $startDate = \Carbon\Carbon::parse('2024-12-01'); // Date de début de la compétition
+        $currentDate = now();
+        
+        while ($startDate <= $currentDate) {
+            $weekNumber = $startDate->format('Y-W');
+            $weekLabel = 'Semaine ' . $startDate->isoWeek() . ' (' . $startDate->startOfWeek()->format('d/m') . ' - ' . $startDate->endOfWeek()->format('d/m/Y') . ')';
+            $availableWeeks[$weekNumber] = $weekLabel;
+            $startDate->addWeek();
+        }
+        $availableWeeks = array_reverse($availableWeeks, true);
+
+        return view('admin.weekly-leaderboard', compact(
+            'weeklyData',
+            'weeklyStats',
+            'selectedWeek',
+            'weekStart',
+            'weekEnd',
+            'availableWeeks'
+        ));
+    }
+
+    /**
+     * Get detailed history for a specific user in weekly leaderboard
+     */
+    public function weeklyLeaderboardUserDetails($id, Request $request)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $user = User::findOrFail($id);
+        
+        // Déterminer la semaine
+        $selectedWeek = $request->get('week', now()->format('Y-W'));
+        list($year, $week) = explode('-', $selectedWeek);
+        $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
+        $weekEnd = $weekStart->copy()->endOfWeek();
+
+        // Historique détaillé de la semaine
+        $pointLogs = PointLog::where('user_id', $id)
+            ->whereBetween('created_at', [$weekStart, $weekEnd])
+            ->with(['match.homeTeam', 'match.awayTeam', 'bar'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Prédictions de la semaine
+        $predictions = Prediction::where('user_id', $id)
+            ->whereBetween('created_at', [$weekStart, $weekEnd])
+            ->with(['match.homeTeam', 'match.awayTeam'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Statistiques utilisateur pour cette semaine
+        $userWeeklyStats = [
+            'total_points' => $pointLogs->sum('points'),
+            'predictions_count' => $predictions->count(),
+            'correct_predictions' => $predictions->where('points_earned', '>', 0)->count(),
+            'checkins_count' => $pointLogs->where('source', 'check_in')->count(),
+            'daily_logins' => $pointLogs->where('source', 'daily_login')->count(),
+        ];
+
+        // Calculer le rang de l'utilisateur cette semaine
+        $rank = User::selectRaw('COALESCE((
+                SELECT SUM(points) 
+                FROM point_logs 
+                WHERE point_logs.user_id = users.id 
+                AND point_logs.created_at >= ? 
+                AND point_logs.created_at <= ?
+            ), 0) as weekly_points', [$weekStart, $weekEnd])
+            ->having('weekly_points', '>', $userWeeklyStats['total_points'])
+            ->count() + 1;
+
+        return view('admin.weekly-leaderboard-user', compact(
+            'user',
+            'pointLogs',
+            'predictions',
+            'userWeeklyStats',
+            'selectedWeek',
+            'weekStart',
+            'weekEnd',
+            'rank'
+        ));
+    }
+
+    /**
+     * Export weekly leaderboard to CSV
+     */
+    public function exportWeeklyLeaderboard(Request $request)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $selectedWeek = $request->get('week', now()->format('Y-W'));
+        list($year, $week) = explode('-', $selectedWeek);
+        $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
+        $weekEnd = $weekStart->copy()->endOfWeek();
+
+        $weeklyData = User::select('users.*')
+            ->selectRaw('COALESCE((
+                SELECT SUM(points) 
+                FROM point_logs 
+                WHERE point_logs.user_id = users.id 
+                AND point_logs.created_at >= ? 
+                AND point_logs.created_at <= ?
+            ), 0) as weekly_points', [$weekStart, $weekEnd])
+            ->selectRaw('COALESCE((
+                SELECT COUNT(*) 
+                FROM predictions 
+                WHERE predictions.user_id = users.id 
+                AND predictions.created_at >= ? 
+                AND predictions.created_at <= ?
+            ), 0) as weekly_predictions', [$weekStart, $weekEnd])
+            ->selectRaw('COALESCE((
+                SELECT COUNT(*) 
+                FROM point_logs 
+                WHERE point_logs.user_id = users.id 
+                AND point_logs.source = "check_in"
+                AND point_logs.created_at >= ? 
+                AND point_logs.created_at <= ?
+            ), 0) as weekly_checkins', [$weekStart, $weekEnd])
+            ->having('weekly_points', '>', 0)
+            ->orderByDesc('weekly_points')
+            ->get();
+
+        $filename = 'classement_semaine_' . $week . '_' . $year . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($weeklyData, $weekStart, $weekEnd) {
+            $file = fopen('php://output', 'w');
+            
+            // BOM pour UTF-8
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // En-tête
+            fputcsv($file, [
+                'Rang',
+                'Nom',
+                'Téléphone',
+                'Points Semaine',
+                'Points Total',
+                'Pronostics',
+                'Check-ins',
+                'Période'
+            ], ';');
+
+            $rank = 1;
+            foreach ($weeklyData as $user) {
+                fputcsv($file, [
+                    $rank++,
+                    $user->name,
+                    $user->phone,
+                    $user->weekly_points,
+                    $user->points_total,
+                    $user->weekly_predictions,
+                    $user->weekly_checkins,
+                    $weekStart->format('d/m/Y') . ' - ' . $weekEnd->format('d/m/Y')
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Show edit form for a user
      */
     public function editUser($id)
