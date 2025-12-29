@@ -26,12 +26,12 @@
                 <!-- Sélecteur de semaine -->
                 <div class="lg:col-span-1">
                     <div class="bg-white rounded-xl shadow-sm p-4">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Sélectionner une semaine</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Sélectionner une période</label>
                         <form method="GET" action="{{ route('admin.weekly-leaderboard') }}">
-                            <select name="week" onchange="this.form.submit()" class="w-full border-gray-300 rounded-lg focus:ring-soboa-orange focus:border-soboa-orange">
-                                @foreach($availableWeeks as $weekValue => $weekLabel)
-                                    <option value="{{ $weekValue }}" {{ $selectedWeek === $weekValue ? 'selected' : '' }}>
-                                        {{ $weekLabel }}
+                            <select name="period" onchange="this.form.submit()" class="w-full border-gray-300 rounded-lg focus:ring-soboa-orange focus:border-soboa-orange">
+                                @foreach($availableWeeks as $periodValue => $periodLabel)
+                                    <option value="{{ $periodValue }}" {{ $selectedWeek === $periodValue ? 'selected' : '' }}>
+                                        {{ $periodLabel }}
                                     </option>
                                 @endforeach
                             </select>
@@ -83,7 +83,7 @@
                             <span>{{ $topUser->weekly_predictions }} pronostics</span>
                             <span>{{ $topUser->weekly_checkins }} check-ins</span>
                         </div>
-                        <a href="{{ route('admin.weekly-leaderboard-user-details', $topUser->id) }}?week={{ $selectedWeek }}" 
+                        <a href="{{ route('admin.weekly-leaderboard-user-details', $topUser->id) }}?period={{ $selectedWeek }}" 
                            class="mt-4 inline-block bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm transition">
                             Voir détails →
                         </a>
@@ -94,7 +94,7 @@
 
             <!-- Actions -->
             <div class="flex justify-end mb-4">
-                <a href="{{ route('admin.export-weekly-leaderboard') }}?week={{ $selectedWeek }}" 
+                <a href="{{ route('admin.export-weekly-leaderboard') }}?period={{ $selectedWeek }}" 
                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -170,7 +170,7 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-center">
-                                        <a href="{{ route('admin.weekly-leaderboard-user-details', $user->id) }}?week={{ $selectedWeek }}" 
+                                        <a href="{{ route('admin.weekly-leaderboard-user-details', $user->id) }}?period={{ $selectedWeek }}" 
                                            class="text-soboa-blue hover:text-blue-800 font-medium text-sm">
                                             Détails →
                                         </a>

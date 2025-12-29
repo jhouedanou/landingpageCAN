@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\SiteSetting;
 use App\Models\AdminOtpLog;
 use App\Models\Animation;
+use App\Models\WeeklyRanking;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -782,25 +783,30 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        // Déterminer la semaine à afficher (par défaut: semaine en cours)
-        $selectedWeek = $request->get('week', now()->format('o-W'));
+        // Utiliser les périodes définies dans WeeklyRanking::PERIODS
+        $periods = WeeklyRanking::PERIODS;
         
-        // Parser la semaine sélectionnée
-        $parts = explode('-', $selectedWeek);
-        $year = (int) $parts[0];
-        $week = (int) $parts[1];
+        // Déterminer la période actuelle par défaut
+        $currentPeriod = WeeklyRanking::getCurrentPeriod();
+        $selectedPeriod = $request->get('period', $currentPeriod);
         
-        $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
-        $weekEnd = $weekStart->copy()->endOfWeek();
+        // Vérifier si la période sélectionnée existe
+        if (!isset($periods[$selectedPeriod])) {
+            $selectedPeriod = 'week_1';
+        }
+        
+        $periodConfig = $periods[$selectedPeriod];
+        $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
+        $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
 
-        // Méthode alternative : d'abord récupérer les user_ids avec des points cette semaine
+        // Récupérer les user_ids avec des points cette période
         $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
             ->select('user_id')
             ->groupBy('user_id')
             ->pluck('user_id')
             ->toArray();
 
-        // Si aucun utilisateur n'a de points cette semaine, retourner une collection vide
+        // Si aucun utilisateur n'a de points cette période, retourner une collection vide
         if (empty($userIdsWithPoints)) {
             $weeklyData = collect();
         } else {
@@ -836,7 +842,7 @@ class AdminController extends Controller
             $user->rank = $rank++;
         }
 
-        // Statistiques de la semaine
+        // Statistiques de la période
         $weeklyStats = [
             'total_participants' => $weeklyData->count(),
             'total_points' => $weeklyData->sum('weekly_points'),
@@ -845,18 +851,22 @@ class AdminController extends Controller
             'top_scorer' => $weeklyData->first(),
         ];
 
-        // Liste des semaines disponibles (depuis le début de la compétition CAN 2025)
-        $availableWeeks = [];
-        $startDate = \Carbon\Carbon::parse('2025-12-21'); // Début de la CAN 2025
-        $currentDate = now();
-        
-        while ($startDate <= $currentDate) {
-            $weekNumber = $startDate->format('o-W');
-            $weekLabel = 'Semaine ' . $startDate->isoWeek() . ' (' . $startDate->copy()->startOfWeek()->format('d/m') . ' - ' . $startDate->copy()->endOfWeek()->format('d/m/Y') . ')';
-            $availableWeeks[$weekNumber] = $weekLabel;
-            $startDate->addWeek();
+        // Liste des périodes disponibles (filtrer uniquement les semaines actives)
+        $availablePeriods = [];
+        $now = now();
+        foreach ($periods as $key => $period) {
+            // Exclure 'semifinal' et n'afficher que les semaines passées ou en cours
+            if ($key !== 'semifinal') {
+                $periodStart = \Carbon\Carbon::parse($period['start']);
+                if ($periodStart <= $now) {
+                    $availablePeriods[$key] = $period['label'] . ' (' . $periodStart->format('d/m') . ' - ' . \Carbon\Carbon::parse($period['end'])->format('d/m/Y') . ')';
+                }
+            }
         }
-        $availableWeeks = array_reverse($availableWeeks, true);
+
+        // Variables pour la vue (compatibilité)
+        $selectedWeek = $selectedPeriod;
+        $availableWeeks = $availablePeriods;
 
         return view('admin.weekly-leaderboard', compact(
             'weeklyData',
@@ -864,7 +874,8 @@ class AdminController extends Controller
             'selectedWeek',
             'weekStart',
             'weekEnd',
-            'availableWeeks'
+            'availableWeeks',
+            'selectedPeriod'
         ));
     }
 
@@ -879,29 +890,34 @@ class AdminController extends Controller
 
         $user = User::findOrFail($id);
         
-        // Déterminer la semaine
-        $selectedWeek = $request->get('week', now()->format('o-W'));
-        $parts = explode('-', $selectedWeek);
-        $year = (int) $parts[0];
-        $week = (int) $parts[1];
-        $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
-        $weekEnd = $weekStart->copy()->endOfWeek();
+        // Utiliser les périodes définies dans WeeklyRanking::PERIODS
+        $periods = WeeklyRanking::PERIODS;
+        $selectedPeriod = $request->get('period', WeeklyRanking::getCurrentPeriod());
+        
+        // Vérifier si la période sélectionnée existe
+        if (!isset($periods[$selectedPeriod])) {
+            $selectedPeriod = 'week_1';
+        }
+        
+        $periodConfig = $periods[$selectedPeriod];
+        $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
+        $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
 
-        // Historique détaillé de la semaine
+        // Historique détaillé de la période
         $pointLogs = PointLog::where('user_id', $id)
             ->whereBetween('created_at', [$weekStart, $weekEnd])
             ->with(['match.homeTeam', 'match.awayTeam', 'bar'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Prédictions de la semaine
+        // Prédictions de la période
         $predictions = Prediction::where('user_id', $id)
             ->whereBetween('created_at', [$weekStart, $weekEnd])
             ->with(['match.homeTeam', 'match.awayTeam'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Statistiques utilisateur pour cette semaine
+        // Statistiques utilisateur pour cette période
         $userWeeklyStats = [
             'total_points' => $pointLogs->sum('points'),
             'predictions_count' => $predictions->count(),
@@ -910,7 +926,7 @@ class AdminController extends Controller
             'daily_logins' => $pointLogs->where('source', 'daily_login')->count(),
         ];
 
-        // Calculer le rang de l'utilisateur cette semaine
+        // Calculer le rang de l'utilisateur cette période
         $higherRankedUsers = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
             ->select('user_id')
             ->groupBy('user_id')
@@ -918,6 +934,9 @@ class AdminController extends Controller
             ->count();
         
         $rank = $higherRankedUsers + 1;
+        
+        // Variables pour compatibilité avec la vue
+        $selectedWeek = $selectedPeriod;
 
         return view('admin.weekly-leaderboard-user', compact(
             'user',
@@ -925,6 +944,7 @@ class AdminController extends Controller
             'predictions',
             'userWeeklyStats',
             'selectedWeek',
+            'selectedPeriod',
             'weekStart',
             'weekEnd',
             'rank'
@@ -940,14 +960,20 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $selectedWeek = $request->get('week', now()->format('o-W'));
-        $parts = explode('-', $selectedWeek);
-        $year = (int) $parts[0];
-        $week = (int) $parts[1];
-        $weekStart = \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
-        $weekEnd = $weekStart->copy()->endOfWeek();
+        // Utiliser les périodes définies dans WeeklyRanking::PERIODS
+        $periods = WeeklyRanking::PERIODS;
+        $selectedPeriod = $request->get('period', WeeklyRanking::getCurrentPeriod());
+        
+        // Vérifier si la période sélectionnée existe
+        if (!isset($periods[$selectedPeriod])) {
+            $selectedPeriod = 'week_1';
+        }
+        
+        $periodConfig = $periods[$selectedPeriod];
+        $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
+        $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
 
-        // Méthode alternative : d'abord récupérer les user_ids avec des points cette semaine
+        // Récupérer les user_ids avec des points cette période
         $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
             ->select('user_id')
             ->groupBy('user_id')
@@ -982,14 +1008,15 @@ class AdminController extends Controller
                 ->values();
         }
 
-        $filename = 'classement_semaine_' . $week . '_' . $year . '.csv';
+        $filename = 'classement_' . $selectedPeriod . '.csv';
         
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function() use ($weeklyData, $weekStart, $weekEnd) {
+        $periodLabel = $periodConfig['label'];
+        $callback = function() use ($weeklyData, $weekStart, $weekEnd, $periodLabel) {
             $file = fopen('php://output', 'w');
             
             // BOM pour UTF-8
@@ -1017,7 +1044,7 @@ class AdminController extends Controller
                     $user->points_total,
                     $user->weekly_predictions,
                     $user->weekly_checkins,
-                    $weekStart->format('d/m/Y') . ' - ' . $weekEnd->format('d/m/Y')
+                    $periodLabel . ' (' . $weekStart->format('d/m/Y') . ' - ' . $weekEnd->format('d/m/Y') . ')'
                 ], ';');
             }
 
