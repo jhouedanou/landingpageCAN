@@ -8,7 +8,7 @@
                     <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-16 h-16 object-contain">
                 </div>
                 <h1 class="text-3xl font-black text-soboa-blue">Mot de passe oublié</h1>
-                <p class="text-gray-600 mt-2">Récupérez votre accès</p>
+                <p class="text-gray-600 mt-2">Récupérez votre accès par SMS</p>
             </div>
 
             <!-- Formulaire -->
@@ -27,7 +27,7 @@
                 </div>
 
                 <!-- Formulaire de demande (étape 1) -->
-                <div x-show="!newPassword">
+                <div x-show="!smsSent">
                     <form @submit.prevent="resetPassword">
                         <!-- Numéro de téléphone -->
                         <div class="mb-6">
@@ -46,10 +46,25 @@
                             </p>
                         </div>
 
+                        <!-- Info SMS -->
+                        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl mb-6 text-sm">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p>Votre nouveau mot de passe sera envoyé par <strong>SMS</strong> sur ce numéro.</p>
+                            </div>
+                        </div>
+
                         <!-- Bouton -->
                         <button type="submit" :disabled="loading"
                             class="w-full bg-soboa-orange hover:bg-soboa-orange-dark disabled:bg-gray-400 text-black font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 mb-4">
-                            <span x-show="!loading">Récupérer mon mot de passe</span>
+                            <span x-show="!loading" class="flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                Recevoir par SMS
+                            </span>
                             <span x-show="loading" class="flex items-center gap-2">
                                 <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24">
@@ -59,7 +74,7 @@
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                     </path>
                                 </svg>
-                                Traitement...
+                                Envoi en cours...
                             </span>
                         </button>
                     </form>
@@ -75,77 +90,61 @@
                     </div>
                 </div>
 
-                <!-- Résultat avec nouveau mot de passe (étape 2) -->
-                <div x-show="newPassword" x-cloak>
-                    <!-- Succès -->
-                    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Confirmation d'envoi SMS (étape 2) -->
+                <div x-show="smsSent" x-cloak>
+                    <!-- Succès animé -->
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-14 h-14 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Nouveau mot de passe généré !</span>
                         </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">SMS envoyé ! 📱</h2>
+                        <p class="text-gray-600" x-text="successMessage"></p>
                     </div>
 
-                    <!-- Carte avec les infos -->
-                    <div id="password-card" class="bg-gradient-to-br from-soboa-blue to-blue-800 rounded-2xl p-6 text-white mb-6">
+                    <!-- Carte info -->
+                    <div class="bg-gradient-to-br from-soboa-blue to-blue-800 rounded-2xl p-6 text-white mb-6">
                         <div class="text-center mb-4">
-                            <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-16 h-16 object-contain mx-auto rounded-full bg-white p-2 mb-3">
-                            <h3 class="text-lg font-bold">SOBOA Foot Time</h3>
-                            <p class="text-blue-200 text-sm">Vos identifiants</p>
+                            <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-12 h-12 object-contain mx-auto rounded-full bg-white p-1 mb-2">
+                            <p class="text-blue-200 text-sm">Message envoyé à</p>
+                            <p class="text-xl font-bold" x-text="userName"></p>
                         </div>
 
-                        <div class="space-y-4">
-                            <!-- Nom -->
-                            <div class="bg-white/10 rounded-xl p-3">
-                                <p class="text-blue-200 text-xs mb-1">Nom</p>
-                                <p class="font-bold text-lg" x-text="userName"></p>
-                            </div>
-
-                            <!-- Téléphone -->
-                            <div class="bg-white/10 rounded-xl p-3">
-                                <p class="text-blue-200 text-xs mb-1">Numéro de téléphone</p>
-                                <p class="font-bold text-lg" x-text="userPhone"></p>
-                            </div>
-
-                            <!-- Mot de passe -->
-                            <div class="bg-yellow-400 text-black rounded-xl p-4">
-                                <p class="text-yellow-800 text-xs mb-1 font-medium">Nouveau mot de passe</p>
-                                <p class="font-black text-2xl tracking-widest text-center" x-text="newPassword"></p>
+                        <div class="bg-white/10 rounded-xl p-4 text-center">
+                            <p class="text-blue-200 text-sm mb-1">Nouveau mot de passe envoyé par SMS</p>
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span class="text-lg font-bold">Vérifiez vos SMS</span>
                             </div>
                         </div>
-
-                        <p class="text-center text-blue-200 text-xs mt-4">
-                            Généré le {{ now()->format('d/m/Y à H:i') }}
-                        </p>
                     </div>
 
-                    <!-- Boutons de téléchargement -->
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <button @click="downloadAsImage()"
-                            class="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Image
-                        </button>
-                        <button @click="downloadAsPDF()"
-                            class="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                            </svg>
-                            PDF
-                        </button>
-                    </div>
-
-                    <!-- Avertissement -->
-                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-xl mb-6 text-sm">
+                    <!-- Instructions -->
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-xl mb-6">
                         <div class="flex items-start gap-2">
                             <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                             </svg>
-                            <p><strong>Important :</strong> Notez ou téléchargez ce mot de passe. Il ne sera plus affiché après fermeture de cette page.</p>
+                            <div class="text-sm">
+                                <p class="font-bold mb-1">Conseils :</p>
+                                <ul class="list-disc list-inside space-y-1 text-yellow-700">
+                                    <li>Vérifiez votre boîte SMS</li>
+                                    <li>Le message vient de "SOBOA FOOT TIME"</li>
+                                    <li>Conservez ce mot de passe en lieu sûr</li>
+                                </ul>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Pas reçu ? -->
+                    <div class="text-center text-sm text-gray-500 mb-6">
+                        <p>Pas reçu de SMS ?</p>
+                        <button @click="smsSent = false; error = ''" class="text-soboa-blue hover:underline font-medium">
+                            Réessayer avec un autre numéro
+                        </button>
                     </div>
 
                     <!-- Bouton connexion -->
@@ -162,20 +161,15 @@
         </div>
     </div>
 
-    <!-- html2canvas pour capture d'image -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- jsPDF pour génération PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <script>
         function forgotPasswordForm() {
             return {
                 phone: '',
                 loading: false,
                 error: '',
-                newPassword: '',
+                smsSent: false,
+                successMessage: '',
                 userName: '',
-                userPhone: '',
                 countryCode: '+221',
 
                 init() {
@@ -228,9 +222,9 @@
                         const data = await response.json();
 
                         if (response.ok && data.success) {
-                            this.newPassword = data.new_password;
+                            this.smsSent = true;
+                            this.successMessage = data.message;
                             this.userName = data.user_name;
-                            this.userPhone = data.phone;
                         } else {
                             this.error = data.message || 'Une erreur est survenue.';
                         }
@@ -239,60 +233,6 @@
                         this.error = 'Erreur de connexion. Veuillez réessayer.';
                     } finally {
                         this.loading = false;
-                    }
-                },
-
-                async downloadAsImage() {
-                    const card = document.getElementById('password-card');
-                    try {
-                        const canvas = await html2canvas(card, {
-                            backgroundColor: null,
-                            scale: 2
-                        });
-                        const link = document.createElement('a');
-                        link.download = 'soboa-mot-de-passe.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                    } catch (err) {
-                        console.error('Erreur capture:', err);
-                        alert('Erreur lors de la génération de l\'image.');
-                    }
-                },
-
-                async downloadAsPDF() {
-                    const card = document.getElementById('password-card');
-                    try {
-                        const canvas = await html2canvas(card, {
-                            backgroundColor: null,
-                            scale: 2
-                        });
-                        
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF('p', 'mm', 'a4');
-                        
-                        // Dimensions
-                        const imgWidth = 180;
-                        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                        const x = (210 - imgWidth) / 2; // Centrer horizontalement (A4 = 210mm)
-                        const y = 20;
-                        
-                        // Titre
-                        pdf.setFontSize(18);
-                        pdf.setTextColor(0, 51, 153);
-                        pdf.text('SOBOA Foot Time - Identifiants', 105, 15, { align: 'center' });
-                        
-                        // Image de la carte
-                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, imgWidth, imgHeight);
-                        
-                        // Note en bas
-                        pdf.setFontSize(10);
-                        pdf.setTextColor(100, 100, 100);
-                        pdf.text('Conservez ce document en lieu sûr.', 105, y + imgHeight + 15, { align: 'center' });
-                        
-                        pdf.save('soboa-mot-de-passe.pdf');
-                    } catch (err) {
-                        console.error('Erreur PDF:', err);
-                        alert('Erreur lors de la génération du PDF.');
                     }
                 }
             };

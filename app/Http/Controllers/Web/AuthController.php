@@ -952,7 +952,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Réinitialiser le mot de passe et l'afficher à l'utilisateur
+     * Réinitialiser le mot de passe et l'envoyer par SMS
      */
     public function resetPassword(Request $request)
     {
@@ -998,14 +998,23 @@ class AuthController extends Controller
                 'password' => Hash::make($newPassword),
             ]);
 
-            Log::info('Mot de passe réinitialisé', ['phone' => $phone, 'user_id' => $user->id]);
+            // Envoyer le nouveau mot de passe par SMS
+            $smsResult = $this->sendPasswordResetSMS($phone, $newPassword, $user->name);
+
+            if (!$smsResult['success']) {
+                Log::error('Échec envoi SMS mot de passe', ['phone' => $phone, 'error' => $smsResult['error'] ?? 'unknown']);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erreur lors de l\'envoi du SMS. Veuillez réessayer.',
+                ], 500);
+            }
+
+            Log::info('Mot de passe réinitialisé et envoyé par SMS', ['phone' => $phone, 'user_id' => $user->id]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Votre nouveau mot de passe a été généré.',
+                'message' => 'Votre nouveau mot de passe a été envoyé par SMS au ' . $this->maskPhone($phone),
                 'user_name' => $user->name,
-                'phone' => $phone,
-                'new_password' => $newPassword,
             ]);
 
         } catch (\Exception $e) {
@@ -1015,6 +1024,77 @@ class AuthController extends Controller
                 'message' => 'Erreur technique. Réessayez.',
             ], 500);
         }
+    }
+
+    /**
+     * Envoie un SMS avec le nouveau mot de passe
+     */
+    private function sendPasswordResetSMS(string $phone, string $password, string $userName): array
+    {
+        Log::info('=== DEBUT sendPasswordResetSMS (Twilio) ===');
+
+        $accountSid = config('services.twilio.account_sid');
+        $authToken = config('services.twilio.auth_token');
+        $fromNumber = config('services.twilio.from_number');
+
+        if (!$accountSid || !$authToken || !$fromNumber) {
+            Log::error('Configuration Twilio incomplete !');
+            return ['success' => false, 'error' => 'Configuration Twilio incomplete'];
+        }
+
+        // Formater le numéro au format international avec +
+        $toNumber = '+' . ltrim($phone, '+');
+
+        $message = "SOBOA FOOT TIME - Bonjour {$userName}! Votre nouveau mot de passe est: {$password}. Conservez-le précieusement pour vos connexions futures.";
+
+        try {
+            Log::info('Envoi SMS mot de passe via Twilio...', [
+                'to' => $toNumber,
+                'from' => $fromNumber,
+            ]);
+
+            $url = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
+
+            $response = Http::withBasicAuth($accountSid, $authToken)
+                ->asForm()
+                ->timeout(30)
+                ->post($url, [
+                    'To' => $toNumber,
+                    'From' => $fromNumber,
+                    'Body' => $message,
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                Log::info('=== SUCCES SMS mot de passe Twilio ===', ['sid' => $data['sid'] ?? null]);
+                return ['success' => true, 'sid' => $data['sid'] ?? null];
+            } else {
+                $errorData = $response->json();
+                $errorMessage = $errorData['message'] ?? ('HTTP ' . $response->status());
+                Log::error('=== ECHEC SMS mot de passe Twilio ===', [
+                    'status' => $response->status(),
+                    'error' => $errorMessage,
+                ]);
+                return ['success' => false, 'error' => $errorMessage];
+            }
+        } catch (\Exception $e) {
+            Log::error('=== EXCEPTION Twilio mot de passe ===', [
+                'message' => $e->getMessage(),
+            ]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Masquer partiellement un numéro de téléphone
+     */
+    private function maskPhone(string $phone): string
+    {
+        // +221771234567 -> +221 77 *** ** 67
+        if (strlen($phone) >= 10) {
+            return substr($phone, 0, 7) . ' ** ** ' . substr($phone, -2);
+        }
+        return $phone;
     }
 
     /**
