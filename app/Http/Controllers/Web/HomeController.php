@@ -27,40 +27,17 @@ class HomeController extends Controller
             $selectedVenue = Bar::find($selectedVenueId);
         }
 
-        // Sur la page d'accueil, toujours afficher les prochains matches généraux
-        // (indépendamment du lieu sélectionné - le filtre par lieu s'applique sur /matches)
+        // Sur la page d'accueil, afficher tous les prochains matchs (y compris phases finales)
         $senegalTeam = Team::where('iso_code', 'sn')->first();
 
-        // Afficher uniquement les matchs à venir
-        // Pour les phases finales : ne les afficher qu'à partir de la date du 1er match de cette phase
-        $allUpcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
+        // Afficher tous les matchs à venir sans filtrage par phase
+        $upcomingMatches = MatchGame::with(['homeTeam', 'awayTeam'])
             ->where('status', '!=', 'finished')
             ->where('match_date', '>=', now())
             ->orderBy('match_date', 'asc')
             ->get();
 
-        // Filtrer pour ne garder que les phases dont le premier match est accessible
-        $upcomingMatches = $allUpcomingMatches->filter(function ($match) use ($allUpcomingMatches) {
-            // Toujours afficher les matchs de phase de poule
-            if ($match->phase === 'group_stage') {
-                return true;
-            }
-
-            // Pour les phases finales, vérifier si on a atteint la date du premier match de cette phase
-            $firstMatchOfPhase = $allUpcomingMatches
-                ->where('phase', $match->phase)
-                ->sortBy('match_date')
-                ->first();
-
-            if ($firstMatchOfPhase) {
-                // Afficher la phase seulement si on est à J-1 du premier match de cette phase
-                return now() >= $firstMatchOfPhase->match_date->subDay();
-            }
-
-            return false;
-        });
-
-        // Récupérer le prochain match pour le hero
+        // Récupérer le prochain match pour le hero (premier match à venir, quelle que soit la phase)
         $nextMatch = $upcomingMatches->first();
 
         // Limiter à 4 matchs pour la page d'accueil
