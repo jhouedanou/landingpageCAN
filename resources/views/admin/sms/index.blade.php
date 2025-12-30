@@ -274,10 +274,10 @@
 
                 useTemplate(type) {
                     const templates = {
-                        match: "CAN 2025 - Ne manquez pas le match de ce soir ! Rejoignez-nous dans l'un de nos bars partenaires pour vivre l'ambiance. SOBOA - Le gout de la victoire !",
-                        promo: "PROMO SPECIALE CAN 2025 ! Profitez de -20% sur toutes les bieres SOBOA dans nos bars partenaires ce weekend. A consommer avec moderation.",
-                        reminder: "RAPPEL: Votre pronostic pour le match de ce soir expire dans 1 heure ! Connectez-vous vite sur l'app CAN 2025 pour valider votre prediction. Bonne chance !",
-                        winner: "FELICITATIONS ! Vous avez gagne [PRIX] grace a vos pronostics CAN 2025 ! Contactez-nous pour recuperer votre lot. SOBOA - Le gout de la victoire !"
+                        match: "Ne manquez pas le match de ce soir ! Rejoignez-nous dans l'un de nos bars partenaires pour vivre l'ambiance. SOBOA - Le gout de la victoire !",
+                        promo: "PROMO SPECIALE ! Profitez de -20% sur toutes les bieres SOBOA dans nos bars partenaires ce weekend. A consommer avec moderation.",
+                        reminder: "RAPPEL: Votre pronostic pour le match de ce soir expire dans 1 heure ! Connectez-vous vite pour valider votre prediction. Bonne chance !",
+                        winner: "FELICITATIONS ! Vous avez gagne [PRIX] grace a vos pronostics ! Contactez-nous pour recuperer votre lot. SOBOA - Le gout de la victoire !"
                     };
                     this.message = templates[type] || '';
                 },

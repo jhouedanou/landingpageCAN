@@ -47,13 +47,13 @@ $monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
 $dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 @endphp
 
-<x-layouts.app title="Calendrier & Classement CAN 2025">
+<x-layouts.app title="Calendrier & Classement">
 <div class="min-h-screen bg-gradient-to-br from-soboa-blue via-blue-800 to-blue-900 py-4 px-2 md:px-4">
 
 {{-- Header --}}
 <div class="max-w-7xl mx-auto mb-4">
     <div class="text-center">
-        <h1 class="text-xl md:text-4xl font-black text-white mb-2">CAN 2025</h1>
+        <h1 class="text-xl md:text-4xl font-black text-white mb-2">Calendrier & Classement</h1>
         <p class="text-blue-200 text-xs md:text-sm">{{ $totalMatches }} matchs - {{ $finishedMatches }} terminés - {{ $upcomingMatches }} à venir</p>
     </div>
 </div>
