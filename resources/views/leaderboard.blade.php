@@ -191,7 +191,8 @@
                                     @if($userInTop)
                                         🎉 Vous êtes dans le {{ $topLabel2 }} !
                                         @if($isWeekly)
-                                            <span class="text-green-300 font-bold">- Gagnant</span>
+                                            <span class="text-green-300 font-bold text-soboa-orange">- Gagnant</span>
+                                            <p class="text-green-300">                                        sur <span class="font-bold text-soboa-orange">{{ $user_position['total_users'] }} </span> participants</p>
                                         @endif
                                     @else
                                         sur {{ $user_position['total_users'] }} participants
