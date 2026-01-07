@@ -145,7 +145,7 @@
                 <section>
                     <h2 class="text-xl font-bold text-soboa-blue mb-3">Article 9 - Litiges</h2>
                     <p class="leading-relaxed">
-                        Tout litige relatif au Jeu sera soumis au droit ivoirien. Les tribunaux d'Abidjan seront 
+                        Tout litige relatif au Jeu sera soumis au droit senegalais. Les tribunaux de Dakar seront 
                         seuls compétents pour connaître de tout litige.
                     </p>
                 </section>
