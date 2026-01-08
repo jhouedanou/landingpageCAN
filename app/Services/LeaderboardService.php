@@ -112,21 +112,27 @@ class LeaderboardService
             
             // En cas d'égalité, compter ceux qui ont fait leur premier pronostic avant
             if ($userFirstPrediction) {
+                // Sous-requête pour obtenir la date du premier pronostic de chaque utilisateur
                 $samePointsBeforeMe = User::where('points_total', '=', $user->points_total)
                     ->where('id', '!=', $userId)
-                    ->whereHas('predictions', function ($query) use ($userFirstPrediction) {
-                        $query->havingRaw('MIN(created_at) < ?', [$userFirstPrediction]);
+                    ->whereIn('id', function ($query) use ($userFirstPrediction) {
+                        $query->select('user_id')
+                            ->from('predictions')
+                            ->groupBy('user_id')
+                            ->havingRaw('MIN(created_at) < ?', [$userFirstPrediction]);
                     })
                     ->count();
                 
-                // Fallback: compter aussi par nom alphabétique pour ceux sans pronostic ou même date
-                $samePointsSameOrNoDate = User::where('points_total', '=', $user->points_total)
+                // Compter aussi ceux sans pronostic mais avant alphabétiquement
+                $samePointsNoDateBeforeAlpha = User::where('points_total', '=', $user->points_total)
                     ->where('id', '!=', $userId)
                     ->where('name', '<', $user->name)
-                    ->whereDoesntHave('predictions')
+                    ->whereNotIn('id', function ($query) {
+                        $query->select('user_id')->from('predictions');
+                    })
                     ->count();
                 
-                $rank += $samePointsBeforeMe + $samePointsSameOrNoDate;
+                $rank += $samePointsBeforeMe + $samePointsNoDateBeforeAlpha;
             } else {
                 // L'utilisateur n'a pas de pronostic, tri alphabétique
                 $samePointsBeforeMe = User::where('points_total', '=', $user->points_total)
