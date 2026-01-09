@@ -55,12 +55,12 @@ class PredictionController extends Controller
         $user = Auth::user();
         $match = MatchGame::findOrFail($request->match_id);
 
-        // Lock predictions 20 minutes before match starts
-        $lockTime = Carbon::parse($match->match_date)->subMinutes(20);
+        // Lock predictions at match start time
+        $lockTime = Carbon::parse($match->match_date);
         
         if (Carbon::now()->gte($lockTime)) {
             return response()->json([
-                'error' => 'Les pronostics sont fermés 20 minutes avant le match.',
+                'error' => 'Les pronostics sont fermés au début du match.',
                 'match_date' => $match->match_date,
                 'lock_time' => $lockTime,
             ], 422);

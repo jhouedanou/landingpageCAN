@@ -374,8 +374,8 @@
                                                                     @if($match->status !== 'finished')
                                                                         @php
                                                                             $userPrediction = $userPredictions[$match->id] ?? null;
-                                                                            // Verrouiller 20 minutes AVANT le début du match
-                                                                            $isPredictionLocked = \Carbon\Carbon::parse($match->match_date)->subMinutes(20)->isPast();
+                                                                            // Verrouiller au début du match
+                                                                            $isPredictionLocked = \Carbon\Carbon::parse($match->match_date)->isPast();
                                                                         @endphp
 
                                                                         @if(session('user_id'))
@@ -685,8 +685,8 @@
                                                     @if($match->status !== 'finished')
                                                         @php
                                                             $userPrediction = $userPredictions[$match->id] ?? null;
-                                                            // Verrouiller 20 minutes AVANT le début du match
-                                                            $isPredictionLocked = \Carbon\Carbon::parse($match->match_date)->subMinutes(20)->isPast();
+                                                            // Verrouiller au début du match
+                                                            $isPredictionLocked = \Carbon\Carbon::parse($match->match_date)->isPast();
                                                         @endphp
 
                                                         @if(session('user_id'))

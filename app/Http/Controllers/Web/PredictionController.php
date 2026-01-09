@@ -78,13 +78,13 @@ class PredictionController extends Controller
             return back()->with('error', 'Ce match est en cours. Les pronostics sont fermés.');
         }
 
-        // Verrouiller les pronostics 20 minutes AVANT le début du match
-        $lockTime = $match->match_date->copy()->subMinutes(20);
+        // Verrouiller les pronostics au début du match
+        $lockTime = $match->match_date->copy();
         if (now()->gte($lockTime)) {
             if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json(['message' => 'Les pronostics sont fermés 20 minutes avant le début du match.'], 422);
+                return response()->json(['message' => 'Les pronostics sont fermés au début du match.'], 422);
             }
-            return back()->with('error', 'Les pronostics sont fermés 20 minutes avant le début du match.');
+            return back()->with('error', 'Les pronostics sont fermés au début du match.');
         }
 
         // Déterminer le gagnant prédit
