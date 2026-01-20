@@ -18,6 +18,12 @@ class SiteSetting extends Model
         'hero_image_path',
         'favorite_team_id',
         'geofencing_radius',
+        'tournament_ended',
+        'tournament_winner_team_id',
+    ];
+
+    protected $casts = [
+        'tournament_ended' => 'boolean',
     ];
 
     /**
@@ -72,5 +78,22 @@ class SiteSetting extends Model
     public function favoriteTeam()
     {
         return $this->belongsTo(Team::class, 'favorite_team_id');
+    }
+
+    /**
+     * Get the tournament winner team.
+     */
+    public function tournamentWinner()
+    {
+        return $this->belongsTo(Team::class, 'tournament_winner_team_id');
+    }
+
+    /**
+     * Check if points attribution is enabled.
+     */
+    public static function isPointsEnabled(): bool
+    {
+        $settings = self::getSettings();
+        return $settings ? !$settings->tournament_ended : true;
     }
 }

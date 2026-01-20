@@ -177,6 +177,8 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     // Paramètres
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('update-settings');
+    Route::post('/settings/toggle-tournament-ended', [AdminController::class, 'toggleTournamentEnded'])->name('toggle-tournament-ended');
+    Route::post('/settings/set-tournament-winner', [AdminController::class, 'setTournamentWinner'])->name('set-tournament-winner');
 
     // Logs OTP
     Route::get('/otp-logs', [AdminController::class, 'otpLogs'])->name('otp-logs');

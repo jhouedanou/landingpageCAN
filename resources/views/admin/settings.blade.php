@@ -210,6 +210,85 @@
                 </div>
             </form>
 
+            <!-- Gestion du Tournoi (Séparé du formulaire principal) -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-2 border-soboa-orange">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <span>🏆</span> Gestion du Tournoi
+                </h2>
+
+                <!-- Statut du tournoi -->
+                <div class="mb-6 p-4 rounded-lg {{ $settings->tournament_ended ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200' }}">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold {{ $settings->tournament_ended ? 'text-red-800' : 'text-green-800' }}">
+                                {{ $settings->tournament_ended ? '🔴 Tournoi terminé' : '🟢 Tournoi en cours' }}
+                            </h3>
+                            <p class="text-sm {{ $settings->tournament_ended ? 'text-red-600' : 'text-green-600' }} mt-1">
+                                {{ $settings->tournament_ended
+                                    ? 'L\'attribution des points est désactivée (connexion, check-in, pronostics).'
+                                    : 'Les utilisateurs peuvent gagner des points.' }}
+                            </p>
+                        </div>
+                        <form action="{{ route('admin.toggle-tournament-ended') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                    class="px-6 py-3 rounded-lg font-bold transition shadow-lg hover:scale-105 {{ $settings->tournament_ended
+                                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                                        : 'bg-red-600 hover:bg-red-700 text-white' }}">
+                                {{ $settings->tournament_ended ? '▶️ Réactiver le tournoi' : '⏹️ Terminer le tournoi' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Équipe gagnante -->
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h3 class="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                        <span>👑</span> Équipe Gagnante du Tournoi
+                    </h3>
+                    <p class="text-sm text-yellow-700 mb-4">
+                        Sélectionnez l'équipe qui a remporté le tournoi. Un message de félicitations avec des confettis sera affiché sur la page d'accueil.
+                    </p>
+
+                    @if($settings->tournamentWinner)
+                        <div class="mb-4 p-4 bg-gradient-to-r from-yellow-100 via-white to-yellow-100 rounded-lg border-2 border-yellow-400">
+                            <p class="text-center">
+                                <span class="text-4xl">🎉🏆🎉</span>
+                            </p>
+                            <p class="text-center text-xl font-black text-yellow-800 mt-2">
+                                {{ $settings->tournamentWinner->name }}
+                            </p>
+                            <p class="text-center text-sm text-yellow-600 mt-1">
+                                Champion du tournoi !
+                            </p>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('admin.set-tournament-winner') }}" method="POST" class="flex items-end gap-3">
+                        @csrf
+                        <div class="flex-1">
+                            <label for="tournament_winner_team_id" class="block text-gray-700 font-bold mb-2">
+                                Choisir l'équipe gagnante
+                            </label>
+                            <select id="tournament_winner_team_id" name="tournament_winner_team_id"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                <option value="">-- Aucune équipe (réinitialiser) --</option>
+                                @foreach($teams as $team)
+                                    <option value="{{ $team->id }}"
+                                            {{ $settings->tournament_winner_team_id == $team->id ? 'selected' : '' }}>
+                                        {{ $team->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit"
+                                class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-lg transition shadow-lg hover:scale-105">
+                            🏆 Définir le gagnant
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 

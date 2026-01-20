@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\MatchGame;
 use App\Models\PointLog;
 use App\Models\Prediction;
+use App\Models\SiteSetting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,7 +30,7 @@ class ProcessMatchPoints implements ShouldQueue
 
     /**
      * Execute the job.
-     * 
+     *
      * Scoring Rules:
      * - Participation: +1 point (awarded on prediction, not here)
      * - Correct Winner (1/N/2): +3 points
@@ -38,6 +39,12 @@ class ProcessMatchPoints implements ShouldQueue
      */
     public function handle(): void
     {
+        // Check if tournament has ended - no more points
+        if (!SiteSetting::isPointsEnabled()) {
+            Log::info("ProcessMatchPoints: Tournament ended, skipping points for match {$this->matchId}");
+            return;
+        }
+
         $match = MatchGame::find($this->matchId);
 
         if (!$match || $match->status !== 'finished') {

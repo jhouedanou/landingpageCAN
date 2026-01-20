@@ -62,7 +62,10 @@ class HomeController extends Controller
         // Count venues for stats
         $venueCount = Bar::where('is_active', true)->count();
 
-        return view('welcome', compact('upcomingMatches', 'nextMatch', 'topUsers', 'venueCount', 'selectedVenue'));
+        // Récupérer les settings pour l'équipe gagnante du tournoi
+        $siteSettings = SiteSetting::with('tournamentWinner')->first();
+
+        return view('welcome', compact('upcomingMatches', 'nextMatch', 'topUsers', 'venueCount', 'selectedVenue', 'siteSettings'));
     }
 
     public function venues()

@@ -2410,7 +2410,7 @@ class AdminController extends Controller
         }
 
         // Récupérer ou créer les paramètres du site
-        $settings = SiteSetting::with('favoriteTeam')->firstOrCreate([], [
+        $settings = SiteSetting::with(['favoriteTeam', 'tournamentWinner'])->firstOrCreate([], [
             'site_name' => 'SOBOA Grande Fête du Foot Africain',
             'primary_color' => '#003399',
             'secondary_color' => '#FF6600',
@@ -2473,6 +2473,52 @@ class AdminController extends Controller
         $settings->update($dataToUpdate);
 
         return back()->with('success', 'Paramètres mis à jour avec succès.');
+    }
+
+    /**
+     * Toggle tournament ended status (stops all points attribution)
+     */
+    public function toggleTournamentEnded(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $settings = SiteSetting::firstOrCreate([]);
+        $newStatus = !$settings->tournament_ended;
+        $settings->update(['tournament_ended' => $newStatus]);
+
+        $message = $newStatus
+            ? 'Tournoi terminé ! L\'attribution des points est maintenant désactivée.'
+            : 'Tournoi réactivé ! L\'attribution des points est maintenant active.';
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Set tournament winner team
+     */
+    public function setTournamentWinner(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'tournament_winner_team_id' => 'nullable|exists:teams,id',
+        ]);
+
+        $settings = SiteSetting::firstOrCreate([]);
+        $teamId = $request->input('tournament_winner_team_id');
+
+        if ($teamId) {
+            $team = Team::find($teamId);
+            $settings->update(['tournament_winner_team_id' => $teamId]);
+            return back()->with('success', "L'équipe {$team->name} a été désignée comme gagnante du tournoi ! Le hero affiche maintenant un message de félicitations.");
+        } else {
+            $settings->update(['tournament_winner_team_id' => null]);
+            return back()->with('success', 'Le gagnant du tournoi a été réinitialisé.');
+        }
     }
 
     // ==================== GESTION DU TOURNOI ====================

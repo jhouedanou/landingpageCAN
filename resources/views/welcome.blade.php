@@ -1,5 +1,10 @@
 <x-layouts.app title="Accueil">
 
+    @if($siteSettings && $siteSettings->tournamentWinner)
+    <!-- Confetti Canvas for celebration -->
+    <canvas id="confetti-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-[200]"></canvas>
+    @endif
+
     <!-- Modals Overlay Container -->
     <div x-data="{ 
         showAgeModal: localStorage.getItem('age_verified') !== 'true',
@@ -199,6 +204,61 @@
 
         <!-- Content -->
         <div class="relative z-[10] text-center px-6 md:px-8 py-12 md:py-16 max-w-5xl mx-auto">
+            @if($siteSettings && $siteSettings->tournamentWinner)
+            <!-- Tournament Winner Celebration -->
+            <div class="animate-fade-in-down">
+                <!-- Trophy Animation -->
+                <div class="text-8xl md:text-9xl mb-6 animate-bounce-slow">
+                    🏆
+                </div>
+
+                <!-- Winner Flag -->
+                @if($siteSettings->tournamentWinner->flag_url_80)
+                <div class="w-32 h-32 md:w-40 md:h-40 mx-auto mb-6 rounded-full overflow-hidden border-4 border-yellow-400 shadow-2xl animate-pulse-soft">
+                    <img src="{{ $siteSettings->tournamentWinner->flag_url_80 }}"
+                         alt="{{ $siteSettings->tournamentWinner->name }}"
+                         class="w-full h-full object-cover">
+                </div>
+                @endif
+
+                <!-- Congratulations Message -->
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-4 leading-tight uppercase animate-fade-in-up" style="font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em;">
+                    <span class="inline-block">Bravo</span><br>
+                    <span class="gradient-text inline-block text-5xl md:text-7xl lg:text-8xl" style="text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);">{{ $siteSettings->tournamentWinner->name }} !</span>
+                </h1>
+
+                <p class="text-2xl md:text-3xl text-soboa-orange font-black mb-6 animate-pulse">
+                    Champion de la CAN 2025 !
+                </p>
+
+                <p class="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+                    Merci a tous les participants pour cette aventure incroyable !<br>
+                    Consultez le classement final et decouvrez les gagnants.
+                </p>
+
+                <!-- CTA for Leaderboard -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                    <a href="/leaderboard"
+                        class="inline-flex items-center justify-center gap-2 bg-soboa-orange hover:bg-soboa-orange-dark text-black font-bold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 text-lg orange-glow">
+                        Voir le classement final
+                    </a>
+                    <a href="/mes-pronostics"
+                        class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-full border-2 border-white/30 transition-all">
+                        Mes pronostics
+                    </a>
+                </div>
+
+                <!-- Branding Badge -->
+                <div class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 border border-white/20 shadow-2xl">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 mb-2 shadow-inner overflow-hidden">
+                        <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
+                    </div>
+                    <span class="text-white font-black text-xl tracking-tighter uppercase leading-none">GAZELLE</span>
+                    <span class="text-soboa-orange font-bold text-xs tracking-[0.2em] uppercase mt-1 opacity-90">Le gout de notre victoire</span>
+                </div>
+            </div>
+            @else
+            <!-- Normal Hero Content -->
             <!-- Branding Badge with Animation -->
             <div
                 class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 mb-8 border border-white/20 shadow-2xl animate-fade-in-down">
@@ -220,7 +280,7 @@
 
             <p class="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
                 Tentez de gagner <span class="text-soboa-orange font-bold underline underline-offset-4">un billet
-                    d’avion pour la finale</span> et pleins d’autres lots !
+                    d'avion pour la finale</span> et pleins d'autres lots !
             </p>
 
             <!-- Countdown Timer -->
@@ -329,6 +389,7 @@
                     </a>
                 @endif
             </div>
+            @endif
         </div>
 
         <!-- Scroll Indicator -->
@@ -526,5 +587,93 @@
             </div>
         </div>
     </section>
+
+    @if($siteSettings && $siteSettings->tournamentWinner)
+    <!-- Confetti Script for Winner Celebration -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const confettiColors = ['#FF6600', '#003399', '#FFD700', '#00A651', '#FFFFFF', '#FF4444'];
+        const confettiCount = 200;
+        const confetti = [];
+
+        // Initialize confetti particles
+        for (let i = 0; i < confettiCount; i++) {
+            confetti.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * confettiCount,
+                color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                tilt: Math.floor(Math.random() * 10) - 10,
+                tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+                tiltAngle: 0
+            });
+        }
+
+        function drawConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach((p, i) => {
+                ctx.beginPath();
+                ctx.lineWidth = p.r / 2;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4);
+                ctx.stroke();
+            });
+            updateConfetti();
+        }
+
+        function updateConfetti() {
+            confetti.forEach((p, i) => {
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.x += Math.sin(p.d);
+                p.tilt = Math.sin(p.tiltAngle) * 15;
+
+                if (p.y > canvas.height) {
+                    confetti[i] = {
+                        x: Math.random() * canvas.width,
+                        y: -20,
+                        r: p.r,
+                        d: p.d,
+                        color: p.color,
+                        tilt: p.tilt,
+                        tiltAngleIncremental: p.tiltAngleIncremental,
+                        tiltAngle: p.tiltAngle
+                    };
+                }
+            });
+        }
+
+        let animationRunning = true;
+        function animate() {
+            if (animationRunning) {
+                drawConfetti();
+                requestAnimationFrame(animate);
+            }
+        }
+        animate();
+
+        // Stop confetti after 10 seconds
+        setTimeout(() => {
+            animationRunning = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }, 10000);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    });
+    </script>
+    @endif
 
 </x-layouts.app>

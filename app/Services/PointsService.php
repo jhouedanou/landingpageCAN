@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\MatchGame;
 use App\Models\Prediction;
 use App\Models\PointLog;
+use App\Models\SiteSetting;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +18,11 @@ class PointsService
      */
     public function awardDailyLoginPoints(User $user): void
     {
+        // Check if tournament has ended - no more points
+        if (!SiteSetting::isPointsEnabled()) {
+            return;
+        }
+
         $today = Carbon::today();
 
         // Check if user already logged in today and got points
@@ -46,6 +52,11 @@ class PointsService
      */
     public function awardBarVisitPoints(User $user, ?int $barId = null): int
     {
+        // Check if tournament has ended - no more points
+        if (!SiteSetting::isPointsEnabled()) {
+            return 0;
+        }
+
         $today = Carbon::today();
 
         $alreadyAwarded = PointLog::where('user_id', $user->id)
@@ -79,6 +90,11 @@ class PointsService
      */
     public function awardPredictionVenuePoints(User $user, int $matchId, ?int $barId = null): int
     {
+        // Check if tournament has ended - no more points
+        if (!SiteSetting::isPointsEnabled()) {
+            return 0;
+        }
+
         if (!$barId) {
             return 0;
         }
@@ -122,14 +138,23 @@ class PointsService
      * Award daily activity points.
      * This is triggered by the DailyRewardMiddleware on the user's first activity
      * of each calendar day. Works even for users who never log out.
-     * 
+     *
      * Limit: 1 point per calendar day.
-     * 
+     *
      * @param User $user
      * @return array{awarded: bool, points: int, total: int}
      */
     public function awardDailyActivityPoints(User $user): array
     {
+        // Check if tournament has ended - no more points
+        if (!SiteSetting::isPointsEnabled()) {
+            return [
+                'awarded' => false,
+                'points' => 0,
+                'total' => $user->points_total,
+            ];
+        }
+
         $today = Carbon::today();
 
         // Double-check to avoid race conditions
