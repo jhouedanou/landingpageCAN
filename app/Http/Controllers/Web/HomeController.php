@@ -109,9 +109,10 @@ class HomeController extends Controller
             }
         }
 
-        // Charger l'équipe favorite pour le highlighting
+        // Charger l'équipe favorite pour le highlighting et le statut du tournoi
         $settings = SiteSetting::with('favoriteTeam')->first();
         $favoriteTeamId = $settings?->favorite_team_id;
+        $tournamentEnded = $settings?->tournament_ended ?? false;
 
         // Définir l'ordre et les noms des phases
         $phaseOrder = [
@@ -123,7 +124,7 @@ class HomeController extends Controller
             'final' => 'Finale',
         ];
 
-        return view('matches', compact('matchesByPhase', 'groupStageByGroup', 'userPredictions', 'favoriteTeamId', 'phaseOrder'));
+        return view('matches', compact('matchesByPhase', 'groupStageByGroup', 'userPredictions', 'favoriteTeamId', 'phaseOrder', 'tournamentEnded'));
     }
 
     public function leaderboard(Request $request)

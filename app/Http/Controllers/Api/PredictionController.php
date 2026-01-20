@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MatchGame;
 use App\Models\Prediction;
+use App\Models\SiteSetting;
 use App\Services\GeolocationService;
 use App\Services\PointsService;
 use Illuminate\Http\Request;
@@ -24,6 +25,14 @@ class PredictionController extends Controller
 
     public function store(Request $request)
     {
+        // Vérifier si le tournoi est terminé
+        $settings = SiteSetting::first();
+        if ($settings && $settings->tournament_ended) {
+            return response()->json([
+                'error' => 'Le tournoi est terminé. Les pronostics sont fermés.',
+            ], 422);
+        }
+
         $request->validate([
             'match_id' => 'required|exists:matches,id',
             'score_a' => 'required|integer|min:0|max:20',

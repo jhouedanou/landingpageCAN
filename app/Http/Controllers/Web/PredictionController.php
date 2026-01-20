@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bar;
 use App\Models\MatchGame;
 use App\Models\Prediction;
+use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\WhatsAppService;
 use App\Services\PointsService;
@@ -21,6 +22,15 @@ class PredictionController extends Controller
 
     public function store(Request $request)
     {
+        // Vérifier si le tournoi est terminé
+        $settings = SiteSetting::first();
+        if ($settings && $settings->tournament_ended) {
+            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['message' => 'Le tournoi est terminé. Les pronostics sont fermés.'], 422);
+            }
+            return back()->with('error', 'Le tournoi est terminé. Les pronostics sont fermés.');
+        }
+
         // Vérifier que l'utilisateur est connecté
         if (!session('user_id')) {
             if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {

@@ -141,7 +141,7 @@
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" @click="useTemplate('match')"
                                     class="px-3 py-1 text-sm bg-soboa-blue text-white rounded-full hover:opacity-80">
-                                    🏆 Match CAN
+                                    🏆 Match
                                 </button>
                                 <button type="button" @click="useTemplate('promo')"
                                     class="px-3 py-1 text-sm bg-soboa-orange text-white rounded-full hover:opacity-80">

@@ -94,6 +94,28 @@
             </div>
         </div>
 
+        @if($tournamentEnded)
+        <!-- Bannière Tournoi Terminé -->
+        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl p-6 text-white shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                    <span class="text-4xl">🏆</span>
+                </div>
+                <div class="flex-1">
+                    <p class="font-black text-2xl">Tournoi Termine !</p>
+                    <p class="text-white/90 mt-1">
+                        Les pronostics sont desormais fermes. Merci a tous les participants !
+                    </p>
+                    <a href="/leaderboard" class="inline-flex items-center gap-2 mt-3 bg-white text-orange-600 font-bold py-2 px-4 rounded-lg hover:bg-white/90 transition">
+                        Voir le classement final
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @else
         <!-- Info Bonus PDV - Proche -->
         <div id="nearbyVenueInfo"
             class="hidden bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
@@ -138,8 +160,8 @@
                     <span class="text-2xl">✅</span>
                 </div>
                 <div class="flex-1">
-                    <p class="font-black text-lg" id="successBannerTitle">Pronostic modifié !</p>
-                    <p class="text-sm text-white/90" id="successBannerMessage">Votre pronostic a été mis à jour avec succès.</p>
+                    <p class="font-black text-lg" id="successBannerTitle">Pronostic modifie !</p>
+                    <p class="text-sm text-white/90" id="successBannerMessage">Votre pronostic a ete mis a jour avec succes.</p>
                 </div>
                 <button onclick="hideSuccessBanner()" class="text-white/80 hover:text-white p-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,14 +176,15 @@
             <div class="flex items-center gap-3">
                 <span class="text-2xl">ℹ️</span>
                 <div>
-                    <p class="font-bold text-blue-800">Comment ça marche ?</p>
+                    <p class="font-bold text-blue-800">Comment ca marche ?</p>
                     <p class="text-sm text-blue-700 mt-1">
-                        Faites vos pronostics ! Si vous êtes dans un PDV partenaire (à moins de 200m), vous recevez
+                        Faites vos pronostics ! Si vous etes dans un PDV partenaire (a moins de 200m), vous recevez
                         automatiquement <strong>+4 points bonus</strong> sur chaque pronostic (1x par jour).
                     </p>
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Mention 18+ -->
         <div class="bg-red-50 border border-red-200 rounded-lg p-3">

@@ -228,7 +228,7 @@
                 </h1>
 
                 <p class="text-2xl md:text-3xl text-soboa-orange font-black mb-6 animate-pulse">
-                    Champion de la CAN 2025 !
+                    Champion du Tournoi !
                 </p>
 
                 <p class="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
@@ -255,6 +255,43 @@
                     </div>
                     <span class="text-white font-black text-xl tracking-tighter uppercase leading-none">GAZELLE</span>
                     <span class="text-soboa-orange font-bold text-xs tracking-[0.2em] uppercase mt-1 opacity-90">Le gout de notre victoire</span>
+                </div>
+            </div>
+            @elseif($siteSettings && $siteSettings->tournament_ended)
+            <!-- Tournament Ended (no winner yet) -->
+            <div class="animate-fade-in-down">
+                <!-- Branding Badge -->
+                <div class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 mb-8 border border-white/20 shadow-2xl">
+                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3 mb-3 shadow-inner overflow-hidden">
+                        <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
+                    </div>
+                    <span class="text-white font-black text-3xl md:text-4xl tracking-tighter uppercase leading-none animate-glow hero-title">GAZELLE</span>
+                    <span class="text-soboa-orange font-bold text-sm md:text-base tracking-[0.3em] uppercase mt-2 opacity-90 animate-pulse-soft">Le gout de notre victoire</span>
+                </div>
+
+                <!-- Tournament Ended Message -->
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-tight uppercase animate-fade-in-up" style="font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em;">
+                    <span class="inline-block">Tournoi</span><br>
+                    <span class="gradient-text inline-block text-5xl md:text-7xl lg:text-8xl" style="text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);">Termine !</span>
+                </h1>
+
+                <p class="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+                    Merci a tous les participants !<br>
+                    Consultez le classement final pour decouvrir les gagnants.
+                </p>
+
+                <!-- CTA for Leaderboard -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                    <a href="/leaderboard"
+                        class="inline-flex items-center justify-center gap-2 bg-soboa-orange hover:bg-soboa-orange-dark text-black font-bold py-4 px-8 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 text-lg orange-glow">
+                        Voir le classement final
+                    </a>
+                    @if(session('user_id'))
+                    <a href="/mes-pronostics"
+                        class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-full border-2 border-white/30 transition-all">
+                        Mes pronostics
+                    </a>
+                    @endif
                 </div>
             </div>
             @else
@@ -401,7 +438,8 @@
         </div>
     </section>
 
-    <!-- Upcoming Matches Section -->
+    @if(!$siteSettings || !$siteSettings->tournament_ended)
+    <!-- Upcoming Matches Section (Hidden when tournament ended) -->
     <section class="py-16 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
@@ -439,6 +477,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <!-- Leaderboard Section -->
     <section class="py-16 bg-soboa-orange">
@@ -484,7 +523,8 @@
         </div>
     </section>
 
-    <!-- How It Works Section -->
+    @if(!$siteSettings || !$siteSettings->tournament_ended)
+    <!-- How It Works Section (Hidden when tournament ended) -->
     <section class="py-16 md:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-16">
@@ -587,6 +627,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     @if($siteSettings && $siteSettings->tournamentWinner)
     <!-- Confetti Script for Winner Celebration -->

@@ -4,7 +4,8 @@
       "Bash(php artisan:*)",
       "Bash(where:*)",
       "Bash(docker-compose ps:*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(del /f \"C:\\\\Users\\\\socialmedia\\\\Documents\\\\GitHub\\\\landingpageCAN\\\\resources\\\\views\\\\🏆 CAN 2025 - SOBOA\")"
     ]
   }
 }
