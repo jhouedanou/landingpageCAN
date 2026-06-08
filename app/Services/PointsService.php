@@ -258,8 +258,7 @@ class PointsService
             return;
         }
 
-        // Dispatch the job to process match points
-        // This ensures consistency with the main points calculation system
-        \App\Jobs\ProcessMatchPoints::dispatch($match->id);
+        // Calcul immédiat et garanti (sans dépendre d'un worker de queue)
+        \App\Jobs\ProcessMatchPoints::dispatchSync($match->id);
     }
 }

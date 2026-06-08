@@ -62,7 +62,7 @@ class ProcessFinishedMatches extends Command
             $hasPointLogs = PointLog::where('match_id', $match->id)->exists();
 
             if (!$hasPointLogs) {
-                ProcessMatchPoints::dispatch($match->id);
+                ProcessMatchPoints::dispatchSync($match->id);
                 $processedCount++;
 
                 Log::info("ProcessFinishedMatches: Dispatched job for match {$match->id} ({$match->team_a} vs {$match->team_b})");

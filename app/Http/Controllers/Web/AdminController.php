@@ -309,11 +309,11 @@ class AdminController extends Controller
             }
         }
 
-        // Calcul automatique des points si le match vient d'être terminé
+        // Calcul automatique des points si le match vient d'être terminé.
+        // dispatchSync : calcul immédiat et garanti, sans dépendre d'un worker de queue.
         if ($nowFinished && $request->score_a !== null && $request->score_b !== null && !$wasFinished) {
-            // Exécuté après l'envoi de la réponse : l'admin n'attend pas le calcul.
-            ProcessMatchPoints::dispatch($match->id)->afterResponse();
-            return redirect()->route('admin.matches')->with('success', "Match terminé ! Les points sont en cours de calcul...");
+            ProcessMatchPoints::dispatchSync($match->id);
+            return redirect()->route('admin.matches')->with('success', 'Match terminé ! Les points ont été attribués.');
         }
 
         return redirect()->route('admin.matches')->with('success', 'Match mis à jour avec succès.');
@@ -457,8 +457,8 @@ class AdminController extends Controller
             return back()->with('error', 'Le match doit être terminé pour calculer les points.');
         }
 
-        // Dispatcher le job de calcul des points
-        ProcessMatchPoints::dispatch($match->id);
+        // Recalcul immédiat et garanti (sans dépendre d'un worker de queue)
+        ProcessMatchPoints::dispatchSync($match->id);
 
         // Traiter immédiatement la queue si possible (mode sync)
         if (config('queue.default') === 'sync') {
@@ -636,9 +636,9 @@ class AdminController extends Controller
 
                 $match->save();
 
-                // Déclencher le calcul des points uniquement pour les matchs terminés
+                // Déclencher le calcul des points uniquement pour les matchs terminés (immédiat, garanti)
                 if ($hasScores) {
-                    ProcessMatchPoints::dispatch($match->id)->afterResponse();
+                    ProcessMatchPoints::dispatchSync($match->id);
                 }
             }
 

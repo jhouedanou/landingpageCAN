@@ -24,6 +24,14 @@
 html {
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
+    /* Empêche l'inflation auto de la taille du texte (iOS Safari / Android Chrome)
+       => rendu cohérent entre marques de téléphones et navigateurs. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Évite le débordement horizontal selon les navigateurs. */
+    overflow-x: hidden;
 }
 
 /* Styles personnalisés globaux */
