@@ -219,7 +219,7 @@
                                     id="tab-{{ $phaseKey }}">
                                     <span class="hidden sm:inline">{{ $phaseName }}</span>
                                     <span
-                                        class="sm:hidden">{{ str_replace(['Phase de Poules', '1/8e de Finale', 'Quarts de Finale', 'Demi-Finales', 'Match pour la 3e Place', 'Finale'], ['Poules', '1/8', 'Quarts', 'Demis', '3e Place', 'Finale'], $phaseName) }}</span>
+                                        class="sm:hidden">{{ str_replace(['Phase de Poules', '1/16e de Finale', '1/8e de Finale', 'Quarts de Finale', 'Demi-Finales', 'Match pour la 3e Place', 'Finale'], ['Poules', '1/16', '1/8', 'Quarts', 'Demis', '3e Place', 'Finale'], $phaseName) }}</span>
                                     <span class="ml-1.5 sm:ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-bold"
                                         :class="activePhase === '{{ $phaseKey }}' ? 'bg-soboa-blue text-white' : 'bg-gray-200 text-gray-700'">
                                         {{ $matchesByPhase[$phaseKey]->count() }}
@@ -1265,7 +1265,7 @@
         }
 
         // Phases à élimination (knockout)
-        const knockoutPhases = ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
+        const knockoutPhases = ['round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
 
         function enableEdit(matchId) {
             const matchCard = document.getElementById('match-' + matchId);

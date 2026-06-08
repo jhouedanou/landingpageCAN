@@ -76,7 +76,7 @@
         gtag('config', 'GT-P36Z7M8B');
     </script>
 
-    <link rel="icon" type="image/jpeg" href="/images/logoGazelle.jpeg">
+    <link rel="icon" type="image/jpeg" href="/images/logoSOBOA.png.webp">
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#121212">
@@ -361,7 +361,7 @@
                 <a href="/" class="flex items-center gap-3 group">
                     <div
                         class="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform overflow-hidden bg-white border-2 border-white">
-                        <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-contain p-0.5">
+                        <img src="/images/logoSOBOA.png.webp" alt="GAZELLE" class="w-full h-full object-contain p-0.5">
                     </div>
                     <div class="text-black">
                         <span
@@ -525,7 +525,7 @@
                     <div class="flex items-center gap-3 mb-4 justify-center md:justify-start">
                         <div
                             class="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white border border-white/20">
-                            <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-contain p-1">
+                            <img src="/images/logoSOBOA.png.webp" alt="GAZELLE" class="w-full h-full object-contain p-1">
                         </div>
                         <div>
                             <span class="font-black text-xl uppercase">GAZELLE</span>
@@ -588,7 +588,7 @@
     <div id="page-loader"
         class="fixed inset-0 z-[9999] bg-white flex items-center justify-center transition-opacity duration-500">
         <div class="relative flex flex-col items-center">
-            <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-24 h-24 object-contain animate-pulse">
+            <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-24 h-24 object-contain animate-pulse">
             <div class="mt-4 flex gap-1">
                 <div class="w-3 h-3 bg-soboa-orange rounded-full animate-bounce" style="animation-delay: 0s"></div>
                 <div class="w-3 h-3 bg-soboa-blue rounded-full animate-bounce" style="animation-delay: 0.1s"></div>

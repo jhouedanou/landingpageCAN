@@ -5,7 +5,9 @@
       "Bash(where:*)",
       "Bash(docker-compose ps:*)",
       "Bash(docker compose:*)",
-      "Bash(del /f \"C:\\\\Users\\\\socialmedia\\\\Documents\\\\GitHub\\\\landingpageCAN\\\\resources\\\\views\\\\🏆 CAN 2025 - SOBOA\")"
+      "Bash(del /f \"C:\\\\Users\\\\socialmedia\\\\Documents\\\\GitHub\\\\landingpageCAN\\\\resources\\\\views\\\\🏆 CAN 2025 - SOBOA\")",
+      "Bash(git -C /Users/bfa/Documents/GitHub/landingpageCAN ls-files --error-unmatch .env)",
+      "Bash(openssl rand *)"
     ]
   }
 }

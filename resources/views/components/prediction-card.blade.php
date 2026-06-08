@@ -127,7 +127,7 @@
             </div>
             
             @php
-                $knockoutPhases = ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
+                $knockoutPhases = ['round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
                 $isKnockoutPhase = in_array($match->phase, $knockoutPhases);
             @endphp
             

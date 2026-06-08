@@ -135,6 +135,7 @@
                                 @php
                                     $phaseLabels = [
                                         'group_stage' => ['label' => 'Poules', 'color' => 'bg-gray-500'],
+                                        'round_of_32' => ['label' => '1/16', 'color' => 'bg-cyan-500'],
                                         'round_of_16' => ['label' => '1/8', 'color' => 'bg-blue-500'],
                                         'quarter_final' => ['label' => '1/4', 'color' => 'bg-purple-500'],
                                         'semi_final' => ['label' => '1/2', 'color' => 'bg-orange-500'],

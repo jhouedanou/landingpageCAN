@@ -33,7 +33,8 @@ class AuthController extends Controller
                 // Recharger l'utilisateur pour avoir les points mis à jour
                 $user->refresh();
 
-                // Reconnecter automatiquement
+                // Reconnecter automatiquement (régénérer la session pour éviter la fixation)
+                request()->session()->regenerate();
                 session([
                     'user_id' => $user->id,
                     'user_points' => $user->points_total ?? 0,
@@ -135,6 +136,9 @@ class AuthController extends Controller
             $rememberToken = Str::random(60);
             $user->update(['remember_token' => $rememberToken]);
 
+            // Régénérer la session pour éviter la fixation de session
+            $request->session()->regenerate();
+
             session([
                 'user_id' => $user->id,
                 'user_points' => $user->points_total ?? 0,
@@ -163,14 +167,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Inscription classique avec mot de passe personnalisé
+     * Inscription : le mot de passe est généré automatiquement,
+     * envoyé une seule fois par SMS et consultable dans l'espace personnel.
      */
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
         ]);
 
         try {
@@ -203,21 +207,40 @@ class AuthController extends Controller
                 ], 409);
             }
 
-            // Créer le nouvel utilisateur
+            // Générer automatiquement le mot de passe (lisible, sans caractères ambigus)
+            $generatedPassword = $this->generateReadablePassword();
+
+            // Créer le nouvel utilisateur :
+            // - password : hash bcrypt pour l'authentification
+            // - password_encrypted : chiffrement réversible pour l'affichage espace perso
             $user = User::create([
                 'name' => $request->name,
                 'phone' => $phone,
-                'password' => Hash::make($request->password),
+                'password' => Hash::make($generatedPassword),
                 'last_login_at' => now(),
             ]);
+            $user->setPlainPassword($generatedPassword);
+            $user->save();
 
-            Log::info('Nouveau compte créé avec mot de passe', ['phone' => $phone, 'user_id' => $user->id]);
+            Log::info('Nouveau compte créé avec mot de passe généré', ['phone' => $phone, 'user_id' => $user->id]);
+
+            // Envoyer le mot de passe par SMS UNE SEULE FOIS (à la création)
+            $smsResult = $this->sendPasswordResetSMS($phone, $generatedPassword, $user->name);
+            if (!$smsResult['success']) {
+                Log::warning('Échec envoi SMS mot de passe à l\'inscription', [
+                    'phone' => $phone,
+                    'error' => $smsResult['error'] ?? 'unknown',
+                ]);
+            }
 
             // Bonus connexion quotidienne (+1 point/jour)
             $pointsService = app(\App\Services\PointsService::class);
             $pointsService->awardDailyLoginPoints($user);
 
             $user->refresh();
+
+            // Régénérer la session pour éviter la fixation de session
+            $request->session()->regenerate();
 
             // Générer un token "remember me" qui expire en février 2026
             $rememberToken = Str::random(60);
@@ -236,8 +259,8 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Compte créé avec succès !',
-                'redirect' => '/matches',
+                'message' => 'Compte créé ! Votre mot de passe vous a été envoyé par SMS et reste visible dans votre espace personnel.',
+                'redirect' => '/mes-pronostics',
             ])->cookie($cookie);
 
         } catch (\Exception $e) {
@@ -530,6 +553,7 @@ class AuthController extends Controller
                 $rememberToken = Str::random(60);
                 $existingUser->update(['remember_token' => $rememberToken]);
 
+                request()->session()->regenerate();
                 session([
                     'user_id' => $existingUser->id,
                     'user_points' => $existingUser->points_total ?? 0,
@@ -651,6 +675,7 @@ class AuthController extends Controller
             $rememberToken = Str::random(60);
             $user->update(['remember_token' => $rememberToken]);
 
+            request()->session()->regenerate();
             session([
                 'user_id' => $user->id,
                 'user_points' => $user->points_total ?? 0,
@@ -993,10 +1018,12 @@ class AuthController extends Controller
             // Générer un nouveau mot de passe aléatoire (8 caractères, facile à lire)
             $newPassword = $this->generateReadablePassword();
 
-            // Mettre à jour le mot de passe
+            // Mettre à jour le mot de passe (hash + version chiffrée pour l'espace perso)
             $user->update([
                 'password' => Hash::make($newPassword),
             ]);
+            $user->setPlainPassword($newPassword);
+            $user->save();
 
             // Envoyer le nouveau mot de passe par SMS
             $smsResult = $this->sendPasswordResetSMS($phone, $newPassword, $user->name);

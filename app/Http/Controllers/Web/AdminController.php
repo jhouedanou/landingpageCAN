@@ -153,8 +153,8 @@ class AdminController extends Controller
         $stadiums = Stadium::where('is_active', true)->orderBy('city')->get();
         $bars = Bar::where('is_active', true)->orderBy('zone')->orderBy('name')->get();
 
-        // Liste des groupes disponibles pour la CAN
-        $groups = ['A', 'B', 'C', 'D', 'E', 'F'];
+        // Liste des groupes disponibles (Football Fest 2026 : 12 groupes A-L)
+        $groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
         return view('admin.create-match', compact('teams', 'stadiums', 'bars', 'groups'));
     }
@@ -172,7 +172,7 @@ class AdminController extends Controller
             'home_team_id' => 'required|exists:teams,id',
             'away_team_id' => 'required|exists:teams,id|different:home_team_id',
             'match_date' => 'required|date',
-            'phase' => 'required|in:group_stage,round_of_16,quarter_final,semi_final,third_place,final',
+            'phase' => 'required|in:group_stage,round_of_32,round_of_16,quarter_final,semi_final,third_place,final',
             'group_name' => 'nullable|string|max:50',
             'stadium' => 'nullable|string|max:255',
             'status' => 'required|in:scheduled,live,finished',
@@ -228,8 +228,8 @@ class AdminController extends Controller
         // IDs des bars déjà assignés à ce match
         $assignedBarIds = $match->animations->pluck('bar_id')->toArray();
 
-        // Liste des groupes disponibles pour la CAN
-        $groups = ['A', 'B', 'C', 'D', 'E', 'F'];
+        // Liste des groupes disponibles (Football Fest 2026 : 12 groupes A-L)
+        $groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
         return view('admin.edit-match', compact('match', 'teams', 'stadiums', 'groups', 'bars', 'assignedBarIds'));
     }
@@ -247,7 +247,7 @@ class AdminController extends Controller
             'home_team_id' => 'required|exists:teams,id',
             'away_team_id' => 'required|exists:teams,id',
             'match_date' => 'required|date',
-            'phase' => 'required|in:group_stage,round_of_16,quarter_final,semi_final,third_place,final',
+            'phase' => 'required|in:group_stage,round_of_32,round_of_16,quarter_final,semi_final,third_place,final',
             'group_name' => 'nullable|string|max:50',
             'stadium' => 'nullable|string|max:255',
             'score_a' => 'nullable|integer|min:0|max:20',
@@ -2548,6 +2548,7 @@ class AdminController extends Controller
         // Statistiques des phases
         $phaseStats = [
             'group_stage' => MatchGame::where('phase', 'group_stage')->count(),
+            'round_of_32' => MatchGame::where('phase', 'round_of_32')->count(),
             'round_of_16' => MatchGame::where('phase', 'round_of_16')->count(),
             'quarter_final' => MatchGame::where('phase', 'quarter_final')->count(),
             'semi_final' => MatchGame::where('phase', 'semi_final')->count(),
@@ -2620,7 +2621,7 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Accès non autorisé.');
         }
 
-        $validPhases = ['group_stage', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
+        $validPhases = ['group_stage', 'round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
 
         if (!in_array($phase, $validPhases)) {
             return redirect()->route('admin.tournament')->with('error', 'Phase invalide.');
@@ -2634,6 +2635,7 @@ class AdminController extends Controller
 
         $phaseNames = [
             'group_stage' => 'Phase de poules',
+            'round_of_32' => '1/16e de finale',
             'round_of_16' => '1/8e de finale',
             'quarter_final' => 'Quarts de finale',
             'semi_final' => 'Demi-finales',
@@ -3209,7 +3211,7 @@ class AdminController extends Controller
 
         // Get knockout matches for bracket
         $knockoutMatches = MatchGame::with(['homeTeam', 'awayTeam'])
-            ->whereIn('phase', ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
+            ->whereIn('phase', ['round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
             ->orderBy('match_date')
             ->get()
             ->groupBy('phase');
@@ -3243,9 +3245,9 @@ class AdminController extends Controller
             $matchesQuery->where('phase', $phase);
         }
 
-        // Filtrer pour les matchs à venir (phases finales : à partir des 8èmes)
+        // Filtrer pour les matchs à venir (phases finales : à partir des 32es)
         if ($upcomingOnly) {
-            $matchesQuery->whereIn('phase', ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
+            $matchesQuery->whereIn('phase', ['round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
                 ->where('status', '!=', 'finished');
         }
 
@@ -3286,6 +3288,7 @@ class AdminController extends Controller
 
         $phases = [
             'group_stage' => 'Phase de Poules',
+            'round_of_32' => '1/16es de finale',
             'round_of_16' => 'Huitièmes de finale',
             'quarter_final' => 'Quarts de finale',
             'semi_final' => 'Demi-finales',
@@ -3315,9 +3318,9 @@ class AdminController extends Controller
             $matchesQuery->where('phase', $phase);
         }
 
-        // Filtrer pour les matchs à venir (phases finales : à partir des 8èmes)
+        // Filtrer pour les matchs à venir (phases finales : à partir des 32es)
         if ($upcomingOnly) {
-            $matchesQuery->whereIn('phase', ['round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
+            $matchesQuery->whereIn('phase', ['round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'])
                 ->where('status', '!=', 'finished');
         }
 
@@ -3365,6 +3368,7 @@ class AdminController extends Controller
             // Phase labels
             $phaseLabels = [
                 'group_stage' => 'Poules',
+                'round_of_32' => '1/16 de finale',
                 'round_of_16' => '1/8 de finale',
                 'quarter_final' => '1/4 de finale',
                 'semi_final' => '1/2 finale',
@@ -3452,9 +3456,9 @@ class AdminController extends Controller
             'type' => 'required|in:photo,video',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'required_without:video_url|file|max:51200', // 50MB max
+            'file' => 'required_without:video_url|file|mimes:jpg,jpeg,png,webp,gif,mp4,mov,webm|max:51200', // 50MB max
             'video_url' => 'nullable|url',
-            'thumbnail' => 'nullable|file|image|max:5120', // 5MB max
+            'thumbnail' => 'nullable|file|image|mimes:jpg,jpeg,png,webp,gif|max:5120', // 5MB max
             'bar_id' => 'nullable|exists:bars,id',
             'sort_order' => 'nullable|integer|min:0',
         ]);
@@ -3513,9 +3517,9 @@ class AdminController extends Controller
             'type' => 'required|in:photo,video',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'nullable|file|max:51200', // 50MB max
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif,mp4,mov,webm|max:51200', // 50MB max
             'video_url' => 'nullable|url',
-            'thumbnail' => 'nullable|file|image|max:5120', // 5MB max
+            'thumbnail' => 'nullable|file|image|mimes:jpg,jpeg,png,webp,gif|max:5120', // 5MB max
             'bar_id' => 'nullable|exists:bars,id',
             'sort_order' => 'nullable|integer|min:0',
         ]);

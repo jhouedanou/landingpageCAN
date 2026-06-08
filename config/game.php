@@ -13,6 +13,12 @@ return [
     */
 
     /**
+     * Nom de la compétition affichée (données sportives).
+     * La marque/plateforme reste définie par APP_NAME.
+     */
+    'competition_name' => env('COMPETITION_NAME', 'Football Fest 2026'),
+
+    /**
      * Require venue geofencing for predictions
      * 
      * false = Universal access (users can predict from anywhere)

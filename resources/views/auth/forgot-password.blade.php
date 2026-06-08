@@ -5,7 +5,7 @@
             <!-- Logo et titre -->
             <div class="text-center mb-8">
                 <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 shadow-lg flex items-center justify-center">
-                    <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-16 h-16 object-contain">
+                    <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-16 h-16 object-contain">
                 </div>
                 <h1 class="text-3xl font-black text-soboa-blue">Mot de passe oublié</h1>
                 <p class="text-gray-600 mt-2">Récupérez votre accès par SMS</p>
@@ -106,7 +106,7 @@
                     <!-- Carte info -->
                     <div class="bg-gradient-to-br from-soboa-blue to-blue-800 rounded-2xl p-6 text-white mb-6">
                         <div class="text-center mb-4">
-                            <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-12 h-12 object-contain mx-auto rounded-full bg-white p-1 mb-2">
+                            <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-12 h-12 object-contain mx-auto rounded-full bg-white p-1 mb-2">
                             <p class="text-blue-200 text-sm">Message envoyé à</p>
                             <p class="text-xl font-bold" x-text="userName"></p>
                         </div>

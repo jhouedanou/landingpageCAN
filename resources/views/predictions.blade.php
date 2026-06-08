@@ -75,6 +75,30 @@
             </div>
         @endif
 
+        @if(isset($user) && $user->plain_password)
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5" x-data="{ show: false }">
+                <div class="flex items-start gap-3">
+                    <div class="bg-soboa-blue/10 w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-black text-gray-800">Votre mot de passe</p>
+                        <p class="text-xs text-gray-500 mb-3">Conservez-le pour vos prochaines connexions. Il vous a été envoyé une fois par SMS.</p>
+                        <div class="flex items-center gap-2">
+                            <code class="px-4 py-2 bg-gray-100 rounded-lg font-mono text-lg tracking-wider text-gray-800 select-all"
+                                x-text="show ? @js($user->plain_password) : '••••••••'"></code>
+                            <button type="button" @click="show = !show"
+                                class="px-3 py-2 text-sm font-bold text-soboa-blue hover:bg-soboa-blue/10 rounded-lg transition"
+                                x-text="show ? 'Masquer' : 'Afficher'"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if($totalPredictions == 0)
             <div class="bg-white rounded-xl shadow p-8 text-center">
                 <div class="w-20 h-20 bg-soboa-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">

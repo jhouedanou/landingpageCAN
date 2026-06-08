@@ -40,14 +40,14 @@ class AdminAuthController extends Controller
         $adminUsername = config('app.admin.username');
         $adminPassword = config('app.admin.password');
 
-        // Identifiants Soboa
-        $soboaUsername = 'soboa';
-        $soboaPassword = 'marcorygazoil2025';
+        // Identifiants Soboa (configurés via .env, jamais en dur)
+        $soboaUsername = config('app.soboa.username');
+        $soboaPassword = config('app.soboa.password');
 
         Log::info('Tentative de connexion admin', ['username' => $username]);
 
-        // Vérification des identifiants admin
-        if ($username === $adminUsername && $password === $adminPassword) {
+        // Vérification des identifiants admin (comparaison à temps constant)
+        if ($this->credentialsMatch($username, $password, $adminUsername, $adminPassword)) {
             // Créer ou récupérer l'utilisateur admin
             $admin = User::where('role', 'admin')->first();
 
@@ -61,13 +61,14 @@ class AdminAuthController extends Controller
                 Log::info('Utilisateur admin créé', ['id' => $admin->id]);
             }
 
+            $request->session()->regenerate();
             session(['user_id' => $admin->id]);
             Log::info('Connexion admin réussie', ['user_id' => $admin->id]);
             return redirect()->route('admin.dashboard')->with('success', 'Bienvenue, Administrateur !');
         }
 
-        // Vérification des identifiants Soboa
-        if ($username === $soboaUsername && $password === $soboaPassword) {
+        // Vérification des identifiants Soboa (comparaison à temps constant)
+        if ($this->credentialsMatch($username, $password, $soboaUsername, $soboaPassword)) {
             // Créer ou récupérer l'utilisateur soboa
             $soboa = User::where('role', 'soboa')->first();
 
@@ -81,6 +82,7 @@ class AdminAuthController extends Controller
                 Log::info('Utilisateur soboa créé', ['id' => $soboa->id]);
             }
 
+            $request->session()->regenerate();
             session(['user_id' => $soboa->id]);
             Log::info('Connexion soboa réussie', ['user_id' => $soboa->id]);
             return redirect()->route('admin.dashboard')->with('success', 'Bienvenue, Soboa !');
@@ -91,11 +93,27 @@ class AdminAuthController extends Controller
     }
 
     /**
+     * Compare des identifiants à temps constant.
+     * Échoue (false) si les identifiants attendus ne sont pas configurés.
+     */
+    private function credentialsMatch(?string $username, ?string $password, ?string $expectedUsername, ?string $expectedPassword): bool
+    {
+        if (empty($expectedUsername) || empty($expectedPassword)) {
+            return false;
+        }
+
+        return hash_equals($expectedUsername, (string) $username)
+            && hash_equals($expectedPassword, (string) $password);
+    }
+
+    /**
      * Déconnexion admin
      */
     public function logout()
     {
         session()->forget('user_id');
+        session()->invalidate();
+        session()->regenerateToken();
         return redirect('/')->with('success', 'Déconnexion réussie.');
     }
 }

@@ -5,7 +5,7 @@
             <!-- Logo et titre -->
             <div class="text-center mb-8">
                 <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 shadow-lg flex items-center justify-center">
-                    <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-16 h-16 object-contain">
+                    <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-16 h-16 object-contain">
                 </div>
                 <h1 class="text-3xl font-black text-soboa-blue">Inscription</h1>
                 <p class="text-gray-600 mt-2">Créez votre compte</p>
@@ -61,59 +61,21 @@
                         </div>
                     </div>
 
-                    <!-- Mot de passe -->
-                    <div class="mb-5">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Mot de passe</label>
-                        <div class="relative">
-                            <input :type="showPassword ? 'text' : 'password'" x-model="password"
-                                placeholder="Minimum 6 caractères"
-                                @input="checkPasswordStrength()"
-                                class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
-                                required>
-                            <button type="button" @click="showPassword = !showPassword"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                                <svg x-show="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                <svg x-show="showPassword" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                                </svg>
-                            </button>
+                    <!-- Info : mot de passe généré automatiquement -->
+                    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-soboa-blue flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm text-gray-700">
+                                Un mot de passe sécurisé sera <span class="font-bold">généré automatiquement</span> et envoyé
+                                par SMS à votre numéro. Il restera consultable dans votre espace personnel.
+                            </p>
                         </div>
-                        <!-- Force du mot de passe -->
-                        <div x-show="password.length > 0" class="mt-2">
-                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div :class="{
-                                    'bg-red-500': passwordStrength === 'weak',
-                                    'bg-yellow-500': passwordStrength === 'medium',
-                                    'bg-green-500': passwordStrength === 'strong'
-                                }"
-                                :style="'width: ' + passwordStrengthPercent + '%'"
-                                class="h-full transition-all"></div>
-                            </div>
-                            <p class="text-xs mt-1" :class="{
-                                'text-red-600': passwordStrength === 'weak',
-                                'text-yellow-600': passwordStrength === 'medium',
-                                'text-green-600': passwordStrength === 'strong'
-                            }" x-text="passwordStrengthText"></p>
-                        </div>
-                    </div>
-
-                    <!-- Confirmation mot de passe -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Confirmer le mot de passe</label>
-                        <input :type="showPasswordConfirm ? 'text' : 'password'" x-model="passwordConfirm"
-                            placeholder="Retapez votre mot de passe"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
-                            required>
-                        <p x-show="passwordConfirm && password !== passwordConfirm" class="text-xs text-red-600 mt-1">
-                            Les mots de passe ne correspondent pas
-                        </p>
                     </div>
 
                     <!-- Bouton d'inscription -->
-                    <button type="submit" :disabled="loading || (password && password !== passwordConfirm)"
+                    <button type="submit" :disabled="loading"
                         class="w-full bg-soboa-orange hover:bg-soboa-orange-dark disabled:bg-gray-400 text-black font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 mb-4">
                         <span x-show="!loading">Créer mon compte</span>
                         <span x-show="loading" class="flex items-center gap-2">
@@ -152,17 +114,10 @@
             return {
                 name: '',
                 phone: '',
-                password: '',
-                passwordConfirm: '',
-                showPassword: false,
-                showPasswordConfirm: false,
                 loading: false,
                 error: '',
                 success: '',
                 countryCode: '+221', // Sénégal uniquement
-                passwordStrength: '',
-                passwordStrengthPercent: 0,
-                passwordStrengthText: '',
 
                 get fullPhone() {
                     return this.countryCode + this.formatPhoneNumber(this.phone);
@@ -180,33 +135,8 @@
                     return phoneDigits.length === 9 && phoneDigits.startsWith('7');
                 },
 
-                checkPasswordStrength() {
-                    const pwd = this.password;
-                    let strength = 0;
-
-                    if (pwd.length >= 6) strength += 1;
-                    if (pwd.length >= 8) strength += 1;
-                    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength += 1;
-                    if (/[0-9]/.test(pwd)) strength += 1;
-                    if (/[^a-zA-Z0-9]/.test(pwd)) strength += 1;
-
-                    if (strength <= 2) {
-                        this.passwordStrength = 'weak';
-                        this.passwordStrengthPercent = 33;
-                        this.passwordStrengthText = 'Faible';
-                    } else if (strength <= 3) {
-                        this.passwordStrength = 'medium';
-                        this.passwordStrengthPercent = 66;
-                        this.passwordStrengthText = 'Moyen';
-                    } else {
-                        this.passwordStrength = 'strong';
-                        this.passwordStrengthPercent = 100;
-                        this.passwordStrengthText = 'Fort';
-                    }
-                },
-
                 async register() {
-                    if (!this.name.trim() || !this.phone.trim() || !this.password.trim()) {
+                    if (!this.name.trim() || !this.phone.trim()) {
                         this.error = 'Veuillez remplir tous les champs.';
                         return;
                     }
@@ -214,18 +144,6 @@
                     // Valider le format du numéro
                     if (!this.isValidPhone()) {
                         this.error = 'Le numéro doit contenir 9 chiffres commençant par 7 (ex: 77 123 45 67).';
-                        return;
-                    }
-
-                    // Vérifier la longueur du mot de passe
-                    if (this.password.length < 6) {
-                        this.error = 'Le mot de passe doit contenir au moins 6 caractères.';
-                        return;
-                    }
-
-                    // Vérifier la confirmation
-                    if (this.password !== this.passwordConfirm) {
-                        this.error = 'Les mots de passe ne correspondent pas.';
                         return;
                     }
 
@@ -242,21 +160,19 @@
                             },
                             body: JSON.stringify({
                                 name: this.name,
-                                phone: this.fullPhone,
-                                password: this.password,
-                                password_confirmation: this.passwordConfirm
+                                phone: this.fullPhone
                             })
                         });
 
                         const data = await response.json();
 
                         if (response.ok && data.success) {
-                            this.success = 'Compte créé avec succès !';
+                            this.success = data.message || 'Compte créé avec succès !';
 
                             // Redirection après succès
                             setTimeout(() => {
-                                window.location.href = data.redirect || '/matches';
-                            }, 1000);
+                                window.location.href = data.redirect || '/mes-pronostics';
+                            }, 1500);
                         } else {
                             this.error = data.message || 'Erreur lors de l\'inscription.';
                         }

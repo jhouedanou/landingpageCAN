@@ -133,8 +133,23 @@ return [
     */
 
     'admin' => [
-        'username' => env('ADMIN_USERNAME', 'admin'),
-        'password' => env('ADMIN_PASSWORD', 'password'),
+        'username' => env('ADMIN_USERNAME'),
+        'password' => env('ADMIN_PASSWORD'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Soboa Credentials
+    |--------------------------------------------------------------------------
+    |
+    | Credentials for the Soboa panel login. Doivent être définis dans .env,
+    | aucune valeur par défaut n'est fournie pour éviter tout accès non autorisé.
+    |
+    */
+
+    'soboa' => [
+        'username' => env('SOBOA_USERNAME'),
+        'password' => env('SOBOA_PASSWORD'),
     ],
 
 ];

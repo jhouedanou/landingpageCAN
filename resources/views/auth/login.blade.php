@@ -5,7 +5,7 @@
             <!-- Logo et titre -->
             <div class="text-center mb-8">
                 <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 shadow-lg flex items-center justify-center">
-                    <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-16 h-16 object-contain">
+                    <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-16 h-16 object-contain">
                 </div>
                 <h1 class="text-3xl font-black text-soboa-blue">Connexion</h1>
                 <p class="text-gray-600 mt-2">Entrez vos identifiants</p>

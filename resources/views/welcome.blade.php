@@ -90,7 +90,7 @@
 
                 <div
                     class="w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-white rounded-full shadow-lg p-2">
-                    <img src="/images/logoGazelle.jpeg" alt="SOBOA" class="w-full h-full object-contain">
+                    <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-full h-full object-contain">
                 </div>
 
                 <h2 class="text-3xl font-black text-soboa-blue mb-2">Êtes-vous majeur ?</h2>
@@ -135,7 +135,7 @@
 
                 <!-- Icon -->
                 <div class="flex-shrink-0 bg-soboa-blue/10 p-3 rounded-xl">
-                    <img src="/images/logoGazelle.jpeg" alt="App Icon" class="w-12 h-12 object-contain">
+                    <img src="/images/logoSOBOA.png.webp" alt="App Icon" class="w-12 h-12 object-contain">
                 </div>
 
                 <!-- Text -->
@@ -251,7 +251,7 @@
                 <!-- Branding Badge -->
                 <div class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 border border-white/20 shadow-2xl">
                     <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 mb-2 shadow-inner overflow-hidden">
-                        <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
+                        <img src="/images/logoSOBOA.png.webp" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
                     </div>
                     <span class="text-white font-black text-xl tracking-tighter uppercase leading-none">GAZELLE</span>
                     <span class="text-soboa-orange font-bold text-xs tracking-[0.2em] uppercase mt-1 opacity-90">Le gout de notre victoire</span>
@@ -263,7 +263,7 @@
                 <!-- Branding Badge -->
                 <div class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 mb-8 border border-white/20 shadow-2xl">
                     <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3 mb-3 shadow-inner overflow-hidden">
-                        <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
+                        <img src="/images/logoSOBOA.png.webp" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
                     </div>
                     <span class="text-white font-black text-3xl md:text-4xl tracking-tighter uppercase leading-none animate-glow hero-title">GAZELLE</span>
                     <span class="text-soboa-orange font-bold text-sm md:text-base tracking-[0.3em] uppercase mt-2 opacity-90 animate-pulse-soft">Le gout de notre victoire</span>
@@ -300,7 +300,7 @@
             <div
                 class="inline-flex flex-col items-center bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 mb-8 border border-white/20 shadow-2xl animate-fade-in-down">
                 <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center p-3 mb-3 shadow-inner overflow-hidden">
-                    <img src="/images/logoGazelle.jpeg" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
+                    <img src="/images/logoSOBOA.png.webp" alt="GAZELLE" class="w-full h-full object-cover rounded-full">
                 </div>
                 <span
                     class="text-white font-black text-3xl md:text-4xl tracking-tighter uppercase leading-none animate-glow hero-title">GAZELLE</span>

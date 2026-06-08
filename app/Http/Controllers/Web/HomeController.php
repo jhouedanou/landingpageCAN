@@ -117,6 +117,7 @@ class HomeController extends Controller
         // Définir l'ordre et les noms des phases
         $phaseOrder = [
             'group_stage' => 'Phase de Poules',
+            'round_of_32' => '1/16e de Finale',
             'round_of_16' => '1/8e de Finale',
             'quarter_final' => 'Quarts de Finale',
             'semi_final' => 'Demi-Finales',

@@ -49,7 +49,7 @@
                             <label class="block text-sm font-bold text-gray-700 mb-2">Format attendu :</label>
                             <pre class="bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto text-gray-600">{
   "matchs_termines": [
-    {"date": "2025-12-21", "groupe": "A", "equipe_1": "Maroc", "score_1": 2, "equipe_2": "Comores", "score_2": 0},
+    {"date": "2026-06-11", "groupe": "A", "equipe_1": "Mexico", "score_1": 2, "equipe_2": "South Africa", "score_2": 0},
     ...
   ]
 }</pre>
@@ -179,7 +179,7 @@
                     $matchesByPhase = $matches->groupBy('phase');
 
                     // Ordre des phases
-                    $phaseOrder = ['group_stage', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
+                    $phaseOrder = ['group_stage', 'round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'third_place', 'final'];
 
                     // Noms des phases
                     $phaseNames = [
