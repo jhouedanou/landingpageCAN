@@ -36,12 +36,15 @@ export default {
           green: '#008000',
         },
         soboa: {
-          blue: '#003399', // Bleu foncé
-          'blue-dark': '#002266', // Bleu plus foncé
-          'blue-light': '#0044CC', // Bleu plus clair
-          orange: '#FFD700', // Gold/Yellow
-          'orange-light': '#FDE047', // Yellow-300
-          'orange-dark': '#EAB308', // Yellow-500
+          blue: '#0058A3',
+          'blue-dark': '#0054A1',
+          'blue-light': '#3478B5',
+          orange: '#F1862D',
+          'orange-secondary': '#F18327',
+          'orange-light': '#F4A05B',
+          white: '#FFFFFF',
+          cream: '#FEF7F1',
+          'text-dark': '#0B1F33',
         },
       },
       animation: {

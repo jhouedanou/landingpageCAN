@@ -62,6 +62,9 @@ Route::get('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin
 // Pronostics (requiert authentification)
 Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
 Route::get('/mes-pronostics', [PredictionController::class, 'myPredictions'])->name('predictions.index');
+Route::post('/predictions/{prediction}/like', [PredictionController::class, 'toggleLike'])->name('predictions.like');
+Route::post('/predictions/{prediction}/comments', [PredictionController::class, 'storeComment'])->name('predictions.comments.store');
+Route::delete('/predictions/{prediction}/comments/{comment}', [PredictionController::class, 'destroyComment'])->name('predictions.comments.destroy');
 
 // Check-in (requiert authentification)
 Route::post('/check-in', [HomeController::class, 'checkIn'])->name('check-in');
@@ -203,4 +206,21 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/sms', [AdminSmsController::class, 'index'])->name('sms');
     Route::post('/sms/send', [AdminSmsController::class, 'send'])->name('sms.send');
     Route::post('/sms/test', [AdminSmsController::class, 'sendTest'])->name('sms.test');
+
+    // Commentaires pronostics (modération)
+    Route::get('/prediction-comments', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'index'])->name('prediction-comments');
+    Route::delete('/prediction-comments/{comment}', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'destroy'])->name('prediction-comments.destroy');
+    Route::post('/prediction-comments/{comment}/moderate', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'moderate'])->name('prediction-comments.moderate');
+
+    // Animation SOBOA FOOT
+    Route::get('/soboa-foot', [\App\Http\Controllers\Admin\SoboaContentController::class, 'index'])->name('soboa-foot.index');
+    Route::get('/soboa-foot/create', [\App\Http\Controllers\Admin\SoboaContentController::class, 'create'])->name('soboa-foot.create');
+    Route::post('/soboa-foot', [\App\Http\Controllers\Admin\SoboaContentController::class, 'store'])->name('soboa-foot.store');
+    Route::get('/soboa-foot/{content}/edit', [\App\Http\Controllers\Admin\SoboaContentController::class, 'edit'])->name('soboa-foot.edit');
+    Route::put('/soboa-foot/{content}', [\App\Http\Controllers\Admin\SoboaContentController::class, 'update'])->name('soboa-foot.update');
+    Route::delete('/soboa-foot/{content}', [\App\Http\Controllers\Admin\SoboaContentController::class, 'destroy'])->name('soboa-foot.destroy');
+    Route::post('/soboa-foot/{content}/toggle', [\App\Http\Controllers\Admin\SoboaContentController::class, 'toggle'])->name('soboa-foot.toggle');
 });
+
+// Page publique Animation SOBOA FOOT
+Route::get('/soboa-foot', [\App\Http\Controllers\Web\HomeController::class, 'soboaFoot'])->name('soboa-foot');

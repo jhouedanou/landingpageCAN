@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Bar;
 use App\Models\MatchGame;
 use App\Models\Prediction;
+use App\Models\PredictionComment;
+use App\Models\PredictionLike;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\WhatsAppService;
@@ -228,6 +230,72 @@ class PredictionController extends Controller
         ]));
     }
 
+    public function toggleLike(Request $request, Prediction $prediction)
+    {
+        if (!session('user_id')) {
+            return response()->json(['message' => 'Non connecté'], 401);
+        }
+
+        $userId = session('user_id');
+        $existing = PredictionLike::where('user_id', $userId)
+            ->where('prediction_id', $prediction->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $liked = false;
+        } else {
+            PredictionLike::create(['user_id' => $userId, 'prediction_id' => $prediction->id]);
+            $liked = true;
+        }
+
+        return response()->json([
+            'liked' => $liked,
+            'count' => $prediction->likes()->count(),
+        ]);
+    }
+
+    public function storeComment(Request $request, Prediction $prediction)
+    {
+        if (!session('user_id')) {
+            return response()->json(['message' => 'Non connecté'], 401);
+        }
+
+        $request->validate(['body' => 'required|string|min:1|max:500']);
+
+        $comment = PredictionComment::create([
+            'user_id'       => session('user_id'),
+            'prediction_id' => $prediction->id,
+            'body'          => strip_tags($request->body),
+        ]);
+
+        return response()->json([
+            'id'         => $comment->id,
+            'body'       => $comment->body,
+            'user_name'  => User::find(session('user_id'))->name,
+            'created_at' => $comment->created_at->diffForHumans(),
+            'count'      => $prediction->comments()->count(),
+        ], 201);
+    }
+
+    public function destroyComment(Request $request, Prediction $prediction, PredictionComment $comment)
+    {
+        $userId = session('user_id');
+        $user = User::find($userId);
+
+        if (!$userId) {
+            return response()->json(['message' => 'Non connecté'], 401);
+        }
+
+        if ($comment->user_id !== $userId && !($user->is_admin ?? false)) {
+            return response()->json(['message' => 'Interdit'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json(['count' => $prediction->comments()->count()]);
+    }
+
     public function myPredictions()
     {
         if (!session('user_id')) {
@@ -237,8 +305,7 @@ class PredictionController extends Controller
         $userId = session('user_id');
         $user = User::find($userId);
 
-        // Récupérer toutes les prédictions avec leurs matchs
-        $allPredictions = Prediction::with('match')
+        $allPredictions = Prediction::with(['match', 'likes', 'comments.user'])
             ->where('user_id', $userId)
             ->get();
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Animation;
 use App\Models\Bar;
+use App\Models\SoboaContent;
 use App\Models\MatchGame;
 use App\Models\PointLog;
 use App\Models\Prediction;
@@ -582,5 +583,13 @@ class HomeController extends Controller
             'matches', 'matchesByDate', 'totalMatches', 'finishedMatches', 'upcomingMatches', 'matchesJson',
             'tab', 'groupedStandings', 'knockoutMatches'
         ));
+    }
+
+    public function soboaFoot()
+    {
+        $contents = SoboaContent::published()->get()->groupBy('type');
+        $allContents = SoboaContent::published()->get();
+
+        return view('soboa-foot', compact('contents', 'allContents'));
     }
 }

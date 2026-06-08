@@ -33,4 +33,24 @@ class Prediction extends Model
     {
         return $this->belongsTo(MatchGame::class, 'match_id');
     }
+
+    public function likes()
+    {
+        return $this->hasMany(PredictionLike::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(PredictionComment::class)->where('is_moderated', false)->orderBy('created_at');
+    }
+
+    public function allComments()
+    {
+        return $this->hasMany(PredictionComment::class)->orderBy('created_at');
+    }
+
+    public function isLikedBy(int $userId): bool
+    {
+        return $this->likes()->where('user_id', $userId)->exists();
+    }
 }

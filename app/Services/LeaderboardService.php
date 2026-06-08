@@ -318,8 +318,8 @@ class LeaderboardService
         // Déterminer si c'est une période hebdomadaire
         $isWeekly = str_starts_with($period, 'week_');
         
-        // Global = Top 20, Hebdomadaire = Top 15
-        $topLimit = $isWeekly ? 15 : 20;
+        // Global = Top 50, Hebdomadaire = Top 15
+        $topLimit = $isWeekly ? 15 : 50;
         $topUsers = $this->getTopN($period, $topLimit);
         
         $userPosition = $userId ? $this->getUserPosition($userId, $period) : null;
@@ -339,19 +339,21 @@ class LeaderboardService
 
         return [
             'top15' => $isWeekly ? $topUsers : array_slice($topUsers, 0, 15),
-            'top20' => !$isWeekly ? $topUsers : [],
-            'top5' => array_slice($topUsers, 0, 5), // Compatibilité
+            'top20' => !$isWeekly ? array_slice($topUsers, 0, 20) : [],
+            'top50' => !$isWeekly ? $topUsers : [],
+            'top5' => array_slice($topUsers, 0, 5),
             'user_position' => $userPosition,
             'user_in_top15' => $userInTop,
             'user_in_top20' => $userInTop,
-            'user_in_top5' => $userInTop, // Compatibilité
+            'user_in_top50' => $userInTop,
+            'user_in_top5' => $userInTop,
             'is_weekly' => $isWeekly,
             'top_limit' => $topLimit,
             'available_periods' => $availablePeriods,
             'current_period' => $currentPeriod,
             'selected_period' => $period,
-            'period_label' => $period === 'global' 
-                ? 'Classement Général' 
+            'period_label' => $period === 'global'
+                ? 'Classement Général'
                 : WeeklyRanking::getPeriodLabel($period),
         ];
     }

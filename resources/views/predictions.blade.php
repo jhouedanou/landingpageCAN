@@ -1,67 +1,50 @@
 <x-layouts.app title="Mes Pronostics">
     <style>
         @keyframes pulse-live {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-
-        .live-indicator {
-            animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
+        .live-indicator { animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes shimmer {
-            0% {
-                background-position: -1000px 0;
-            }
-
-            100% {
-                background-position: 1000px 0;
-            }
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
         }
-
         .live-card {
-            background: linear-gradient(90deg, #ffffff 0%, #fef3c7 50%, #ffffff 100%);
+            background: linear-gradient(90deg, #ffffff 0%, #FEF7F1 50%, #ffffff 100%);
             background-size: 2000px 100%;
             animation: shimmer 3s infinite linear;
         }
+        @keyframes like-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.35); }
+            100% { transform: scale(1); }
+        }
+        .like-pop { animation: like-pop 0.25s ease; }
     </style>
 
     <div class="space-y-6">
-        <div class="relative py-12 px-8 rounded-2xl overflow-hidden mb-8 shadow-2xl">
-            <!-- Background Image with Overlay -->
+        {{-- Hero --}}
+        <div class="relative py-12 px-8 rounded-2xl overflow-hidden mb-2 shadow-2xl">
             <div class="absolute inset-0 z-0">
-                <img src="/images/sen.webp" class="w-full h-full object-cover" alt="Background">
-                <div class="absolute inset-0 bg-black/60 backdrop-blur-[1px]"></div>
+                <img src="/images/sen.webp" class="w-full h-full object-cover" alt="">
+                <div class="absolute inset-0 bg-gradient-to-br from-soboa-blue-dark/80 via-soboa-blue/60 to-soboa-orange/20"></div>
             </div>
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 class="text-4xl font-black text-white drop-shadow-2xl">Mes Pronostics</h1>
-                    <p class="text-white/80 font-bold uppercase tracking-widest text-xs mt-1 drop-shadow-lg">Suivez vos
-                        performances en direct</p>
+                    <p class="text-white/70 font-bold uppercase tracking-widest text-xs mt-1">Suivez vos performances en direct</p>
                 </div>
                 @if(isset($user))
-                    <div
-                        class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-2 flex items-center gap-4 pr-8 self-start md:self-auto transition-transform hover:scale-105">
-                        <div
-                            class="bg-gradient-to-br from-soboa-orange to-yellow-500 w-14 h-14 rounded-2xl flex items-center justify-center text-black font-black text-2xl shadow-xl">
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-2 flex items-center gap-4 pr-8 self-start md:self-auto">
+                        <div class="bg-gradient-to-br from-soboa-orange to-soboa-orange-light w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl">
                             {{ substr($user->name, 0, 1) }}
                         </div>
-                        <div class="text-left">
-                            <p class="text-[10px] text-white/70 uppercase font-black tracking-widest mb-0.5 drop-shadow-sm">
-                                Joueur</p>
-                            <p class="font-black text-white leading-none text-lg md:text-xl drop-shadow-md">
-                                {{ $user->name }}</p>
+                        <div>
+                            <p class="text-[10px] text-white/70 uppercase font-black tracking-widest">Joueur</p>
+                            <p class="font-black text-white text-lg">{{ $user->name }}</p>
                         </div>
-                        <div class="ml-2 pl-6 border-l border-white/20 text-center min-w-[80px]">
-                            <span
-                                class="block font-black text-soboa-orange text-3xl leading-none drop-shadow-xl">{{ $user->points_total }}</span>
+                        <div class="ml-2 pl-6 border-l border-white/20 text-center">
+                            <span class="block font-black text-soboa-orange text-3xl leading-none">{{ $user->points_total }}</span>
                             <span class="text-[10px] text-white/70 font-black uppercase tracking-wider">pts</span>
                         </div>
                     </div>
@@ -70,7 +53,7 @@
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg" role="alert">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
                 <span class="font-medium">{{ session('success') }}</span>
             </div>
         @endif
@@ -80,13 +63,12 @@
                 <div class="flex items-start gap-3">
                     <div class="bg-soboa-blue/10 w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0">
                         <svg class="w-6 h-6 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                         </svg>
                     </div>
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1">
                         <p class="text-sm font-black text-gray-800">Votre mot de passe</p>
-                        <p class="text-xs text-gray-500 mb-3">Conservez-le pour vos prochaines connexions. Il vous a été envoyé une fois par SMS.</p>
+                        <p class="text-xs text-gray-500 mb-3">Conservez-le pour vos prochaines connexions.</p>
                         <div class="flex items-center gap-2">
                             <code class="px-4 py-2 bg-gray-100 rounded-lg font-mono text-lg tracking-wider text-gray-800 select-all"
                                 x-text="show ? @js($user->plain_password) : '••••••••'"></code>
@@ -103,202 +85,90 @@
             <div class="bg-white rounded-xl shadow p-8 text-center">
                 <div class="w-20 h-20 bg-soboa-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-10 h-10 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Aucun pronostic</h2>
                 <p class="text-gray-600 mb-4">Vous n'avez pas encore fait de pronostic.</p>
-                <a href="/matches"
-                    class="inline-block bg-soboa-orange hover:bg-orange-600 text-black font-bold py-3 px-6 rounded-lg shadow transition">
+                <a href="/matches" class="inline-block bg-soboa-orange hover:bg-soboa-orange-secondary text-white font-bold py-3 px-6 rounded-lg shadow transition">
                     Voir les matchs
                 </a>
             </div>
         @else
 
-            <!-- Matchs en cours (LIVE) -->
+            @php $currentUserId = session('user_id'); @endphp
+
+            {{-- LIVE --}}
             @if($livePredictions->count() > 0)
                 <div class="space-y-3">
                     <div class="flex items-center gap-3">
                         <h2 class="text-xl font-bold text-red-600">En cours</h2>
                         <span class="relative flex h-3 w-3">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                         </span>
-                        <span
-                            class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">{{ $livePredictions->count() }}</span>
+                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">{{ $livePredictions->count() }}</span>
                     </div>
-
                     <div class="grid gap-4">
                         @foreach($livePredictions as $prediction)
-                            <div
-                                class="live-card bg-white rounded-lg shadow-lg p-5 border-l-4 border-red-500 relative overflow-hidden">
-                                <div class="relative z-10">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div>
-                                            <span
-                                                class="text-xs text-gray-500">{{ $prediction->match->match_date->translatedFormat('l d F Y - H:i') }}</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span
-                                                class="live-indicator px-3 py-1 bg-red-600 text-white text-sm font-bold rounded-full flex items-center gap-1">
-                                                <span class="w-2 h-2 bg-white rounded-full"></span>
-                                                LIVE
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex-1 text-center">
-                                            <span class="font-bold text-gray-800">{{ $prediction->match->team_a }}</span>
-                                        </div>
-
-                                        <div class="px-4 text-center">
-                                            <div class="text-lg font-bold text-soboa-orange">
-                                                {{ $prediction->score_a }} - {{ $prediction->score_b }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">Votre pronostic</div>
-
-                                            @if($prediction->match->score_a !== null && $prediction->match->score_b !== null)
-                                                <div class="mt-2 pt-2 border-t">
-                                                    <div class="text-lg font-bold text-red-600">
-                                                        {{ $prediction->match->score_a }} - {{ $prediction->match->score_b }}
-                                                    </div>
-                                                    <div class="text-xs text-red-500 font-bold">Score actuel</div>
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <div class="flex-1 text-center">
-                                            <span class="font-bold text-gray-800">{{ $prediction->match->team_b }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('partials.prediction-card', ['prediction' => $prediction, 'borderClass' => 'border-red-500', 'cardClass' => 'live-card', 'badge' => '<span class="live-indicator px-3 py-1 bg-red-600 text-white text-sm font-bold rounded-full flex items-center gap-1"><span class="w-2 h-2 bg-white rounded-full"></span>LIVE</span>', 'showLive' => true])
                         @endforeach
                     </div>
                 </div>
             @endif
 
-            <!-- Matchs à venir -->
+            {{-- À venir --}}
             @if($scheduledPredictions->count() > 0)
                 <div class="space-y-3">
                     <div class="flex items-center gap-3">
                         <h2 class="text-xl font-bold text-soboa-blue">À venir</h2>
-                        <span
-                            class="px-2 py-1 bg-soboa-blue/10 text-soboa-blue text-xs font-bold rounded-full">{{ $scheduledPredictions->count() }}</span>
+                        <span class="px-2 py-1 bg-soboa-blue/10 text-soboa-blue text-xs font-bold rounded-full">{{ $scheduledPredictions->count() }}</span>
                     </div>
-
                     <div class="grid gap-4">
                         @foreach($scheduledPredictions as $prediction)
-                            <div class="bg-white rounded-lg shadow p-5 border-l-4 border-soboa-blue">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div>
-                                        <span
-                                            class="text-xs text-gray-500">{{ $prediction->match->match_date->translatedFormat('l d F Y - H:i') }}</span>
-                                    </div>
-                                    <span class="px-3 py-1 bg-soboa-blue/10 text-soboa-blue text-sm font-bold rounded-full">
-                                        En attente
-                                    </span>
-                                </div>
-
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1 text-center">
-                                        <span class="font-bold text-gray-800">{{ $prediction->match->team_a }}</span>
-                                    </div>
-
-                                    <div class="px-4 text-center">
-                                        <div class="text-lg font-bold text-soboa-orange">
-                                            {{ $prediction->score_a }} - {{ $prediction->score_b }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">Votre pronostic</div>
-                                    </div>
-
-                                    <div class="flex-1 text-center">
-                                        <span class="font-bold text-gray-800">{{ $prediction->match->team_b }}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('partials.prediction-card', ['prediction' => $prediction, 'borderClass' => 'border-soboa-blue', 'cardClass' => '', 'badge' => '<span class="px-3 py-1 bg-soboa-blue/10 text-soboa-blue text-sm font-bold rounded-full">En attente</span>', 'showLive' => false])
                         @endforeach
                     </div>
                 </div>
             @endif
 
-            <!-- Matchs terminés -->
+            {{-- Terminés --}}
             @if($finishedPredictions->count() > 0)
                 <div class="space-y-3">
                     <div class="flex items-center gap-3">
                         <h2 class="text-xl font-bold text-gray-700">Terminés</h2>
-                        <span
-                            class="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-bold rounded-full">{{ $finishedPredictions->count() }}</span>
+                        <span class="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-bold rounded-full">{{ $finishedPredictions->count() }}</span>
                     </div>
-
                     <div class="grid gap-4">
                         @foreach($finishedPredictions as $prediction)
-                            <div
-                                class="bg-white rounded-lg shadow p-5 border-l-4 {{ $prediction->points_earned > 0 ? 'border-green-500' : 'border-gray-300' }}">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div>
-                                        <span
-                                            class="text-xs text-gray-500">{{ $prediction->match->match_date->translatedFormat('l d F Y - H:i') }}</span>
-                                    </div>
-                                    @if($prediction->points_earned > 0)
-                                        <span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
-                                            +{{ $prediction->points_earned }} pts
-                                        </span>
-                                    @else
-                                        <span class="px-3 py-1 bg-gray-200 text-gray-600 text-sm font-bold rounded-full">
-                                            0 pts
-                                        </span>
-                                    @endif
-                                </div>
-
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1 text-center">
-                                        <span class="font-bold text-gray-800">{{ $prediction->match->team_a }}</span>
-                                    </div>
-
-                                    <div class="px-4 text-center">
-                                        <div class="text-lg font-bold text-soboa-orange">
-                                            {{ $prediction->score_a }} - {{ $prediction->score_b }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">Votre pronostic</div>
-
-                                        <div class="mt-2 pt-2 border-t">
-                                            <div class="text-lg font-bold text-gray-800">
-                                                {{ $prediction->match->score_a }} - {{ $prediction->match->score_b }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">Score final</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex-1 text-center">
-                                        <span class="font-bold text-gray-800">{{ $prediction->match->team_b }}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            @php
+                                $pts = $prediction->points_earned ?? 0;
+                                $borderClass = $pts > 0 ? 'border-green-500' : 'border-gray-300';
+                                $badge = $pts > 0
+                                    ? '<span class="px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">+' . $pts . ' pts</span>'
+                                    : '<span class="px-3 py-1 bg-gray-200 text-gray-600 text-sm font-bold rounded-full">0 pts</span>';
+                            @endphp
+                            @include('partials.prediction-card', ['prediction' => $prediction, 'borderClass' => $borderClass, 'cardClass' => '', 'badge' => $badge, 'showLive' => false])
                         @endforeach
                     </div>
                 </div>
             @endif
 
-            <!-- Statistiques -->
-            <div class="bg-white rounded-xl shadow p-6">
+            {{-- Statistiques --}}
+            <div class="bg-white rounded-xl shadow p-6 border border-gray-100">
                 <h2 class="text-lg font-bold text-soboa-blue mb-4">Statistiques</h2>
                 <div class="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                        <div class="text-2xl font-bold text-soboa-blue">{{ $totalPredictions }}</div>
-                        <div class="text-sm text-gray-500">Pronostics</div>
+                    <div class="p-3 bg-soboa-blue/5 rounded-xl">
+                        <div class="text-2xl font-black text-soboa-blue">{{ $totalPredictions }}</div>
+                        <div class="text-xs text-gray-500 font-medium mt-1">Pronostics</div>
                     </div>
-                    <div>
-                        <div class="text-2xl font-bold text-green-600">{{ $successfulPredictions }}</div>
-                        <div class="text-sm text-gray-500">Réussis</div>
+                    <div class="p-3 bg-green-50 rounded-xl">
+                        <div class="text-2xl font-black text-green-600">{{ $successfulPredictions }}</div>
+                        <div class="text-xs text-gray-500 font-medium mt-1">Réussis</div>
                     </div>
-                    <div>
-                        <div class="text-2xl font-bold text-soboa-orange">{{ $totalPointsEarned }}</div>
-                        <div class="text-sm text-gray-500">Points gagnés</div>
+                    <div class="p-3 bg-soboa-orange/10 rounded-xl">
+                        <div class="text-2xl font-black text-soboa-orange">{{ $totalPointsEarned }}</div>
+                        <div class="text-xs text-gray-500 font-medium mt-1">Points gagnés</div>
                     </div>
                 </div>
             </div>

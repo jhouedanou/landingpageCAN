@@ -390,6 +390,11 @@
                     </a>
                     <a href="/leaderboard"
                         class="px-4 py-2 text-black/80 hover:text-black hover:bg-soboa-blue/10 rounded-lg font-semibold text-sm transition-all">Classement</a>
+                    <a href="{{ route('soboa-foot') }}"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-1.5 bg-soboa-orange/20 text-soboa-blue hover:bg-soboa-orange/40">
+                        <span>⚽</span>
+                        <span class="font-black">SOBOA FOOT</span>
+                    </a>
                 </div>
 
                 <!-- User Actions -->
@@ -466,6 +471,11 @@
                     class="block px-4 py-3 text-black hover:bg-soboa-orange/20 rounded-lg font-semibold transition-colors flex items-center gap-2">
                     <span>🎉</span>
                     <span class="text-soboa-blue font-bold">Animations</span>
+                </a>
+                <a href="{{ route('soboa-foot') }}"
+                    class="flex px-4 py-3 bg-soboa-orange/20 text-soboa-blue hover:bg-soboa-orange/40 rounded-lg font-black transition-colors items-center gap-2">
+                    <span>⚽</span>
+                    <span>SOBOA FOOT</span>
                 </a>
                 <a href="/leaderboard"
                     class="block px-4 py-3 text-black hover:bg-soboa-blue/10 rounded-lg font-semibold transition-colors">

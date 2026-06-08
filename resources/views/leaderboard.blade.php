@@ -46,12 +46,12 @@
             </div>
         </div>
         @elseif($selected_period === 'global')
-        <div class="bg-gradient-to-r from-soboa-blue to-blue-700 rounded-xl shadow-lg p-4 text-white">
+        <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark rounded-xl shadow-lg p-4 text-white">
             <div class="flex items-center gap-3">
                 <span class="text-3xl">🏆</span>
                 <div>
-                    <p class="font-bold">Classement National - Top 20</p>
-                    <p class="text-sm text-white/90">Les meilleurs pronostiqueurs depuis le début de la compétition</p>
+                    <p class="font-bold">Classement National — Top 50</p>
+                    <p class="text-sm text-white/80">Les 50 meilleurs pronostiqueurs depuis le début de la compétition</p>
                 </div>
             </div>
         </div>
@@ -59,9 +59,9 @@
 
         @php
             $isWeekly = str_starts_with($selected_period, 'week_');
-            $topData = $isWeekly ? $top15 : $top20;
-            $topLimit = $isWeekly ? 15 : 20;
-            $topLabel = $isWeekly ? 'TOP 15 Hebdomadaire' : 'TOP 20 National';
+            $topData = $isWeekly ? $top15 : ($top50 ?? $top20 ?? []);
+            $topLimit = $isWeekly ? 15 : 50;
+            $topLabel = $isWeekly ? 'TOP 15 Hebdomadaire' : 'TOP 50 National';
         @endphp
 
         <!-- Classement principal -->
@@ -165,65 +165,87 @@
             @endif
         </div>
 
-        <!-- Position personnelle de l'utilisateur -->
+        {{-- Position personnelle --}}
         @if($user_position)
             @php
-                $userInTop = $isWeekly 
-                    ? ($user_position['rank'] <= 15) 
-                    : ($user_position['rank'] <= 20);
-                $topThreshold = $isWeekly ? 15 : 20;
-                $topLabel2 = $isWeekly ? 'TOP 15' : 'TOP 20';
+                $topThreshold = $isWeekly ? 15 : 50;
+                $userInTopDisplay = $user_position['rank'] <= $topThreshold;
+                $topLabel2 = $isWeekly ? 'TOP 15' : 'TOP 50';
+                $pointsToNext = $userInTopDisplay ? null : null;
             @endphp
-            <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue/90 rounded-xl shadow-lg p-6 text-white">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <span>📍</span> Votre position
-                </h3>
-                
-                <div class="bg-white/10 rounded-xl p-4 backdrop-blur">
-                    <div class="flex items-center justify-between">
+
+            @if(!$userInTopDisplay)
+                {{-- Bloc "hors top" valorisant --}}
+                <div class="relative overflow-hidden rounded-2xl shadow-lg border-2 border-soboa-orange/40">
+                    <div class="absolute inset-0 bg-gradient-to-br from-soboa-blue via-soboa-blue-dark to-soboa-text-dark opacity-95"></div>
+                    <div class="relative z-10 p-6">
+                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                            <div class="flex items-center gap-4">
+                                <div class="relative">
+                                    <div class="w-16 h-16 rounded-full bg-soboa-orange flex items-center justify-center text-2xl font-black text-white shadow-lg">
+                                        {{ $user_position['rank'] }}
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-soboa-cream rounded-full flex items-center justify-center text-xs">📍</div>
+                                </div>
+                                <div>
+                                    <p class="text-soboa-cream/70 text-xs font-bold uppercase tracking-widest mb-0.5">Votre position</p>
+                                    <p class="text-white font-black text-xl leading-none">{{ $user_position['rank'] }}<span class="text-soboa-cream/50 text-sm">e</span> place</p>
+                                    <p class="text-soboa-orange font-black text-2xl mt-1">{{ $user_position['points'] }} pts</p>
+                                    <p class="text-white/50 text-xs mt-0.5">sur {{ $user_position['total_users'] ?? '—' }} participants</p>
+                                </div>
+                            </div>
+                            <div class="bg-soboa-orange/20 border border-soboa-orange/40 rounded-xl p-4 text-center min-w-[140px]">
+                                <p class="text-soboa-orange-light text-xs font-bold uppercase tracking-wider mb-1">Pour atteindre le Top 50</p>
+                                <p class="text-white/70 text-xs">Continuez à pronostiquer chaque jour</p>
+                                <a href="{{ route('matches') }}" class="mt-3 inline-block bg-soboa-orange hover:bg-soboa-orange-secondary text-white text-xs font-black px-4 py-2 rounded-lg transition">
+                                    Pronostiquer →
+                                </a>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/10 grid grid-cols-3 gap-3 text-center">
+                            <div class="bg-white/5 rounded-xl p-3">
+                                <p class="text-soboa-orange font-black text-lg">+1</p>
+                                <p class="text-white/50 text-[10px] uppercase tracking-wide">par connexion/jour</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3">
+                                <p class="text-soboa-orange font-black text-lg">+4</p>
+                                <p class="text-white/50 text-[10px] uppercase tracking-wide">en point partenaire</p>
+                            </div>
+                            <div class="bg-white/5 rounded-xl p-3">
+                                <p class="text-soboa-orange font-black text-lg">+6</p>
+                                <p class="text-white/50 text-[10px] uppercase tracking-wide">score exact</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                {{-- Dans le top --}}
+                <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark rounded-2xl shadow-lg p-6 text-white">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span>📍</span> Votre position
+                    </h3>
+                    <div class="bg-white/10 rounded-xl p-4 backdrop-blur">
                         <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 rounded-full bg-soboa-orange flex items-center justify-center text-2xl font-bold text-black">
+                            <div class="w-16 h-16 rounded-full bg-soboa-orange flex items-center justify-center text-2xl font-black text-white shadow-xl">
                                 #{{ $user_position['rank'] }}
                             </div>
                             <div>
-                                <div class="text-xl font-bold">{{ $user_position['points'] }} points</div>
-                                <div class="text-white/70 text-sm">
-                                    @if($userInTop)
-                                        🎉 Vous êtes dans le {{ $topLabel2 }} !
-                                        @if($isWeekly)
-                                            <span class="text-green-300 font-bold text-soboa-orange">- Gagnant</span>
-                                            <p class="text-green-300">                                        sur <span class="font-bold text-soboa-orange">{{ $user_position['total_users'] }} </span> participants</p>
-                                        @endif
-                                    @else
-                                        sur {{ $user_position['total_users'] }} participants
-                                    @endif
+                                <div class="text-xl font-black">{{ $user_position['points'] }} points</div>
+                                <div class="text-soboa-orange font-bold text-sm mt-0.5">
+                                    🎉 Vous êtes dans le {{ $topLabel2 }} !
+                                    @if($isWeekly)<span class="text-green-300 ml-1">— Gagnant</span>@endif
                                 </div>
+                                <div class="text-white/50 text-xs mt-0.5">sur {{ $user_position['total_users'] ?? '—' }} participants</div>
                             </div>
                         </div>
-                        
-                        @if(!$userInTop && $user_position['rank'] <= ($topThreshold + 5))
-                            <div class="text-right">
-                                <div class="text-soboa-orange font-bold">Presque !</div>
-                                <div class="text-white/70 text-xs">Plus que {{ $user_position['rank'] - $topThreshold }} place(s)</div>
-                            </div>
-                        @endif
                     </div>
                 </div>
-
-                @if(!$userInTop)
-                    <div class="mt-4 text-center">
-                        <p class="text-white/80 text-sm">
-                            💡 Continuez à pronostiquer et visitez les lieux partenaires pour gagner des points !
-                        </p>
-                    </div>
-                @endif
-            </div>
+            @endif
         @else
-            <!-- Message pour les utilisateurs non connectés -->
             <div class="bg-gray-100 rounded-xl p-6 text-center">
                 <span class="text-4xl mb-2 block">🔒</span>
                 <p class="text-gray-600 mb-4">Connectez-vous pour voir votre position dans le classement</p>
-                <a href="/login" class="inline-block bg-soboa-orange text-black font-bold px-6 py-3 rounded-full hover:bg-soboa-orange/90 transition">
+                <a href="{{ route('login') }}" class="inline-block bg-soboa-orange text-white font-bold px-6 py-3 rounded-full hover:bg-soboa-orange-secondary transition">
                     Se connecter
                 </a>
             </div>
