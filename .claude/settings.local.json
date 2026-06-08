@@ -47,7 +47,9 @@
       "Bash(MSYS_NO_PATHCONV=1 docker exec landingpagecan-laravel.test-1 sh -c 'cd /app && php artisan view:clear >/dev/null 2>&1')",
       "Bash(xargs grep *)",
       "Bash(curl -s -o /dev/null -w \"Calendar: %{http_code}\\\\n\" http://localhost/calendar)",
-      "Bash(curl -s http://localhost/calendar)"
+      "Bash(curl -s http://localhost/calendar)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec landingpagecan-laravel.test-1 sh -c 'cd /app && php -l app/Console/Commands/ResetSeason.php && echo \"---RUN---\" && php artisan season:reset --force 2>&1 | tail -25')",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec landingpagecan-laravel.test-1 sh -c 'cd /app && php artisan season:reset --force 2>&1 | tail -22')"
     ]
   }
 }
