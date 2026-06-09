@@ -1,4 +1,5 @@
 <x-layouts.app title="Pronostics">
+<x-skeleton-screen type="matches" :cards="6" />
 <div x-data="matchesPage()" x-init="init()" class="space-y-6">
 
     {{-- ========== HEADER ========== --}}

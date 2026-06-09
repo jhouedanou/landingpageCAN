@@ -6,7 +6,7 @@
             <div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                        <span class="text-4xl"></span> Pronostics
+                        <span class="text-4xl">🎯</span> Pronostics
                     </h1>
                     <p class="text-gray-600 mt-2">Consultez tous les pronostics des utilisateurs</p>
                 </div>
@@ -29,7 +29,7 @@
                             <p class="text-blue-100 text-sm font-medium mb-1">Total Pronostics</p>
                             <p class="text-4xl font-black">{{ $totalPredictions }}</p>
                         </div>
-                        <div class="text-5xl opacity-20"></div>
+                        <div class="text-5xl opacity-20">🎯</div>
                     </div>
                 </div>
 
@@ -39,7 +39,7 @@
                             <p class="text-orange-100 text-sm font-medium mb-1">Points Totaux</p>
                             <p class="text-4xl font-black">{{ number_format($totalPointsAwarded) }}</p>
                         </div>
-                        <div class="text-5xl opacity-20"></div>
+                        <div class="text-5xl opacity-20">🎯</div>
                     </div>
                 </div>
 
@@ -49,7 +49,7 @@
                             <p class="text-green-100 text-sm font-medium mb-1">Moyenne pts/pari</p>
                             <p class="text-4xl font-black">{{ $avgPointsPerPrediction }}</p>
                         </div>
-                        <div class="text-5xl opacity-20"></div>
+                        <div class="text-5xl opacity-20">🎯</div>
                     </div>
                 </div>
 
@@ -59,7 +59,7 @@
                             <p class="text-purple-100 text-sm font-medium mb-1">Matchs Terminés</p>
                             <p class="text-4xl font-black">{{ $finishedPredictions }}</p>
                         </div>
-                        <div class="text-5xl opacity-20"></div>
+                        <div class="text-5xl opacity-20">🎯</div>
                     </div>
                 </div>
             </div>
@@ -135,7 +135,7 @@
                         </button>
                         <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer les pronostics sélectionnés ?')"
                                 class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                            Supprimer les pronostics sélectionnés
+                            🗑️ Supprimer les pronostics sélectionnés
                         </button>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                             <th class="text-center p-4 font-bold text-gray-700">Score Réel</th>
                             <th class="text-center p-4 font-bold text-gray-700">
                                 <span class="flex items-center justify-center gap-1">
-                                    Points
+                                    ⭐ Points
                                 </span>
                             </th>
                             <th class="text-center p-4 font-bold text-gray-700">Date</th>
@@ -241,7 +241,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1.5 rounded-lg text-sm transition-colors">
-                                        
+                                        🗑️
                                     </button>
                                 </form>
                             </td>
@@ -250,7 +250,7 @@
                         <tr>
                             <td colspan="8" class="p-12 text-center">
                                 <div class="text-gray-400">
-                                    <div class="text-6xl mb-4"></div>
+                                    <div class="text-6xl mb-4">🎯</div>
                                     <p class="text-xl font-bold text-gray-600">Aucun pronostic trouvé</p>
                                     <p class="text-sm text-gray-500 mt-2">
                                         @if($status === 'upcoming')

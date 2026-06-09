@@ -62,7 +62,7 @@
     <div class="bg-gray-100 px-3 py-2 flex justify-center gap-2">
         <a href="{{ route('admin.edit-match', $match->id) }}" 
            class="text-xs bg-soboa-orange hover:bg-soboa-orange/80 text-black font-bold px-3 py-1 rounded transition">
-            Modifier
+            ✏️ Modifier
         </a>
     </div>
 </div>

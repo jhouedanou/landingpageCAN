@@ -6,13 +6,13 @@
             <div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                        <span class="text-4xl"></span> Matrice Matchs / Points de Vente
+                        <span class="text-4xl">📊</span> Matrice Matchs / Points de Vente
                     </h1>
                     <p class="text-gray-600 mt-2">Vue croisée des matchs et des points de vente</p>
                 </div>
                 <div class="flex gap-3">
                     <a href="{{ route('admin.match-venue-matrix-export-csv', request()->query()) }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
-                        Exporter CSV
+                        📥 Exporter CSV
                     </a>
                     <a href="{{ route('admin.dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">
                         ← Retour
@@ -103,12 +103,12 @@
 
             @if($matches->isEmpty())
                 <div class="bg-white rounded-xl shadow-lg p-8 text-center">
-                    <span class="text-6xl mb-4 block"></span>
+                    <span class="text-6xl mb-4 block">🔍</span>
                     <p class="text-xl font-bold text-gray-500">Aucun match trouvé avec ces filtres</p>
                 </div>
             @elseif($bars->isEmpty())
                 <div class="bg-white rounded-xl shadow-lg p-8 text-center">
-                    <span class="text-6xl mb-4 block"></span>
+                    <span class="text-6xl mb-4 block">🔍</span>
                     <p class="text-xl font-bold text-gray-500">Aucun point de vente actif trouvé</p>
                 </div>
             @else
@@ -198,7 +198,7 @@
                     <h3 class="font-bold text-gray-700 mb-3">Légende</h3>
                     <div class="flex gap-6">
                         <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold"></span>
+                            <span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</span>
                             <span class="text-sm text-gray-600">Match assigné à ce PDV</span>
                         </div>
                         <div class="flex items-center gap-2">

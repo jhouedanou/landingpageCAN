@@ -69,10 +69,14 @@
 
                     <div>
                         <label class="block text-gray-700 font-bold mb-2">Groupe (pour phase de poules uniquement)</label>
+                        @php $currentGroup = old('group_name', $match->group_name); @endphp
                         <select name="group_name" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
                             <option value="">Sélectionner un groupe...</option>
+                            @if($currentGroup && !in_array($currentGroup, $groups))
+                            <option value="{{ $currentGroup }}" selected>{{ $currentGroup }} (valeur actuelle)</option>
+                            @endif
                             @foreach($groups as $group)
-                            <option value="{{ $group }}" {{ old('group_name', $match->group_name) == $group ? 'selected' : '' }}>
+                            <option value="{{ $group }}" {{ $currentGroup == $group ? 'selected' : '' }}>
                                 Groupe {{ $group }}
                             </option>
                             @endforeach
@@ -82,10 +86,14 @@
 
                     <div>
                         <label class="block text-gray-700 font-bold mb-2">Stade</label>
+                        @php $currentStadium = old('stadium', $match->stadium); @endphp
                         <select name="stadium" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-soboa-blue focus:border-soboa-blue">
                             <option value="">Sélectionner un stade...</option>
+                            @if($currentStadium && !$stadiums->contains('name', $currentStadium))
+                            <option value="{{ $currentStadium }}" selected>{{ $currentStadium }} (valeur actuelle)</option>
+                            @endif
                             @foreach($stadiums as $stadium)
-                            <option value="{{ $stadium->name }}" {{ old('stadium', $match->stadium) == $stadium->name ? 'selected' : '' }}>
+                            <option value="{{ $stadium->name }}" {{ $currentStadium == $stadium->name ? 'selected' : '' }}>
                                 {{ $stadium->name }} - {{ $stadium->city }}
                             </option>
                             @endforeach
@@ -114,7 +122,7 @@
                     <div class="border-2 border-indigo-200 rounded-xl p-6 bg-indigo-50">
                         <div class="flex items-center justify-between mb-4">
                             <label class="block text-gray-800 font-bold text-lg">
-                                Points de Vente Assignés
+                                📍 Points de Vente Assignés
                             </label>
                             <span class="text-sm text-indigo-600 font-medium">
                                 {{ count($assignedBarIds) }} PDV sélectionné(s)
@@ -213,13 +221,13 @@
                             </label>
                             <p class="text-sm text-gray-600 ml-8 mt-1">
                                 Si coché, aucun point ne sera attribué pour le score exact (car c'est une égalité)<br>
-                                Les TAB ne sont disponibles que pour les phases à élimination directe
+                                💡 Les TAB ne sont disponibles que pour les phases à élimination directe
                             </p>
                         </div>
 
                         <div id="penaltyWinnerSection" class="mt-4" style="display: none;">
                             <label class="block text-sm font-bold text-gray-700 mb-3">
-                                Vainqueur aux tirs au but *
+                                🏆 Vainqueur aux tirs au but *
                             </label>
                             <div class="grid grid-cols-2 gap-4">
                                 <label class="flex items-center justify-center gap-2 p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-yellow-100 has-[:checked]:border-yellow-600 has-[:checked]:bg-yellow-100">
@@ -240,7 +248,7 @@
                                 </label>
                             </div>
                             <p class="text-xs text-gray-600 mt-3">
-                                Les utilisateurs qui ont prédit le bon vainqueur aux TAB recevront +3 pts
+                                💡 Les utilisateurs qui ont prédit le bon vainqueur aux TAB recevront +3 pts
                             </p>
                         </div>
                     </div>
@@ -259,7 +267,7 @@
                     <!-- Warning -->
                     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                         <p class="text-yellow-800 text-sm">
-                            <strong>Important :</strong> Lorsque vous passez un match en "Terminé" avec un score, le calcul des points sera automatiquement déclenché pour tous les pronostics.
+                            ⚠️ <strong>Important :</strong> Lorsque vous passez un match en "Terminé" avec un score, le calcul des points sera automatiquement déclenché pour tous les pronostics.
                         </p>
                     </div>
 

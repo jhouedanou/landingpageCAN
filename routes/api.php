@@ -11,14 +11,16 @@ use App\Http\Controllers\Api\GeolocationController;
 use App\Http\Controllers\Api\VenueController;
 use App\Http\Controllers\Api\DailyRewardController;
 
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
 // Routes de géolocalisation (accessibles sans authentification pour vérifier la position)
-Route::post('/geolocation/check', [GeolocationController::class, 'checkLocation']);
-Route::post('/geolocation/venues', [GeolocationController::class, 'getNearbyVenues']);
+Route::middleware('throttle:60,1')->group(function () {
+    Route::post('/geolocation/check', [GeolocationController::class, 'checkLocation']);
+    Route::post('/geolocation/venues', [GeolocationController::class, 'getNearbyVenues']);
 
-// Sélection de point de vente
-Route::post('/venue/select', [VenueController::class, 'select']);
+    // Sélection de point de vente
+    Route::post('/venue/select', [VenueController::class, 'select']);
+});
 
 // Récupérer les matchs pour une venue
 Route::get('/matches', [MatchController::class, 'index']);

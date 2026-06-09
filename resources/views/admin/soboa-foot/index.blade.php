@@ -5,7 +5,7 @@
             <div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                        <span class="text-4xl"></span> Animation SOBOA FOOT
+                        <span class="text-4xl">🏟️</span> Animation SOBOA FOOT
                     </h1>
                     <p class="text-gray-600 mt-1">Gérez les contenus du volet Animation SOBOA FOOT</p>
                 </div>

@@ -8,14 +8,14 @@
                     ← Retour au dashboard
                 </a>
                 <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                    <span class="text-4xl"></span> Paramètres du Site
+                    <span class="text-4xl">⚙️</span> Paramètres du Site
                 </h1>
                 <p class="text-gray-600 mt-2">Configurez l'apparence et les informations générales du site</p>
             </div>
 
             @if(session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-                {{ session('success') }}
+                ✅ {{ session('success') }}
             </div>
             @endif
 
@@ -35,7 +35,7 @@
                 <!-- Paramètres Généraux -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span></span> Informations Générales
+                        <span>🌐</span> Informations Générales
                     </h2>
 
                     <div class="space-y-4">
@@ -97,7 +97,7 @@
                 <!-- Paramètres de Couleur -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span></span> Couleurs du Thème
+                        <span>🎨</span> Couleurs du Thème
                     </h2>
 
                     <div class="grid md:grid-cols-2 gap-6">
@@ -147,7 +147,7 @@
                 <!-- Équipe Favorite -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span></span> Équipe à Mettre en Avant
+                        <span>⭐</span> Équipe à Mettre en Avant
                     </h2>
 
                     <div>
@@ -181,7 +181,7 @@
                 <!-- Paramètres de Géolocalisation -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span></span> Géolocalisation
+                        <span>📍</span> Géolocalisation
                     </h2>
 
                     <div>
@@ -199,7 +199,7 @@
                 <!-- Info Box -->
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mb-6">
                     <div class="flex items-start gap-3">
-                        <div class="text-2xl"></div>
+                        <div class="text-2xl">💡</div>
                         <div>
                             <h3 class="font-bold text-blue-900 mb-2">Informations</h3>
                             <ul class="text-sm text-blue-800 space-y-1">
@@ -213,7 +213,7 @@
 
                 <div class="flex justify-end">
                     <button type="submit" class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold py-3 px-8 rounded-lg transition shadow-lg hover:scale-105">
-                        Enregistrer les paramètres
+                        💾 Enregistrer les paramètres
                     </button>
                 </div>
             </form>
@@ -221,7 +221,7 @@
             <!-- Gestion du Tournoi (Séparé du formulaire principal) -->
             <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-2 border-soboa-orange">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <span></span> Gestion du Tournoi
+                    <span>🏆</span> Gestion du Tournoi
                 </h2>
 
                 <!-- Statut du tournoi -->
@@ -277,7 +277,7 @@
                 <!-- Équipe gagnante -->
                 <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <h3 class="font-bold text-yellow-800 mb-3 flex items-center gap-2">
-                        <span></span> Équipe Gagnante du Tournoi
+                        <span>👑</span> Équipe Gagnante du Tournoi
                     </h3>
                     <p class="text-sm text-yellow-700 mb-4">
                         Sélectionnez l'équipe qui a remporté le tournoi. Un message de félicitations avec des confettis sera affiché sur la page d'accueil.
@@ -286,7 +286,7 @@
                     @if($settings->tournamentWinner)
                         <div class="mb-4 p-4 bg-gradient-to-r from-yellow-100 via-white to-yellow-100 rounded-lg border-2 border-yellow-400">
                             <p class="text-center">
-                                <span class="text-4xl"></span>
+                                <span class="text-4xl">🎉🏆🎉</span>
                             </p>
                             <p class="text-center text-xl font-black text-yellow-800 mt-2">
                                 {{ $settings->tournamentWinner->name }}
@@ -316,7 +316,7 @@
                         </div>
                         <button type="submit"
                                 class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-lg transition shadow-lg hover:scale-105">
-                            Définir le gagnant
+                            🏆 Définir le gagnant
                         </button>
                     </form>
                 </div>

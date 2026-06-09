@@ -8,7 +8,7 @@
                     ← Retour aux matchs
                 </a>
                 <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                    <span class="text-4xl"></span> Nouveau Match
+                    <span class="text-4xl">⚽</span> Nouveau Match
                 </h1>
             </div>
 

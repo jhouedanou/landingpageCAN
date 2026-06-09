@@ -60,13 +60,21 @@ Route::post('/admin/login', [AdminAuthController::class, 'login'])
 Route::get('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
 // Pronostics (requiert authentification)
-Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
+Route::post('/predictions', [PredictionController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('predictions.store');
 Route::get('/mes-pronostics', [PredictionController::class, 'myPredictions'])->name('predictions.index');
 Route::get('/matches/{match}/wall', [PredictionController::class, 'matchWall'])->name('matches.wall');
-Route::post('/matches/{match}/wall', [PredictionController::class, 'storeMatchComment'])->name('matches.wall.store');
+Route::post('/matches/{match}/wall', [PredictionController::class, 'storeMatchComment'])
+    ->middleware('throttle:20,1') // anti-spam : 20 commentaires/min
+    ->name('matches.wall.store');
 Route::delete('/matches/{match}/wall/{comment}', [PredictionController::class, 'destroyMatchComment'])->name('matches.wall.destroy');
-Route::post('/predictions/{prediction}/like', [PredictionController::class, 'toggleLike'])->name('predictions.like');
-Route::post('/predictions/{prediction}/comments', [PredictionController::class, 'storeComment'])->name('predictions.comments.store');
+Route::post('/predictions/{prediction}/like', [PredictionController::class, 'toggleLike'])
+    ->middleware('throttle:60,1')
+    ->name('predictions.like');
+Route::post('/predictions/{prediction}/comments', [PredictionController::class, 'storeComment'])
+    ->middleware('throttle:20,1')
+    ->name('predictions.comments.store');
 Route::delete('/predictions/{prediction}/comments/{comment}', [PredictionController::class, 'destroyComment'])->name('predictions.comments.destroy');
 
 // Check-in (requiert authentification)

@@ -8,7 +8,7 @@
                     ← Retour aux utilisateurs
                 </a>
                 <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                    <span class="text-4xl"></span> Modifier Utilisateur
+                    <span class="text-4xl">👤</span> Modifier Utilisateur
                 </h1>
             </div>
 
@@ -29,7 +29,7 @@
                 <div>
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         <h2 class="text-xl font-bold text-soboa-blue mb-4 flex items-center gap-2">
-                            Informations
+                            ✏️ Informations
                         </h2>
                         
                         <form action="{{ route('admin.update-user', $user->id) }}" method="POST">
@@ -71,11 +71,11 @@
                                         <button type="button" 
                                                 onclick="resetUserPoints({{ $user->id }})"
                                                 class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition whitespace-nowrap text-sm">
-                                            Reset
+                                            🔄 Reset
                                         </button>
                                     </div>
                                     <p class="text-xs text-gray-500 mt-2">
-                                        "Reset" mettra les points à zéro et supprimera l'historique
+                                        💡 "Reset" mettra les points à zéro et supprimera l'historique
                                     </p>
                                 </div>
 
@@ -92,7 +92,7 @@
                                     <button type="button" 
                                             onclick="deleteUser({{ $user->id }})"
                                             class="text-red-600 hover:underline font-bold text-sm">
-                                        Supprimer
+                                        🗑️ Supprimer
                                     </button>
                                     <div class="flex gap-3">
                                         <a href="{{ route('admin.users') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition text-sm">
@@ -128,7 +128,7 @@
 
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-xl font-bold text-soboa-blue flex items-center gap-2">
-                                Historique des Points
+                                📊 Historique des Points
                             </h2>
                             <div class="flex items-center gap-2">
                                 <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">{{ $pointLogs->count() }} actions</span>
@@ -208,7 +208,7 @@
                                                 @if($log->match)
                                                     {{ $log->match->home_name_fr ?? '?' }} vs {{ $log->match->away_name_fr ?? '?' }}
                                                 @elseif($log->bar)
-                                                    {{ $log->bar->name }}
+                                                    📍 {{ $log->bar->name }}
                                                 @else
                                                     -
                                                 @endif
@@ -225,7 +225,7 @@
                             </div>
                         @else
                             <div class="text-center py-12 text-gray-500">
-                                <div class="text-5xl mb-3"></div>
+                                <div class="text-5xl mb-3">📭</div>
                                 <p class="font-medium">Aucun historique de points</p>
                                 <p class="text-sm">Cet utilisateur n'a pas encore gagné de points</p>
                             </div>
@@ -251,7 +251,7 @@
 
             const btn = event.target;
             const originalText = btn.innerHTML;
-            btn.innerHTML = '...';
+            btn.innerHTML = '⏳...';
             btn.disabled = true;
 
             fetch(`/admin/users/${userId}/reset-points`, {

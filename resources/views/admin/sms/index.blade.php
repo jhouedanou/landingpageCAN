@@ -6,7 +6,7 @@
             <div class="mb-8 flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-black text-soboa-blue flex items-center gap-3">
-                        <span class="text-4xl"></span> Envoi de SMS
+                        <span class="text-4xl">📱</span> Envoi de SMS
                     </h1>
                     <p class="text-gray-600 mt-2">Envoyez des SMS aux utilisateurs de l'application</p>
                 </div>
@@ -146,19 +146,19 @@
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" @click="useTemplate('match')"
                                     class="px-3 py-1 text-sm bg-soboa-blue text-white rounded-full hover:opacity-80">
-                                    Match
+                                    🏆 Match
                                 </button>
                                 <button type="button" @click="useTemplate('promo')"
                                     class="px-3 py-1 text-sm bg-soboa-orange text-white rounded-full hover:opacity-80">
-                                    Promotion
+                                    🎁 Promotion
                                 </button>
                                 <button type="button" @click="useTemplate('reminder')"
                                     class="px-3 py-1 text-sm bg-green-600 text-white rounded-full hover:opacity-80">
-                                    Rappel
+                                    ⏰ Rappel
                                 </button>
                                 <button type="button" @click="useTemplate('winner')"
                                     class="px-3 py-1 text-sm bg-yellow-500 text-gray-800 rounded-full hover:opacity-80">
-                                    Gagnant
+                                    🎉 Gagnant
                                 </button>
                             </div>
                         </div>
@@ -167,11 +167,11 @@
                         <div class="flex justify-end gap-3">
                             <button type="button" @click="showTestModal = true"
                                 class="px-6 py-3 bg-gray-500 text-white font-bold rounded-xl hover:bg-gray-600 transition">
-                                Test
+                                📤 Test
                             </button>
                             <button type="submit"
                                 class="px-6 py-3 bg-soboa-blue text-white font-bold rounded-xl hover:opacity-90 transition">
-                                Envoyer les SMS
+                                📱 Envoyer les SMS
                             </button>
                         </div>
                     </form>

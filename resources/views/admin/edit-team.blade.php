@@ -56,7 +56,7 @@
                             <button type="button" 
                                     onclick="deleteTeam()"
                                     class="text-red-600 hover:underline font-bold">
-                                Supprimer
+                                🗑️ Supprimer
                             </button>
                             <div class="flex gap-4">
                                 <a href="{{ route('admin.teams') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition">

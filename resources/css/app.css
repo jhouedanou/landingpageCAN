@@ -591,3 +591,18 @@ img.img-loading { color: transparent; }
 @media (prefers-reduced-motion: reduce) {
     .skeleton, .img-loading { animation: none; }
 }
+
+/* Overlay skeleton plein écran (pages lourdes) — masqué une fois la page chargée */
+.page-skeleton {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: #f8fafc;
+    overflow-y: auto;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+.page-skeleton.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}

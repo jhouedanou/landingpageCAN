@@ -47,7 +47,7 @@
                                    {{ $mediaItem->type === 'photo' ? 'checked' : '' }}
                                    class="w-5 h-5 text-blue-600" 
                                    onchange="toggleVideoFields(this.value)">
-                            <span class="text-2xl"></span>
+                            <span class="text-2xl">📸</span>
                             <span class="font-medium">Photo (Highlight)</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer p-3 border-2 rounded-xl hover:border-purple-300 transition has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50">
@@ -55,7 +55,7 @@
                                    {{ $mediaItem->type === 'video' ? 'checked' : '' }}
                                    class="w-5 h-5 text-purple-600"
                                    onchange="toggleVideoFields(this.value)">
-                            <span class="text-2xl"></span>
+                            <span class="text-2xl">🎥</span>
                             <span class="font-medium">Vidéo</span>
                         </label>
                     </div>
@@ -182,7 +182,7 @@
                 <div class="flex gap-4 pt-6 border-t">
                     <button type="submit" 
                             class="flex-1 bg-soboa-orange hover:bg-soboa-orange/90 text-black font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
-                        Enregistrer les modifications
+                        ✅ Enregistrer les modifications
                     </button>
                     <a href="{{ route('admin.media') }}" 
                        class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-4 px-6 rounded-xl transition text-lg">
@@ -200,7 +200,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition">
-                        Supprimer ce média
+                        🗑️ Supprimer ce média
                     </button>
                 </form>
             </div>

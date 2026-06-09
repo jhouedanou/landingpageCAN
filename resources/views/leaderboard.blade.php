@@ -1,4 +1,5 @@
 <x-layouts.app title="Classement">
+    <x-skeleton-screen type="list" :cards="8" />
     <div class="space-y-6">
         <!-- Header -->
         <div class="relative py-8 px-6 rounded-2xl overflow-hidden mb-6 shadow-2xl text-center">

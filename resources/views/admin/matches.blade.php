@@ -99,7 +99,7 @@
                 <form method="GET" action="{{ route('admin.matches') }}" class="flex gap-4 items-end">
                     <div class="flex-1">
                         <label for="search" class="block text-sm font-bold text-gray-700 mb-2">
-                            Rechercher un match
+                            🔍 Rechercher un match
                         </label>
                         <input
                             type="text"
@@ -169,7 +169,7 @@
                         </button>
                         <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer les matchs sélectionnés et leurs pronostics associés ?')"
                                 class="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                            Supprimer les matchs sélectionnés
+                            🗑️ Supprimer les matchs sélectionnés
                         </button>
                     </div>
                 </div>
@@ -271,7 +271,7 @@
                                                                     </select>
                                                                     <img id="flag-away-{{ $match->id }}" src="{{ $match->awayTeam?->flag_url ?? '' }}" alt="" loading="lazy" class="w-5 h-3 rounded shadow" onerror="this.style.display='none'">
                                                                 </div>
-                                                                <span id="save-indicator-{{ $match->id }}" class="hidden text-green-500 text-xs ml-1"></span>
+                                                                <span id="save-indicator-{{ $match->id }}" class="hidden text-green-500 text-xs ml-1">✓</span>
                                                             </div>
                                                         </td>
                                                             </div>
@@ -294,7 +294,7 @@
                                                         </td>
                                                         <td class="px-4 py-3 text-center">
                                                             <button type="button" onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded text-xs transition-colors">
-                                                                <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span>
+                                                                📍 <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span>
                                                             </button>
                                                         </td>
                                                         <td class="px-4 py-3 text-right">
@@ -397,7 +397,7 @@
                                                             </select>
                                                             <img id="flag-away-ko-{{ $match->id }}" src="{{ $match->awayTeam?->flag_url ?? '' }}" alt="" loading="lazy" class="w-6 h-4 rounded shadow" onerror="this.style.display='none'">
                                                         </div>
-                                                        <span id="save-indicator-ko-{{ $match->id }}" class="hidden text-green-500 text-sm ml-1"></span>
+                                                        <span id="save-indicator-ko-{{ $match->id }}" class="hidden text-green-500 text-sm ml-1">✓</span>
                                                     </div>
                                                 </td>
                                                 <td class="px-4 py-4 text-center">
@@ -418,7 +418,7 @@
                                                 </td>
                                                 <td class="px-4 py-4 text-center">
                                                     <button type="button" onclick="openVenueModal({{ $match->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors">
-                                                        <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span> PDV
+                                                        📍 <span class="venue-count-{{ $match->id }}">{{ $match->animations->count() }}</span> PDV
                                                     </button>
                                                 </td>
                                                 <td class="px-4 py-4 text-right">
@@ -426,23 +426,23 @@
                                                         <a href="{{ route('admin.match-predictions', $match->id) }}"
                                                            class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors"
                                                            title="Voir les pronostics"><svg class="w-4 h-4 inline-block align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                            Pronostics
+                                                            📊 Pronostics
                                                         </a>
                                                         <a href="{{ route('admin.edit-match', $match->id) }}"
                                                            class="bg-soboa-orange hover:bg-soboa-orange/90 text-black font-bold px-3 py-1.5 rounded text-sm transition-colors"
                                                            title="Modifier"><svg class="w-4 h-4 inline-block align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                            Modifier
+                                                            ✏️ Modifier
                                                         </a>
                                                         <button type="button" onclick="duplicateMatch({{ $match->id }})"
                                                                 class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors"
                                                                 title="Dupliquer ce match">
-                                                            Dupliquer
+                                                            📋 Dupliquer
                                                         </button>
                                                         @if($match->status === 'finished')
                                                         <button type="button" onclick="calculatePoints({{ $match->id }})"
                                                                 class="bg-soboa-blue hover:bg-soboa-blue/90 text-white font-bold px-3 py-1.5 rounded text-sm transition-colors"
                                                                 title="Recalculer les points">
-                                                            Recalculer
+                                                            🔄 Recalculer
                                                         </button>
                                                         @endif
                                                         <button type="button" onclick="deleteMatch({{ $match->id }})"
