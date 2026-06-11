@@ -28,6 +28,7 @@ class User extends Authenticatable
         'otp_expires_at',
         'phone_verified',
         'firebase_uid',
+        'remember_token',
     ];
 
     protected $casts = [
