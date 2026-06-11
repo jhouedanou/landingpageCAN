@@ -15,25 +15,50 @@
             </div>
         </div>
 
-        {{-- Classement unique sur toute la compétition : pas de sélecteur de
-             période, pas de remise à zéro. Le cumul court du premier au
-             dernier match. --}}
-        <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark rounded-xl shadow-lg p-4 text-white">
-            <div class="flex items-center gap-3">
-                <i data-lucide="trophy" class="w-7 h-7 text-soboa-orange flex-shrink-0"></i>
-                <div>
-                    <p class="font-bold">Classement National — Top 50</p>
-                    <p class="text-sm text-white/80">Les 50 meilleurs pronostiqueurs sur toute la compétition</p>
-                </div>
-            </div>
-        </div>
-
         @php
             $isWeekly = str_starts_with($selected_period, 'week_');
             $topData = $isWeekly ? $top15 : ($top50 ?? $top20 ?? []);
             $topLimit = $isWeekly ? 15 : 50;
             $topLabel = $isWeekly ? 'TOP 15 Hebdomadaire' : 'TOP 50 National';
+            $weekCfg = $isWeekly ? (\App\Models\WeeklyRanking::PERIODS[$selected_period] ?? null) : null;
         @endphp
+
+        {{-- Sélecteur de période : Général (cumul Top 50) + semaines en cours/passées (Top 15) --}}
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('leaderboard') }}"
+               class="px-4 py-2 rounded-full text-sm font-bold transition {{ $selected_period === 'global' ? 'bg-soboa-blue text-white shadow' : 'bg-white text-soboa-blue border border-soboa-blue/20 hover:bg-soboa-blue/5' }}">
+                Général
+            </a>
+            @foreach($available_periods as $pKey => $pCfg)
+                @if($pKey !== 'semifinal')
+                    <a href="{{ route('leaderboard', ['period' => $pKey]) }}"
+                       class="px-4 py-2 rounded-full text-sm font-bold transition {{ $selected_period === $pKey ? 'bg-soboa-orange text-white shadow' : 'bg-white text-soboa-blue border border-soboa-blue/20 hover:bg-soboa-blue/5' }}">
+                        {{ $pCfg['label'] }}
+                    </a>
+                @endif
+            @endforeach
+        </div>
+
+        {{-- Bandeau récapitulatif --}}
+        <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-dark rounded-xl shadow-lg p-4 text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="trophy" class="w-7 h-7 text-soboa-orange flex-shrink-0"></i>
+                <div>
+                    @if($isWeekly)
+                        <p class="font-bold">{{ $period_label }} — Top 15</p>
+                        <p class="text-sm text-white/80">
+                            Les 15 meilleurs de la semaine
+                            @if($weekCfg)
+                                ({{ \Carbon\Carbon::parse($weekCfg['start'])->locale('fr')->isoFormat('D MMM') }} – {{ \Carbon\Carbon::parse($weekCfg['end'])->locale('fr')->isoFormat('D MMM') }})
+                            @endif
+                        </p>
+                    @else
+                        <p class="font-bold">Classement National — Top 50</p>
+                        <p class="text-sm text-white/80">Les 50 meilleurs pronostiqueurs sur toute la compétition</p>
+                    @endif
+                </div>
+            </div>
+        </div>
 
         <!-- Classement principal -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
@@ -45,7 +70,7 @@
                     @if($isWeekly)
                         Points gagnés cette semaine
                     @else
-                        Classement général depuis le 21 décembre 2025
+                        Classement général sur toute la compétition
                     @endif
                 </p>
             </div>

@@ -190,15 +190,19 @@ class HomeController extends Controller
     {
         $leaderboardService = app(\App\Services\LeaderboardService::class);
 
-        // Classement unique sur toute la compétition : pas de segmentation
-        // par semaine, pas de remise à zéro. Le paramètre ?period est ignoré.
-        $period = 'global';
-        
+        // Classement général (Top 50 sur toute la compétition) + classements
+        // hebdomadaires (Top 15). Le paramètre ?period sélectionne la semaine.
+        $allowedPeriods = array_merge(['global'], array_keys(\App\Models\WeeklyRanking::PERIODS));
+        $period = $request->get('period', 'global');
+        if (!in_array($period, $allowedPeriods, true)) {
+            $period = 'global';
+        }
+
         // Forcer rafraîchissement du cache si demandé
         if ($request->has('refresh')) {
-            \Illuminate\Support\Facades\Cache::forget("leaderboard_top15_{$period}");
-            \Illuminate\Support\Facades\Cache::forget("leaderboard_top5_{$period}");
-            \Illuminate\Support\Facades\Cache::forget("leaderboard_top20_{$period}");
+            foreach ([5, 15, 20, 50] as $n) {
+                \Illuminate\Support\Facades\Cache::forget("leaderboard_top{$n}_{$period}");
+            }
         }
         
         // Le classement n'est dévoilé qu'une fois le premier match terminé.
