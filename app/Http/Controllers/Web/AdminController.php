@@ -1046,9 +1046,31 @@ class AdminController extends Controller
 
         // Configuration Google Analytics (ID + rapport Looker Studio intégré)
         $gaPropertyId = config('services.google_analytics.id');
-        $gaEmbedUrl = config('services.google_analytics.embed_url');
+        $gaEmbedUrl = $this->normalizeLookerEmbedUrl(config('services.google_analytics.embed_url'));
 
         return view('admin.analytics', compact('gaPropertyId', 'gaEmbedUrl', 'isAdmin', 'isSoboa'));
+    }
+
+    /**
+     * Accepte n'importe quelle URL de rapport Looker Studio / Data Studio
+     * (lien de consultation ou d'intégration) et renvoie la forme embed,
+     * seule acceptée en iframe (X-Frame-Options + CSP).
+     */
+    private function normalizeLookerEmbedUrl(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        // Ancien domaine → nouveau
+        $url = str_replace('datastudio.google.com', 'lookerstudio.google.com', $url);
+
+        // Lien de consultation → lien d'intégration
+        if (!str_contains($url, '/embed/')) {
+            $url = str_replace('/reporting/', '/embed/reporting/', $url);
+        }
+
+        return $url;
     }
 
     /**
