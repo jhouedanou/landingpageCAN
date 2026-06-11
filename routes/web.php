@@ -180,6 +180,7 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/matches/{id}/predictions', [AdminController::class, 'matchPredictions'])->name('match-predictions');
     Route::delete('/predictions/{id}', [AdminController::class, 'deletePrediction'])->name('delete-prediction');
     Route::post('/predictions/bulk-delete', [AdminController::class, 'bulkDeletePredictions'])->name('bulk-delete-predictions');
+    Route::post('/predictions/reset-all', [AdminController::class, 'resetAllPredictions'])->name('reset-all-predictions');
     Route::get('/predictions/bulk-delete', function() {
         return redirect()->route('admin.predictions')->with('error', 'Action invalide. Utilisez le formulaire pour supprimer des pronostics.');
     });
@@ -228,6 +229,8 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/prediction-comments', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'index'])->name('prediction-comments');
     Route::delete('/prediction-comments/{comment}', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'destroy'])->name('prediction-comments.destroy');
     Route::post('/prediction-comments/{comment}/moderate', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'moderate'])->name('prediction-comments.moderate');
+    Route::delete('/match-comments/{comment}', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'destroyMatchComment'])->name('match-comments.destroy');
+    Route::post('/match-comments/{comment}/moderate', [\App\Http\Controllers\Admin\PredictionCommentController::class, 'moderateMatchComment'])->name('match-comments.moderate');
 
     // Animation SOBOA FOOT
     Route::get('/soboa-foot', [\App\Http\Controllers\Admin\SoboaContentController::class, 'index'])->name('soboa-foot.index');

@@ -72,7 +72,16 @@
       "Bash(php -l app/Services/TournamentService.php)",
       "Bash(php -l app/Observers/MatchObserver.php)",
       "Bash(MSYS_NO_PATHCONV=1 docker compose exec -T laravel.test php /app/test_bracket_propagation.php)",
-      "Bash(php -l config/game.php)"
+      "Bash(php -l config/game.php)",
+      "PowerShell(php -l app\\\\Http\\\\Controllers\\\\Web\\\\AdminController.php)",
+      "PowerShell(php -l app\\\\Services\\\\PointsService.php)",
+      "PowerShell(php -l app\\\\Http\\\\Controllers\\\\Web\\\\PredictionController.php)",
+      "PowerShell(php artisan route:list --name=reset-all 2>$null)",
+      "PowerShell(php -l app\\\\Http\\\\Controllers\\\\Web\\\\HomeController.php)",
+      "PowerShell(php -l app\\\\Http\\\\Controllers\\\\Admin\\\\PredictionCommentController.php)",
+      "PowerShell(php artisan view:clear)",
+      "PowerShell(php artisan view:cache 2>&1)",
+      "PowerShell(php artisan route:list --name=match-comments 2>$null)"
     ]
   }
 }

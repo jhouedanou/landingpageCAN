@@ -57,21 +57,24 @@ class PointsService
     }
 
     /**
-     * Sources qui comptent toutes pour le SEUL bonus venue de +4/jour.
-     * RÈGLE MÉTIER : les 4 points "visite lieu partenaire" exigent un check-in
-     * + un pronostic (attribués via awardPredictionVenuePoints). Le plafond est
-     * partagé entre les deux sources historiques pour interdire tout cumul +8.
+     * Sources qui comptent toutes pour le bonus venue de +4.
+     * RÈGLE MÉTIER 2026 : +4 points PAR point de vente visité et par jour
+     * (check-in vérifié sur place). Un utilisateur qui visite plusieurs PDV
+     * dans la journée cumule un bonus par PDV ; le plafond est par couple
+     * (utilisateur, PDV, jour), partagé entre les deux sources historiques
+     * pour interdire un double +4 dans le même PDV.
      */
     private const VENUE_BONUS_SOURCES = ['venue_visit', 'bar_visit'];
 
     /**
-     * Indique si l'utilisateur a déjà reçu son bonus venue (+4) aujourd'hui,
-     * quelle que soit la source historique.
+     * Indique si l'utilisateur a déjà reçu son bonus venue (+4) aujourd'hui
+     * pour CE point de vente, quelle que soit la source historique.
      */
-    private function hasVenueBonusToday(User $user): bool
+    private function hasVenueBonusToday(User $user, ?int $barId = null): bool
     {
         return PointLog::where('user_id', $user->id)
             ->whereIn('source', self::VENUE_BONUS_SOURCES)
+            ->when($barId, fn ($q) => $q->where('bar_id', $barId))
             ->whereDate('created_at', Carbon::today())
             ->exists();
     }
@@ -79,12 +82,11 @@ class PointsService
     /**
      * Award points for bar visit (geofencing).
      *
-     * DÉPRÉCIÉ pour l'attribution directe : la règle métier exige check-in
-     * + pronostic (voir awardPredictionVenuePoints). Conservé pour l'API
-     * historique, mais partage le même plafond quotidien de +4.
+     * +4 points par PDV visité et par jour : attribués dès le check-in
+     * vérifié sur place. Visiter plusieurs PDV le même jour cumule les bonus.
      *
      * @param int|null $barId The ID of the bar visited
-     * @return int Points awarded (0 if already awarded today)
+     * @return int Points awarded (0 if already awarded today for this bar)
      */
     public function awardBarVisitPoints(User $user, ?int $barId = null): int
     {
@@ -93,7 +95,7 @@ class PointsService
             return 0;
         }
 
-        if (!$this->hasVenueBonusToday($user)) {
+        if (!$this->hasVenueBonusToday($user, $barId)) {
              DB::transaction(function () use ($user, $barId) {
                 $user->increment('points_total', 4);
                 PointLog::create([
@@ -111,11 +113,13 @@ class PointsService
 
     /**
      * Award points for prediction made in a venue (geofencing).
-     * Limit 1x/day. User gets 4 points ONLY if the match is actually being shown at this venue.
+     * Limit 1x/day PER venue. Every active venue qualifies, with or without an
+     * animation scheduled for the match (règle 2026 : tous les PDV donnent les
+     * +4 points, cumulables entre PDV différents le même jour).
      *
      * @param int $matchId The ID of the match being predicted
      * @param int|null $barId The ID of the bar where prediction was made
-     * @return int Points awarded (0 if already awarded today or match not at this venue)
+     * @return int Points awarded (0 if already awarded today for this bar)
      */
     public function awardPredictionVenuePoints(User $user, int $matchId, ?int $barId = null): int
     {
@@ -128,19 +132,13 @@ class PointsService
             return 0;
         }
 
-        // Vérifier que le match a bien lieu dans ce bar (via table animations)
-        $matchAtVenue = \App\Models\Animation::where('match_id', $matchId)
-            ->where('bar_id', $barId)
-            ->where('is_active', true)
-            ->exists();
+        // Tous les PDV actifs donnent droit au bonus, qu'une animation soit
+        // programmée ou non pour ce match (décision marketing : ne plus exiger
+        // d'entrée dans la table animations).
 
-        if (!$matchAtVenue) {
-            // Le match n'a pas lieu dans ce bar, pas de bonus
-            return 0;
-        }
-
-        // Plafond quotidien partagé avec bar_visit : max +4/jour toutes sources venue.
-        if (!$this->hasVenueBonusToday($user)) {
+        // Plafond par (utilisateur, PDV, jour), partagé avec bar_visit :
+        // pas de double +4 dans le même PDV, mais cumul possible entre PDV différents.
+        if (!$this->hasVenueBonusToday($user, $barId)) {
             DB::transaction(function () use ($user, $barId, $matchId) {
                 $user->increment('points_total', 4);
                 PointLog::create([

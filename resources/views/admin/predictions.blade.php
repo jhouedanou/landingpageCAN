@@ -10,10 +10,31 @@
                     </h1>
                     <p class="text-gray-600 mt-2">Consultez tous les pronostics des utilisateurs</p>
                 </div>
-                <a href="{{ route('admin.dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">
-                    ← Retour
-                </a>
+                <div class="flex items-center gap-3">
+                    <form action="{{ route('admin.reset-all-predictions') }}" method="POST"
+                          onsubmit="return promptResetAllPredictions(this);">
+                        @csrf
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                            🗑️ Reset tous les pronostics
+                        </button>
+                    </form>
+                    <a href="{{ route('admin.dashboard') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">
+                        ← Retour
+                    </a>
+                </div>
             </div>
+
+            <script>
+                function promptResetAllPredictions() {
+                    const answer = prompt(
+                        "⚠️ ATTENTION : cette action supprime TOUS les pronostics de TOUS les utilisateurs, " +
+                        "ainsi que les points gagnés via les pronostics (participation, bonus, bonus PDV). " +
+                        "Les points des utilisateurs seront recalculés.\n\n" +
+                        "Tapez RESET pour confirmer :"
+                    );
+                    return answer === 'RESET';
+                }
+            </script>
 
             @if(session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">

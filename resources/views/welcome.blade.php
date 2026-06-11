@@ -610,13 +610,27 @@
                     <span class="text-soboa-orange font-bold text-sm uppercase tracking-widest">Qui sera le meilleur ?</span>
                     <h2 class="text-3xl md:text-4xl font-black text-white mt-2">Classement</h2>
                 </div>
+                @if($competitionStarted ?? true)
                 <a href="/leaderboard"
                     class="text-white font-bold hover:text-soboa-orange mt-4 md:mt-0 inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-soboa-orange rounded-sm transition-colors">
                     Classement complet
                     <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </a>
+                @endif
             </div>
 
+            @if(!($competitionStarted ?? true))
+            {{-- Classement masqué tant que le premier match n'est pas terminé.
+                 Les points s'accumulent déjà côté serveur. --}}
+            <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-10 text-center border border-white/10">
+                <div class="text-5xl mb-4">🔒</div>
+                <h3 class="font-black text-white text-2xl mb-2">Classement dévoilé après le premier match</h3>
+                <p class="text-white/70 max-w-xl mx-auto">
+                    Pronostiquez dès maintenant : vos points s'accumulent déjà !
+                    Le classement s'affichera dès la fin du premier match de la compétition.
+                </p>
+            </div>
+            @else
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 @forelse($topUsers as $index => $user)
                     <div
@@ -638,6 +652,7 @@
                     </div>
                 @endforelse
             </div>
+            @endif
         </div>
     </section>
 

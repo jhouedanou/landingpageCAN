@@ -130,6 +130,14 @@
                     <span class="text-3xl">📸</span>
                     <span class="font-bold text-sm text-center">Médias</span>
                 </a>
+                <a href="{{ route('admin.soboa-foot.index') }}" class="bg-orange-600 hover:bg-orange-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">📰</span>
+                    <span class="font-bold text-sm text-center">SOBOA FOOT (Blog)</span>
+                </a>
+                <a href="{{ route('admin.prediction-comments') }}" class="bg-sky-600 hover:bg-sky-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">💬</span>
+                    <span class="font-bold text-sm text-center">Modération Commentaires</span>
+                </a>
                 <a href="{{ route('admin.analytics') }}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">📈</span>
                     <span class="font-bold text-sm text-center">Analytics</span>

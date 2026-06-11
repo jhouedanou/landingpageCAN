@@ -9,7 +9,7 @@
                 Jeu de pronostics SOBOA FOOT TIME<br>
                 <span class="text-sm">
                     Dernière mise à jour :
-                    {{ ($siteSettings->terms_updated_at ?? null) ? $siteSettings->terms_updated_at->translatedFormat('F Y') : 'Janvier 2026' }}
+                    {{ ($siteSettings->terms_updated_at ?? null) ? $siteSettings->terms_updated_at->translatedFormat('F Y') : 'Juin 2026' }}
                 </span>
             </p>
 
@@ -86,7 +86,7 @@
                     <h2 class="text-xl font-bold text-soboa-blue mb-3">Article 4 - Lots et récompenses</h2>
                     <div class="space-y-3">
                         <p><strong>4.1 Dotation :</strong> Les participants les mieux classés pourront recevoir des lots 
-                        offerts par SOBOA (produits, goodies, invitations à des événements, etc.).</p>
+                        offerts par SOBOA (produits, goodies, etc.).</p>
                         
                         <p><strong>4.2 Attribution :</strong> Les lots seront attribués à la fin du tournoi selon le classement final.</p>
                         
@@ -154,7 +154,7 @@
                 <section>
                     <h2 class="text-xl font-bold text-soboa-blue mb-3">Article 9 - Litiges</h2>
                     <p class="leading-relaxed">
-                        Tout litige relatif au Jeu sera soumis au droit senegalais. Les tribunaux de Dakar seront 
+                        Tout litige relatif au Jeu sera soumis au droit sénégalais. Les tribunaux de Dakar seront
                         seuls compétents pour connaître de tout litige.
                     </p>
                 </section>

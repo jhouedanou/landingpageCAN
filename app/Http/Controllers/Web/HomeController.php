@@ -101,7 +101,12 @@ class HomeController extends Controller
         // indépendant des matchs test ajoutés avant le coup d'envoi.
         $worldCupStart = \Carbon\Carbon::parse(config('game.world_cup_start', '2026-06-11 19:00:00'));
 
-        return view('welcome', compact('upcomingMatches', 'nextMatch', 'topUsers', 'venueCount', 'selectedVenue', 'siteSettings', 'worldCupStart', 'predictionTrends'));
+        // Le classement (scores des joueurs) n'est dévoilé qu'une fois le
+        // premier match de la compétition terminé. Avant ça, les utilisateurs
+        // accumulent des points en pronostiquant, mais rien n'est affiché.
+        $competitionStarted = MatchGame::where('status', 'finished')->exists();
+
+        return view('welcome', compact('upcomingMatches', 'nextMatch', 'topUsers', 'venueCount', 'selectedVenue', 'siteSettings', 'worldCupStart', 'predictionTrends', 'competitionStarted'));
     }
 
     public function venues()
@@ -196,12 +201,17 @@ class HomeController extends Controller
             \Illuminate\Support\Facades\Cache::forget("leaderboard_top20_{$period}");
         }
         
+        // Le classement n'est dévoilé qu'une fois le premier match terminé.
+        if (!MatchGame::where('status', 'finished')->exists()) {
+            return view('leaderboard-locked');
+        }
+
         // Récupérer l'ID de l'utilisateur connecté
         $userId = session('user_id');
-        
+
         // Récupérer les données du leaderboard
         $leaderboardData = $leaderboardService->getLeaderboardData($userId, $period);
-        
+
         return view('leaderboard', $leaderboardData);
     }
 
@@ -388,9 +398,9 @@ class HomeController extends Controller
         }
 
         if ($foundBar) {
-            // IMPORTANT: Les points ne sont PAS attribués ici lors du check-in depuis la map
-            // Les 4 points de visite seront attribués UNIQUEMENT lors de la soumission d'un pronostic
-            // via PredictionController::store() -> awardPredictionVenuePoints()
+            // RÈGLE 2026 : +4 points attribués dès le check-in vérifié sur place,
+            // pour CHAQUE point de vente visité (plafond 1x/jour par PDV).
+            $pointsAwarded = $pointsService->awardBarVisitPoints($user, $foundBar->id);
 
             // Stocker le check-in vérifié en session (mêmes clés que /api/venue/select) :
             // le bonus venue au pronostic exige un check-in du jour pour ce point de vente.
@@ -402,12 +412,16 @@ class HomeController extends Controller
                 'user_longitude' => (float) $userLng,
             ]);
 
-            $message = "Lieu confirmé : {$foundBar->name} ! Vous pouvez maintenant faire vos pronostics.";
+            $user->refresh();
+
+            $message = $pointsAwarded > 0
+                ? "Lieu confirmé : {$foundBar->name} ! +{$pointsAwarded} points 🎉 Vous pouvez maintenant faire vos pronostics."
+                : "Lieu confirmé : {$foundBar->name} ! Vous pouvez maintenant faire vos pronostics.";
 
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'points_awarded' => 0, // Pas de points lors du simple check-in
+                'points_awarded' => $pointsAwarded,
                 'total_points' => $user->points_total,
                 'bar_name' => $foundBar->name,
                 'bar_id' => $foundBar->id

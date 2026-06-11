@@ -240,9 +240,11 @@ class PredictionController extends Controller
         // Award the +1 participation point immediately (idempotent per match)
         $this->pointsService->awardPredictionParticipationPoints($user, $match->id);
 
-        // Award bonus points ONLY if the match is being shown at this venue
+        // +4 venue : tout PDV actif y donne droit (avec ou sans animation),
+        // mais uniquement si la présence sur place a été vérifiée (check-in
+        // du jour + proximité GPS revalidée côté serveur).
         $venuePointsAwarded = 0;
-        if ($venue) {
+        if ($venue && $venueVerified) {
             $venuePointsAwarded = $this->pointsService->awardPredictionVenuePoints($user, $match->id, $venue->id);
         }
 

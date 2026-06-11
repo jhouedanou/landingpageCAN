@@ -2413,6 +2413,41 @@ class AdminController extends Controller
     }
 
     /**
+     * Reset ALL predictions (global).
+     *
+     * Deletes every prediction, removes the point logs that came from
+     * predictions (participation, winner, exact, venue bonus) and recomputes
+     * each user's points_total from the remaining logs so the leaderboard
+     * stays coherent.
+     */
+    public function resetAllPredictions()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $predictionsCount = Prediction::count();
+
+        \DB::transaction(function () use (&$logsCount) {
+            $logsCount = PointLog::whereIn('source', [
+                'prediction_participation',
+                'prediction_winner',
+                'prediction_exact',
+                'venue_visit',
+            ])->delete();
+
+            Prediction::query()->delete();
+
+            // Recalculer le total de points de chaque utilisateur à partir des logs restants
+            User::query()->update([
+                'points_total' => \DB::raw('(SELECT COALESCE(SUM(points), 0) FROM point_logs WHERE point_logs.user_id = users.id)'),
+            ]);
+        });
+
+        return back()->with('success', "Réinitialisation effectuée : {$predictionsCount} pronostic(s) supprimé(s), {$logsCount} log(s) de points liés aux pronostics supprimé(s), points des utilisateurs recalculés.");
+    }
+
+    /**
      * Bulk delete matches and their associated predictions
      */
     public function bulkDeleteMatches(Request $request)
