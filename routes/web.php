@@ -115,6 +115,10 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::post('/matches/{matchId}/venues/{venueId}/assign', [AdminController::class, 'assignVenueToMatch'])->name('assign-venue-to-match');
     Route::post('/matches/{matchId}/venues/{venueId}/unassign', [AdminController::class, 'unassignVenueFromMatch'])->name('unassign-venue-from-match');
 
+    // Ajout en masse PDV <-> Matchs (multi-select)
+    Route::get('/match-venue-bulk', [AdminController::class, 'matchVenueBulk'])->name('match-venue-bulk');
+    Route::post('/match-venue-bulk', [AdminController::class, 'matchVenueBulkStore'])->name('match-venue-bulk-store');
+
     // Cache Management
     Route::post('/cache/clear', [AdminController::class, 'clearCache'])->name('clear-cache');
 

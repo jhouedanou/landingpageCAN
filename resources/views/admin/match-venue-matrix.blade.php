@@ -11,6 +11,9 @@
                     <p class="text-gray-600 mt-2">Vue croisée des matchs et des points de vente</p>
                 </div>
                 <div class="flex gap-3">
+                    <a href="{{ route('admin.match-venue-bulk') }}" class="bg-soboa-orange hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
+                        ➕ Ajout en masse
+                    </a>
                     <a href="{{ route('admin.match-venue-matrix-export-csv', request()->query()) }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
                         📥 Exporter CSV
                     </a>

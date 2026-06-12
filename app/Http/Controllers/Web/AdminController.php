@@ -1089,51 +1089,77 @@ class AdminController extends Controller
         $currentPeriod = WeeklyRanking::getCurrentPeriod();
         $selectedPeriod = $request->get('period', $currentPeriod);
         
-        // Vérifier si la période sélectionnée existe
-        if (!isset($periods[$selectedPeriod])) {
+        // Classement global = basé sur points_total (cumul à vie), comme le classement public
+        $isGlobal = ($selectedPeriod === 'global');
+
+        // Vérifier si la période sélectionnée existe (sauf 'global')
+        if (!$isGlobal && !isset($periods[$selectedPeriod])) {
             $selectedPeriod = 'week_1';
         }
-        
-        $periodConfig = $periods[$selectedPeriod];
-        $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
-        $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
 
-        // Récupérer les user_ids avec des points cette période
-        $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
-            ->select('user_id')
-            ->groupBy('user_id')
-            ->pluck('user_id')
-            ->toArray();
+        if ($isGlobal) {
+            // Fenêtre = tout le tournoi (pour l'affichage de l'en-tête)
+            $tournamentStart = collect($periods)->min('start');
+            $tournamentEnd = collect($periods)->max('end');
+            $weekStart = \Carbon\Carbon::parse($tournamentStart)->startOfDay();
+            $weekEnd = \Carbon\Carbon::parse($tournamentEnd)->endOfDay();
 
-        // Si aucun utilisateur n'a de points cette période, retourner une collection vide
-        if (empty($userIdsWithPoints)) {
-            $weeklyData = collect();
-        } else {
-            // Récupérer les utilisateurs avec leurs statistiques
-            $weeklyData = User::whereIn('id', $userIdsWithPoints)
+            // Tous les joueurs avec un total > 0, triés par points_total (tie-break: 1er pronostic)
+            $weeklyData = User::where('points_total', '>', 0)
+                ->orderByDesc('points_total')
+                ->orderBy('created_at')
                 ->get()
-                ->map(function ($user) use ($weekStart, $weekEnd) {
-                    $user->weekly_points = PointLog::where('user_id', $user->id)
-                        ->whereBetween('created_at', [$weekStart, $weekEnd])
-                        ->sum('points');
-                    
-                    $user->weekly_predictions = Prediction::where('user_id', $user->id)
-                        ->whereBetween('created_at', [$weekStart, $weekEnd])
-                        ->count();
-                    
-                    // Les check-ins peuvent être enregistrés avec différentes sources
+                ->map(function ($user) {
+                    $user->weekly_points = $user->points_total;
+                    $user->weekly_predictions = Prediction::where('user_id', $user->id)->count();
                     $user->weekly_checkins = PointLog::where('user_id', $user->id)
                         ->whereIn('source', ['venue_visit', 'bar_visit', 'check_in'])
-                        ->whereBetween('created_at', [$weekStart, $weekEnd])
                         ->count();
-                    
                     return $user;
                 })
-                ->filter(function ($user) {
-                    return $user->weekly_points > 0;
-                })
-                ->sortByDesc('weekly_points')
                 ->values();
+        } else {
+            $periodConfig = $periods[$selectedPeriod];
+            $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
+            $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
+
+            // Récupérer les user_ids avec des points cette période
+            $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
+                ->select('user_id')
+                ->groupBy('user_id')
+                ->pluck('user_id')
+                ->toArray();
+
+            // Si aucun utilisateur n'a de points cette période, retourner une collection vide
+            if (empty($userIdsWithPoints)) {
+                $weeklyData = collect();
+            } else {
+                // Récupérer les utilisateurs avec leurs statistiques
+                $weeklyData = User::whereIn('id', $userIdsWithPoints)
+                    ->get()
+                    ->map(function ($user) use ($weekStart, $weekEnd) {
+                        $user->weekly_points = PointLog::where('user_id', $user->id)
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->sum('points');
+
+                        $user->weekly_predictions = Prediction::where('user_id', $user->id)
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->count();
+
+                        // Les check-ins peuvent être enregistrés avec différentes sources
+                        $user->weekly_checkins = PointLog::where('user_id', $user->id)
+                            ->whereIn('source', ['venue_visit', 'bar_visit', 'check_in'])
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->count();
+
+                        return $user;
+                    })
+                    ->filter(function ($user) {
+                        return $user->weekly_points > 0;
+                    })
+                    ->sortByDesc('weekly_points')
+                    ->values();
+            }
         }
 
         // Ajouter le rang
@@ -1152,7 +1178,8 @@ class AdminController extends Controller
         ];
 
         // Liste des périodes disponibles (filtrer uniquement les semaines actives)
-        $availablePeriods = [];
+        // 'global' en tête = classement général (cumul à vie)
+        $availablePeriods = ['global' => 'Classement Global (cumul du tournoi)'];
         $now = now();
         foreach ($periods as $key => $period) {
             // Exclure 'semifinal' et n'afficher que les semaines passées ou en cours
@@ -1182,7 +1209,8 @@ class AdminController extends Controller
             'availableWeeks',
             'selectedPeriod',
             'isAdmin',
-            'isSoboa'
+            'isSoboa',
+            'isGlobal'
         ));
     }
 
@@ -1201,14 +1229,20 @@ class AdminController extends Controller
         $periods = WeeklyRanking::PERIODS;
         $selectedPeriod = $request->get('period', WeeklyRanking::getCurrentPeriod());
         
-        // Vérifier si la période sélectionnée existe
-        if (!isset($periods[$selectedPeriod])) {
-            $selectedPeriod = 'week_1';
+        // Classement global = fenêtre = tout le tournoi
+        if ($selectedPeriod === 'global') {
+            $weekStart = \Carbon\Carbon::parse(collect($periods)->min('start'))->startOfDay();
+            $weekEnd = \Carbon\Carbon::parse(collect($periods)->max('end'))->endOfDay();
+        } else {
+            // Vérifier si la période sélectionnée existe
+            if (!isset($periods[$selectedPeriod])) {
+                $selectedPeriod = 'week_1';
+            }
+
+            $periodConfig = $periods[$selectedPeriod];
+            $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
+            $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
         }
-        
-        $periodConfig = $periods[$selectedPeriod];
-        $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
-        $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
 
         // Historique détaillé de la période
         $pointLogs = PointLog::where('user_id', $id)
@@ -1278,59 +1312,82 @@ class AdminController extends Controller
         $periods = WeeklyRanking::PERIODS;
         $selectedPeriod = $request->get('period', WeeklyRanking::getCurrentPeriod());
         
-        // Vérifier si la période sélectionnée existe
-        if (!isset($periods[$selectedPeriod])) {
-            $selectedPeriod = 'week_1';
-        }
-        
-        $periodConfig = $periods[$selectedPeriod];
-        $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
-        $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
+        $isGlobal = ($selectedPeriod === 'global');
 
-        // Récupérer les user_ids avec des points cette période
-        $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
-            ->select('user_id')
-            ->groupBy('user_id')
-            ->pluck('user_id')
-            ->toArray();
+        if ($isGlobal) {
+            $weekStart = \Carbon\Carbon::parse(collect($periods)->min('start'))->startOfDay();
+            $weekEnd = \Carbon\Carbon::parse(collect($periods)->max('end'))->endOfDay();
 
-        if (empty($userIdsWithPoints)) {
-            $weeklyData = collect();
-        } else {
-            $weeklyData = User::whereIn('id', $userIdsWithPoints)
+            $weeklyData = User::where('points_total', '>', 0)
+                ->orderByDesc('points_total')
+                ->orderBy('created_at')
                 ->get()
-                ->map(function ($user) use ($weekStart, $weekEnd) {
-                    $user->weekly_points = PointLog::where('user_id', $user->id)
-                        ->whereBetween('created_at', [$weekStart, $weekEnd])
-                        ->sum('points');
-                    
-                    $user->weekly_predictions = Prediction::where('user_id', $user->id)
-                        ->whereBetween('created_at', [$weekStart, $weekEnd])
-                        ->count();
-                    
-                    // Les check-ins peuvent être enregistrés avec différentes sources
+                ->map(function ($user) {
+                    $user->weekly_points = $user->points_total;
+                    $user->weekly_predictions = Prediction::where('user_id', $user->id)->count();
                     $user->weekly_checkins = PointLog::where('user_id', $user->id)
                         ->whereIn('source', ['venue_visit', 'bar_visit', 'check_in'])
-                        ->whereBetween('created_at', [$weekStart, $weekEnd])
                         ->count();
-                    
                     return $user;
                 })
-                ->filter(function ($user) {
-                    return $user->weekly_points > 0;
-                })
-                ->sortByDesc('weekly_points')
                 ->values();
+
+            $periodLabel = 'Classement Global';
+        } else {
+            // Vérifier si la période sélectionnée existe
+            if (!isset($periods[$selectedPeriod])) {
+                $selectedPeriod = 'week_1';
+            }
+
+            $periodConfig = $periods[$selectedPeriod];
+            $weekStart = \Carbon\Carbon::parse($periodConfig['start'])->startOfDay();
+            $weekEnd = \Carbon\Carbon::parse($periodConfig['end'])->endOfDay();
+
+            // Récupérer les user_ids avec des points cette période
+            $userIdsWithPoints = PointLog::whereBetween('created_at', [$weekStart, $weekEnd])
+                ->select('user_id')
+                ->groupBy('user_id')
+                ->pluck('user_id')
+                ->toArray();
+
+            if (empty($userIdsWithPoints)) {
+                $weeklyData = collect();
+            } else {
+                $weeklyData = User::whereIn('id', $userIdsWithPoints)
+                    ->get()
+                    ->map(function ($user) use ($weekStart, $weekEnd) {
+                        $user->weekly_points = PointLog::where('user_id', $user->id)
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->sum('points');
+
+                        $user->weekly_predictions = Prediction::where('user_id', $user->id)
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->count();
+
+                        // Les check-ins peuvent être enregistrés avec différentes sources
+                        $user->weekly_checkins = PointLog::where('user_id', $user->id)
+                            ->whereIn('source', ['venue_visit', 'bar_visit', 'check_in'])
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->count();
+
+                        return $user;
+                    })
+                    ->filter(function ($user) {
+                        return $user->weekly_points > 0;
+                    })
+                    ->sortByDesc('weekly_points')
+                    ->values();
+            }
+
+            $periodLabel = $periodConfig['label'];
         }
 
         $filename = 'classement_' . $selectedPeriod . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-
-        $periodLabel = $periodConfig['label'];
         $callback = function() use ($weeklyData, $weekStart, $weekEnd, $periodLabel) {
             $file = fopen('php://output', 'w');
             
@@ -3243,6 +3300,121 @@ class AdminController extends Controller
             'message' => 'Lieu désassigné avec succès.',
             'venueCount' => $venueCount,
         ]);
+    }
+
+    /**
+     * Formulaire d'ajout en masse : plusieurs PDV x plusieurs matchs
+     */
+    public function matchVenueBulk(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $phase = $request->input('phase');
+        $zone = $request->input('zone');
+        $upcomingOnly = $request->boolean('upcoming_only');
+
+        // Matchs
+        $matchesQuery = MatchGame::with(['homeTeam', 'awayTeam'])
+            ->withCount('animations')
+            ->orderBy('match_date');
+
+        if ($phase) {
+            $matchesQuery->where('phase', $phase);
+        }
+        if ($upcomingOnly) {
+            $matchesQuery->where('status', '!=', 'finished');
+        }
+
+        $matches = $matchesQuery->get();
+
+        // PDV (bars actifs)
+        $barsQuery = Bar::where('is_active', true)->orderBy('zone')->orderBy('name');
+        if ($zone) {
+            $barsQuery->where('zone', $zone);
+        }
+        $bars = $barsQuery->get();
+
+        $zones = Bar::whereNotNull('zone')->distinct()->orderBy('zone')->pluck('zone');
+
+        $phases = [
+            'group_stage' => 'Phase de Poules',
+            'round_of_32' => '1/16es de finale',
+            'round_of_16' => 'Huitièmes de finale',
+            'quarter_final' => 'Quarts de finale',
+            'semi_final' => 'Demi-finales',
+            'third_place' => '3ème place',
+            'final' => 'Finale',
+        ];
+
+        return view('admin.match-venue-bulk', compact('matches', 'bars', 'zones', 'phases', 'phase', 'zone', 'upcomingOnly'));
+    }
+
+    /**
+     * Crée en masse les animations (produit croisé PDV x Matchs)
+     * Ignore les couples déjà existants.
+     */
+    public function matchVenueBulkStore(Request $request)
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $validated = $request->validate([
+            'match_ids' => 'required|array|min:1',
+            'match_ids.*' => 'integer|exists:matches,id',
+            'venue_ids' => 'required|array|min:1',
+            'venue_ids.*' => 'integer|exists:bars,id',
+        ], [
+            'match_ids.required' => 'Sélectionnez au moins un match.',
+            'venue_ids.required' => 'Sélectionnez au moins un point de vente.',
+        ]);
+
+        $matchIds = $validated['match_ids'];
+        $venueIds = $validated['venue_ids'];
+
+        $matches = MatchGame::whereIn('id', $matchIds)->get()->keyBy('id');
+
+        // Couples déjà existants pour éviter les doublons (contrainte unique bar_id+match_id)
+        $existing = Animation::whereIn('match_id', $matchIds)
+            ->whereIn('bar_id', $venueIds)
+            ->get()
+            ->map(fn ($a) => $a->bar_id . '-' . $a->match_id)
+            ->flip();
+
+        $created = 0;
+        $skipped = 0;
+
+        foreach ($matchIds as $matchId) {
+            $match = $matches[$matchId] ?? null;
+            if (!$match) {
+                continue;
+            }
+
+            foreach ($venueIds as $venueId) {
+                if ($existing->has($venueId . '-' . $matchId)) {
+                    $skipped++;
+                    continue;
+                }
+
+                Animation::create([
+                    'bar_id' => $venueId,
+                    'match_id' => $matchId,
+                    'animation_date' => $match->match_date->format('Y-m-d'),
+                    'animation_time' => $match->match_date->format('H:i:s'),
+                    'is_active' => true,
+                ]);
+                $created++;
+            }
+        }
+
+        $message = "{$created} assignation(s) créée(s).";
+        if ($skipped > 0) {
+            $message .= " {$skipped} déjà existante(s), ignorée(s).";
+        }
+
+        return redirect()->route('admin.match-venue-bulk')->with('success', $message);
     }
 
     /**
