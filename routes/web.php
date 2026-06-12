@@ -40,16 +40,19 @@ Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
     ->middleware('throttle:3,1')
     ->name('auth.reset-password');
 
-// Ancien système OTP (conservé pour compatibilité si nécessaire)
-Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])
-    ->middleware('throttle:5,1')
-    ->name('auth.send-otp');
-Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
-    ->middleware('throttle:10,1')
-    ->name('auth.verify-otp');
-Route::post('/auth/request-new-code', [AuthController::class, 'requestNewCode'])
-    ->middleware('throttle:2,60') // Max 2 demandes par heure
-    ->name('auth.request-new-code');
+// Ancien système OTP — DÉSACTIVÉ (économie de crédits SMS).
+// Aucune vue active ne l'utilise ; le SMS est désormais réservé à la
+// réinitialisation de mot de passe (auth.reset-password). Réactiver au
+// besoin en décommentant ces routes.
+// Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])
+//     ->middleware('throttle:5,1')
+//     ->name('auth.send-otp');
+// Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])
+//     ->middleware('throttle:10,1')
+//     ->name('auth.verify-otp');
+// Route::post('/auth/request-new-code', [AuthController::class, 'requestNewCode'])
+//     ->middleware('throttle:2,60') // Max 2 demandes par heure
+//     ->name('auth.request-new-code');
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -110,6 +113,7 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::post('/matches/{id}/quick-update', [AdminController::class, 'quickUpdateMatch'])->name('quick-update-match');
     Route::post('/matches/{id}/calculate-points', [AdminController::class, 'calculatePoints'])->name('calculate-points');
     Route::post('/matches/import-json', [AdminController::class, 'importMatchesJson'])->name('import-matches-json');
+    Route::post('/matches/sync-knockout-teams', [AdminController::class, 'syncKnockoutTeams'])->name('sync-knockout-teams');
 
     // Match-Venue Management (AJAX)
     Route::get('/matches/{matchId}/venues', [AdminController::class, 'getMatchVenues'])->name('match-venues');
@@ -223,6 +227,7 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
 
     // Logs OTP
     Route::get('/otp-logs', [AdminController::class, 'otpLogs'])->name('otp-logs');
+    Route::post('/otp-logs/resend-failed-passwords', [AdminController::class, 'resendFailedPasswordSms'])->name('resend-failed-passwords');
 
     // Médias Animations (Highlights & Vidéos)
     Route::get('/media', [AdminController::class, 'media'])->name('media');

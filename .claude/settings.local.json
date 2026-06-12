@@ -104,7 +104,19 @@
       "Bash(php -l app/Console/Commands/MapExternalIds.php)",
       "Bash(php -r ' *)",
       "Bash(docker compose *)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(php -l app/Console/Commands/SyncKnockoutTeams.php)",
+      "Bash(php -l app/Services/TeamNameNormalizer.php)",
+      "Bash(echo \"=== exit: $?\")",
+      "Bash(sed -n '55,100p' resources/views/predictions.blade.php)",
+      "Bash(sed -n '60,130p' resources/views/auth/register.blade.php)",
+      "Bash(php -l app/Http/Controllers/Web/AuthController.php)",
+      "Bash(sed -n '/function generateReadablePassword/,/^    }/p' app/Http/Controllers/Web/AuthController.php)",
+      "Bash(sed -n '/function sendPasswordResetSMS/,/^    }/p' app/Http/Controllers/Web/AuthController.php)",
+      "Bash(sed -n '67,100p' app/Http/Controllers/Web/AuthController.php)",
+      "Bash(sed -n '55,80p' resources/views/auth/login.blade.php)",
+      "Bash(php -l app/Services/PasswordSmsService.php)",
+      "Bash(php -l app/Console/Commands/SendPasswordSms.php)"
     ]
   }
 }

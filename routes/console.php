@@ -30,6 +30,15 @@ Schedule::command('matches:map-external-ids')
     ->onOneServer()
     ->runInBackground();
 
+// Auto-fill knockout teams + external_id from football-data.org once the
+// API knows them. Fill-only-empty: never overwrites a manually placed team.
+// Also available as a button on Admin > Gestion des Matchs.
+Schedule::command('matches:sync-knockout-teams')
+    ->twiceDailyAt(6, 18, 15)
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->runInBackground();
+
 // External score sync (football-data.org). Self-skips if disabled or no
 // candidate matches in the active window — zero API usage off-tournament.
 Schedule::command('matches:sync-scores')

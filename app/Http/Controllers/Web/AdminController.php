@@ -483,6 +483,31 @@ class AdminController extends Controller
     }
 
     /**
+     * Récupère les équipes des matchs à élimination directe depuis
+     * football-data.org (bouton sur la page Gestion des Matchs).
+     * Ne remplit que les côtés encore "à déterminer" — jamais d'écrasement
+     * d'un placement manuel. Voir matches:sync-knockout-teams.
+     */
+    public function syncKnockoutTeams()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('matches:sync-knockout-teams');
+            $output = trim(\Illuminate\Support\Facades\Artisan::output());
+
+            return redirect()->route('admin.matches')
+                ->with('success', 'Synchro des équipes knockout exécutée.')
+                ->with('sync_output', $output);
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.matches')
+                ->with('error', 'Échec de la synchro : ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Import matches from JSON data
      * Format attendu :
      * {
@@ -3017,7 +3042,41 @@ class AdminController extends Controller
             'total_expired' => AdminOtpLog::where('status', 'expired')->count(),
         ];
 
-        return view('admin.otp-logs', compact('otpLogs', 'stats'));
+        // Codes personnels dont l'envoi SMS a échoué et reste à relancer
+        $pendingPasswordSms = app(\App\Services\PasswordSmsService::class)->pendingFailures();
+
+        return view('admin.otp-logs', compact('otpLogs', 'stats', 'pendingPasswordSms'));
+    }
+
+    /**
+     * Renvoie par SMS le code personnel des utilisateurs dont l'envoi a
+     * échoué (bouton sur Admin > Logs OTP). Même logique que la commande
+     * users:send-password-sms.
+     */
+    public function resendFailedPasswordSms()
+    {
+        if (!$this->checkAdmin()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $report = app(\App\Services\PasswordSmsService::class)->resendFailures();
+
+        $summary = sprintf(
+            'Renvoyés : %d — Échecs : %d — Ignorés : %d',
+            count($report['resent']),
+            count($report['failed']),
+            count($report['skipped'])
+        );
+
+        $details = collect([
+            ...array_map(fn ($l) => '✅ ' . $l, $report['resent']),
+            ...array_map(fn ($l) => '❌ ' . $l, $report['failed']),
+            ...array_map(fn ($l) => '⏭ ' . $l, $report['skipped']),
+        ])->implode("\n");
+
+        return redirect()->route('admin.otp-logs')
+            ->with(count($report['failed']) ? 'error' : 'success', $summary)
+            ->with('resend_details', $details);
     }
 
     // ==================== ANIMATIONS (Venue-Match Links) ====================

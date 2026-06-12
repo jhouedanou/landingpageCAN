@@ -1,4 +1,4 @@
-<x-layouts.app title="Mot de passe oublié">
+<x-layouts.app title="Code oublié">
     <div class="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
         <div class="w-full max-w-md">
 
@@ -7,7 +7,7 @@
                 <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 shadow-lg flex items-center justify-center">
                     <img src="/images/logoSOBOA.png.webp" alt="SOBOA" class="w-16 h-16 object-contain">
                 </div>
-                <h1 class="text-3xl font-black text-soboa-blue">Mot de passe oublié</h1>
+                <h1 class="text-3xl font-black text-soboa-blue">Code oublié</h1>
                 <p class="text-gray-600 mt-2">Récupérez votre accès par SMS</p>
             </div>
 
@@ -52,7 +52,7 @@
                                 <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                <p>Votre nouveau mot de passe sera envoyé par <strong>SMS</strong> sur ce numéro.</p>
+                                <p>Votre nouveau code personnel sera envoyé par <strong>SMS</strong> sur ce numéro.</p>
                             </div>
                         </div>
 
@@ -112,7 +112,7 @@
                         </div>
 
                         <div class="bg-white/10 rounded-xl p-4 text-center">
-                            <p class="text-blue-200 text-sm mb-1">Nouveau mot de passe envoyé par SMS</p>
+                            <p class="text-blue-200 text-sm mb-1">Nouveau code personnel envoyé par SMS</p>
                             <div class="flex items-center justify-center gap-2">
                                 <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -133,7 +133,7 @@
                                 <ul class="list-disc list-inside space-y-1 text-yellow-700">
                                     <li>Vérifiez votre boîte SMS</li>
                                     <li>Le message vient de "SOBOA FOOT TIME"</li>
-                                    <li>Conservez ce mot de passe en lieu sûr</li>
+                                    <li>Conservez ce code en lieu sûr</li>
                                 </ul>
                             </div>
                         </div>

@@ -16,6 +16,10 @@
                 </p>
             </div>
 
+            @unless($isSoboa)
+                @include('admin.partials.api-status-banner')
+            @endunless
+
             <!-- Stats Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white rounded-xl p-6 shadow-lg">

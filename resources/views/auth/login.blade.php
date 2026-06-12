@@ -56,12 +56,12 @@
                         @endif
                     </div>
 
-                    <!-- Mot de passe -->
+                    <!-- Code personnel (6 chiffres, ancien code OTP inclus) -->
                     <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Mot de passe</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Code personnel</label>
                         <div class="relative">
                             <input :type="showPassword ? 'text' : 'password'" x-model="password"
-                                placeholder="Votre mot de passe"
+                                placeholder="Votre code à 6 chiffres" inputmode="numeric"
                                 class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-soboa-orange focus:ring-0 text-lg"
                                 required>
                             <button type="button" @click="showPassword = !showPassword"
@@ -76,7 +76,7 @@
                             </button>
                         </div>
                         <a href="/forgot-password" class="text-xs text-soboa-orange hover:underline mt-2 inline-block">
-                            Mot de passe oublié ?
+                            Code oublié ?
                         </a>
                     </div>
 

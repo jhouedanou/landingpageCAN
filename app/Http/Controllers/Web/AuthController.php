@@ -200,14 +200,11 @@ class AuthController extends Controller
 
             Log::info('Nouveau compte créé avec mot de passe généré', ['phone' => $phone, 'user_id' => $user->id]);
 
-            // Envoyer le mot de passe par SMS UNE SEULE FOIS (à la création)
-            $smsResult = $this->sendPasswordResetSMS($phone, $generatedPassword, $user->name);
-            if (!$smsResult['success']) {
-                Log::warning('Échec envoi SMS mot de passe à l\'inscription', [
-                    'phone' => $phone,
-                    'error' => $smsResult['error'] ?? 'unknown',
-                ]);
-            }
+            // Économie de crédits SMS : le mot de passe n'est PLUS envoyé par SMS
+            // à l'inscription. Il est affiché à l'écran (avec copie/téléchargement)
+            // et reste consultable dans l'espace personnel. Le SMS est réservé à
+            // la réinitialisation (resetPassword), seul cas où l'utilisateur n'a
+            // pas d'autre canal pour récupérer son mot de passe.
 
             // Bonus connexion quotidienne (+1 point/jour)
             $pointsService = app(\App\Services\PointsService::class);
@@ -235,7 +232,10 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Compte créé ! Votre mot de passe vous a été envoyé par SMS et reste visible dans votre espace personnel.',
+                'message' => 'Compte créé ! Notez bien votre code personnel ci-dessous.',
+                // Affiché une seule fois à l'écran après l'inscription ; reste
+                // ensuite consultable/téléchargeable dans l'espace personnel.
+                'generated_password' => $generatedPassword,
                 'redirect' => '/mes-pronostics',
             ])->cookie($cookie);
 
@@ -1001,21 +1001,11 @@ class AuthController extends Controller
         try {
             $phone = $this->formatPhone($request->phone);
 
-            // Vérifier que le numéro est autorisé (format sénégalais)
-            if (!str_starts_with($phone, '+221')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Seuls les numéros sénégalais (+221) sont autorisés.',
-                ], 403);
-            }
-
-            // VALIDATION FORMAT sénégalais
-            $phoneWithoutPrefix = substr($phone, 4);
-            if (strlen($phoneWithoutPrefix) !== 9 || !str_starts_with($phoneWithoutPrefix, '7')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Format de numéro invalide.',
-                ], 400);
+            // Même règle que login/register : Sénégal, ou Côte d'Ivoire si le
+            // mode test admin est actif (l'ancien check +221 codé en dur
+            // empêchait de tester la réinitialisation avec un numéro +225).
+            if ($err = $this->phoneValidationError($phone)) {
+                return response()->json(['success' => false, 'message' => $err[0]], $err[1]);
             }
 
             // Trouver l'utilisateur
@@ -1071,58 +1061,9 @@ class AuthController extends Controller
      */
     private function sendPasswordResetSMS(string $phone, string $password, string $userName): array
     {
-        Log::info('=== DEBUT sendPasswordResetSMS (Twilio) ===');
-
-        $accountSid = config('services.twilio.account_sid');
-        $authToken = config('services.twilio.auth_token');
-        $fromNumber = config('services.twilio.from_number');
-
-        if (!$accountSid || !$authToken || !$fromNumber) {
-            Log::error('Configuration Twilio incomplete !');
-            return ['success' => false, 'error' => 'Configuration Twilio incomplete'];
-        }
-
-        // Formater le numéro au format international avec +
-        $toNumber = '+' . ltrim($phone, '+');
-
-        $message = "SOBOA FOOT TIME - Bonjour {$userName}! Votre nouveau mot de passe est: {$password}. Conservez-le précieusement pour vos connexions futures.";
-
-        try {
-            Log::info('Envoi SMS mot de passe via Twilio...', [
-                'to' => $toNumber,
-                'from' => $fromNumber,
-            ]);
-
-            $url = "https://api.twilio.com/2010-04-01/Accounts/{$accountSid}/Messages.json";
-
-            $response = Http::withBasicAuth($accountSid, $authToken)
-                ->asForm()
-                ->timeout(30)
-                ->post($url, [
-                    'To' => $toNumber,
-                    'From' => $fromNumber,
-                    'Body' => $message,
-                ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                Log::info('=== SUCCES SMS mot de passe Twilio ===', ['sid' => $data['sid'] ?? null]);
-                return ['success' => true, 'sid' => $data['sid'] ?? null];
-            } else {
-                $errorData = $response->json();
-                $errorMessage = $errorData['message'] ?? ('HTTP ' . $response->status());
-                Log::error('=== ECHEC SMS mot de passe Twilio ===', [
-                    'status' => $response->status(),
-                    'error' => $errorMessage,
-                ]);
-                return ['success' => false, 'error' => $errorMessage];
-            }
-        } catch (\Exception $e) {
-            Log::error('=== EXCEPTION Twilio mot de passe ===', [
-                'message' => $e->getMessage(),
-            ]);
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        // Envoi + traçage sms_logs centralisés dans le service (réutilisé par
+        // la commande users:send-password-sms pour relancer les échecs).
+        return app(\App\Services\PasswordSmsService::class)->send($phone, $password, $userName);
     }
 
     /**
@@ -1140,16 +1081,11 @@ class AuthController extends Controller
     /**
      * Générer un mot de passe facile à lire (sans caractères ambigus)
      */
-    private function generateReadablePassword($length = 8)
+    private function generateReadablePassword($length = 6)
     {
-        // Caractères non ambigus (pas de 0/O, 1/l/I, etc.)
-        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        $password = '';
-        
-        for ($i = 0; $i < $length; $i++) {
-            $password .= $chars[random_int(0, strlen($chars) - 1)];
-        }
-        
-        return $password;
+        // Code numérique à 6 chiffres, même format que les codes OTP des
+        // anciens utilisateurs : tout le monde a le même type d'identifiant,
+        // facile à mémoriser et à saisir sur mobile.
+        return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 }

@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\MatchGame;
 use App\Services\FootballDataService;
+use App\Services\TeamNameNormalizer;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 /**
  * Bulk-map local matches to football-data.org match ids (external_id).
@@ -27,25 +27,6 @@ class MapExternalIds extends Command
                             {--dry-run : Show the mapping without saving anything}';
 
     protected $description = 'Auto-fill external_id on local matches from football-data.org (by teams + date)';
-
-    /**
-     * Known naming differences between the local DB (FIFA-style names used
-     * by the seeders) and football-data.org. Keys/values are normalized
-     * (lowercase, ascii, alphanumeric only). Both sides are canonicalized
-     * through this map before comparison.
-     */
-    private const ALIASES = [
-        'united states'          => 'usa',
-        'korea republic'         => 'south korea',
-        'ir iran'                => 'iran',
-        'bosnia and herzegovina' => 'bosnia herzegovina',
-        'cabo verde'             => 'cape verde',
-        'cape verde islands'     => 'cape verde',
-        'congo dr'               => 'dr congo',
-        'cote d ivoire'          => 'ivory coast',
-        'czechia'                => 'czech republic',
-        'turkiye'                => 'turkey',
-    ];
 
     public function __construct(private readonly FootballDataService $api)
     {
@@ -157,12 +138,7 @@ class MapExternalIds extends Command
      */
     private function teamKeys(array $team): array
     {
-        return collect([$team['name'] ?? null, $team['shortName'] ?? null, $team['tla'] ?? null])
-            ->filter()
-            ->map(fn ($n) => $this->normalize($n))
-            ->unique()
-            ->values()
-            ->all();
+        return TeamNameNormalizer::teamKeys($team);
     }
 
     /**
@@ -175,23 +151,13 @@ class MapExternalIds extends Command
         if ($relationName) {
             return $this->normalize($relationName);
         }
-        if ($label === null || Str::contains(Str::lower($label), 'déterminer')) {
+        if (TeamNameNormalizer::isPlaceholder($label)) {
             return null;
         }
 
         // Reverse lookup French label -> canonical English name.
         $english = array_search($label, config('teams_fr', []), true);
-        if ($english !== false) {
-            return $this->normalize($english);
-        }
-
-        // Unknown label containing a digit or slash = bracket placeholder
-        // ("2A", "1C", "3A/B/C/D/F", "W49") -> teams not determined yet.
-        if (preg_match('/[\d\/]/', $label)) {
-            return null;
-        }
-
-        return $this->normalize($label);
+        return $this->normalize($english !== false ? $english : $label);
     }
 
     private function pairMatches(string $home, string $away, array $api): bool
@@ -206,14 +172,8 @@ class MapExternalIds extends Command
         return in_array($home, $api['away'], true) && in_array($away, $api['home'], true);
     }
 
-    /**
-     * Lowercase, strip accents, turn punctuation runs into single spaces
-     * ("Bosnia-Herzegovina" and "Bosnia & Herzegovina" both become
-     * "bosnia herzegovina"), then canonicalize through the alias table.
-     */
     private function normalize(string $name): string
     {
-        $key = trim(preg_replace('/[^a-z0-9]+/', ' ', Str::lower(Str::ascii($name))));
-        return self::ALIASES[$key] ?? $key;
+        return TeamNameNormalizer::normalize($name);
     }
 }

@@ -37,7 +37,40 @@
                     </div>
                 </div>
 
-                <form @submit.prevent="register">
+                <!-- Écran mot de passe généré (affiché une fois le compte créé) -->
+                <div x-show="generatedPassword" x-cloak class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-black text-gray-800 mb-1">Compte créé !</h2>
+                    <p class="text-sm text-gray-600 mb-4">Voici votre code personnel. <span class="font-bold">Notez-le précieusement</span> :
+                        il vous servira pour toutes vos connexions.</p>
+
+                    <code class="block px-4 py-3 bg-gray-100 rounded-xl font-mono text-2xl tracking-widest text-gray-800 select-all mb-4"
+                        x-text="generatedPassword"></code>
+
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" @click="copyPassword()"
+                            class="flex-1 px-4 py-3 text-sm font-bold text-soboa-blue bg-soboa-blue/10 hover:bg-soboa-blue/20 rounded-xl transition"
+                            x-text="copied ? 'Copié ✓' : 'Copier'"></button>
+                        <button type="button" @click="downloadPassword()"
+                            class="flex-1 px-4 py-3 text-sm font-bold text-white bg-soboa-blue hover:bg-soboa-blue/90 rounded-xl transition">
+                            Télécharger
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-gray-500 mb-4">Il restera aussi consultable dans votre espace personnel
+                        (« Mes pronostics »). En cas d'oubli, utilisez « Code oublié » (envoi par SMS).</p>
+
+                    <button type="button" @click="window.location.href = redirectUrl"
+                        class="w-full bg-soboa-orange hover:bg-soboa-orange-dark text-black font-bold py-4 px-6 rounded-xl shadow-lg transition transform active:scale-95">
+                        J'ai noté mon code — Continuer
+                    </button>
+                </div>
+
+                <form @submit.prevent="register" x-show="!generatedPassword">
                     <!-- Nom complet -->
                     <div class="mb-5">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Votre nom complet</label>
@@ -71,8 +104,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <p class="text-sm text-gray-700">
-                                Un mot de passe sécurisé sera <span class="font-bold">généré automatiquement</span> et envoyé
-                                par SMS à votre numéro. Il restera consultable dans votre espace personnel.
+                                Un code personnel à 6 chiffres sera <span class="font-bold">généré automatiquement</span> et affiché
+                                à l'écran après l'inscription. Vous pourrez le copier ou le télécharger, et il restera
+                                consultable dans votre espace personnel.
                             </p>
                         </div>
                     </div>
@@ -120,8 +154,34 @@
                 loading: false,
                 error: '',
                 success: '',
+                generatedPassword: '',
+                copied: false,
+                redirectUrl: '/mes-pronostics',
                 countryCode: @js($testMode ?? false ? '+225' : '+221'),
                 testMode: @js((bool) ($testMode ?? false)),
+
+                copyPassword() {
+                    navigator.clipboard.writeText(this.generatedPassword).then(() => {
+                        this.copied = true;
+                        setTimeout(() => this.copied = false, 2000);
+                    });
+                },
+
+                downloadPassword() {
+                    const content = 'SOBOA FOOT TIME - Vos identifiants\n'
+                        + '====================================\n'
+                        + 'Nom : ' + this.name + '\n'
+                        + 'Téléphone : ' + this.fullPhone + '\n'
+                        + 'Code personnel : ' + this.generatedPassword + '\n\n'
+                        + 'Conservez ce fichier en lieu sûr.\n'
+                        + 'Connexion : ' + window.location.origin + '/login\n';
+                    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = 'soboa-foot-time-code-personnel.txt';
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                },
 
                 get fullPhone() {
                     return this.countryCode + this.formatPhoneNumber(this.phone);
@@ -177,12 +237,18 @@
                         const data = await response.json();
 
                         if (response.ok && data.success) {
-                            this.success = data.message || 'Compte créé avec succès !';
+                            this.redirectUrl = data.redirect || '/mes-pronostics';
 
-                            // Redirection après succès
-                            setTimeout(() => {
-                                window.location.href = data.redirect || '/mes-pronostics';
-                            }, 1500);
+                            if (data.generated_password) {
+                                // Afficher l'écran mot de passe : pas de redirection
+                                // automatique, l'utilisateur confirme avoir noté.
+                                this.generatedPassword = data.generated_password;
+                            } else {
+                                this.success = data.message || 'Compte créé avec succès !';
+                                setTimeout(() => {
+                                    window.location.href = this.redirectUrl;
+                                }, 1500);
+                            }
                         } else {
                             this.error = data.message || 'Erreur lors de l\'inscription.';
                         }

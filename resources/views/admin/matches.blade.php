@@ -9,6 +9,17 @@
                     <h1 class="text-3xl font-black text-soboa-blue">Gestion des Matchs</h1>
                 </div>
                 <div class="flex gap-3">
+                    <form method="POST" action="{{ route('admin.sync-knockout-teams') }}"
+                          onsubmit="this.querySelector('button').disabled = true; this.querySelector('button').innerText = 'Synchro en cours…';">
+                        @csrf
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2"
+                                title="Récupère depuis football-data.org les équipes des matchs à élimination directe encore « à déterminer ». N'écrase jamais un placement manuel.">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Équipes knockout (API)
+                        </button>
+                    </form>
                     <button @click="showImportModal = true" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -20,6 +31,8 @@
                     </a>
                 </div>
             </div>
+
+            @include('admin.partials.api-status-banner')
 
             <!-- Modal Import JSON -->
             <div x-show="showImportModal" 
@@ -85,6 +98,9 @@
             @if(session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6" role="alert">
                 <span class="font-medium">{{ session('success') }}</span>
+                @if(session('sync_output'))
+                    <pre class="mt-2 text-xs bg-white/60 rounded p-3 overflow-x-auto whitespace-pre-wrap">{{ session('sync_output') }}</pre>
+                @endif
             </div>
             @endif
 

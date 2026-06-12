@@ -59,7 +59,25 @@
         @endif
 
         @if(isset($user) && $user->plain_password)
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5" x-data="{ show: false }">
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5"
+                 x-data="{
+                    show: false,
+                    download() {
+                        const content = 'SOBOA FOOT TIME - Vos identifiants\n'
+                            + '====================================\n'
+                            + 'Nom : ' + @js($user->name) + '\n'
+                            + 'Téléphone : ' + @js($user->phone) + '\n'
+                            + 'Code personnel : ' + @js($user->plain_password) + '\n\n'
+                            + 'Conservez ce fichier en lieu sûr.\n'
+                            + 'Connexion : ' + window.location.origin + '/login\n';
+                        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'soboa-foot-time-code-personnel.txt';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                    }
+                 }">
                 <div class="flex items-start gap-3">
                     <div class="bg-soboa-blue/10 w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0">
                         <svg class="w-6 h-6 text-soboa-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,14 +85,18 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-black text-gray-800">Votre mot de passe</p>
+                        <p class="text-sm font-black text-gray-800">Votre code personnel</p>
                         <p class="text-xs text-gray-500 mb-3">Conservez-le pour vos prochaines connexions.</p>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <code class="px-4 py-2 bg-gray-100 rounded-lg font-mono text-lg tracking-wider text-gray-800 select-all"
                                 x-text="show ? @js($user->plain_password) : '••••••••'"></code>
                             <button type="button" @click="show = !show"
                                 class="px-3 py-2 text-sm font-bold text-soboa-blue hover:bg-soboa-blue/10 rounded-lg transition"
                                 x-text="show ? 'Masquer' : 'Afficher'"></button>
+                            <button type="button" @click="download()"
+                                class="px-3 py-2 text-sm font-bold text-white bg-soboa-blue hover:bg-soboa-blue/90 rounded-lg transition">
+                                Télécharger
+                            </button>
                         </div>
                     </div>
                 </div>

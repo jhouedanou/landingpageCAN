@@ -7,6 +7,51 @@
                 <p class="text-gray-600 mt-2">Suivez tous les codes d'accès administrateur envoyés et les tentatives de connexion</p>
             </div>
 
+            @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6" role="alert">
+                <span class="font-medium">{{ session('success') }}</span>
+                @if(session('resend_details'))
+                    <pre class="mt-2 text-xs bg-white/60 rounded p-3 overflow-x-auto whitespace-pre-wrap">{{ session('resend_details') }}</pre>
+                @endif
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
+                <span class="font-medium">{{ session('error') }}</span>
+                @if(session('resend_details'))
+                    <pre class="mt-2 text-xs bg-white/60 rounded p-3 overflow-x-auto whitespace-pre-wrap">{{ session('resend_details') }}</pre>
+                @endif
+            </div>
+            @endif
+
+            <!-- Renvoi des codes personnels en échec d'envoi SMS -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8 border-l-4 {{ $pendingPasswordSms->isEmpty() ? 'border-green-400' : 'border-red-400' }}">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <p class="font-bold text-gray-900">Codes personnels non délivrés (SMS en échec)</p>
+                        @if($pendingPasswordSms->isEmpty())
+                            <p class="text-sm text-gray-500 mt-1">Aucun envoi en échec à relancer. ✅</p>
+                        @else
+                            <p class="text-sm text-gray-600 mt-1">
+                                <span class="font-bold text-red-600">{{ $pendingPasswordSms->count() }}</span>
+                                numéro(s) n'ont jamais reçu leur code personnel :
+                                <span class="text-gray-500">{{ $pendingPasswordSms->pluck('to_number')->take(5)->implode(', ') }}{{ $pendingPasswordSms->count() > 5 ? '…' : '' }}</span>
+                            </p>
+                        @endif
+                    </div>
+                    @if($pendingPasswordSms->isNotEmpty())
+                    <form method="POST" action="{{ route('admin.resend-failed-passwords') }}"
+                          onsubmit="return confirm('Renvoyer le code personnel par SMS à {{ $pendingPasswordSms->count() }} numéro(s) ? Cela consommera autant de crédits SMS.');">
+                        @csrf
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
+                            📤 Renvoyer par SMS ({{ $pendingPasswordSms->count() }})
+                        </button>
+                    </form>
+                    @endif
+                </div>
+            </div>
+
             <!-- Statistiques -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white rounded-lg shadow p-6">
