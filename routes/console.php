@@ -21,6 +21,15 @@ Schedule::command('notifications:send-match-results')
     ->onOneServer()
     ->runInBackground();
 
+// Auto-map external_id from football-data.org (teams + date matching).
+// Self-skips with zero API calls once every match is mapped; picks up
+// knockout matches automatically as soon as their teams are known.
+Schedule::command('matches:map-external-ids')
+    ->twiceDaily(6, 18)
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->runInBackground();
+
 // External score sync (football-data.org). Self-skips if disabled or no
 // candidate matches in the active window — zero API usage off-tournament.
 Schedule::command('matches:sync-scores')
