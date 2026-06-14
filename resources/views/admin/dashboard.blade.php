@@ -106,6 +106,10 @@
                 @endif
 
                 {{-- Boutons accessibles à Admin ET Soboa --}}
+                <a href="{{ route('admin.claim-verification') }}" class="bg-red-700 hover:bg-red-800 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">🔎</span>
+                    <span class="font-bold text-sm text-center">Vérification réclamation</span>
+                </a>
                 <a href="{{ route('admin.users') }}" class="bg-soboa-orange hover:bg-soboa-orange/90 text-black rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">👥</span>
                     <span class="font-bold text-sm text-center">Utilisateurs</span>

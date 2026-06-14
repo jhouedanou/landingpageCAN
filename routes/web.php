@@ -206,6 +206,12 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions');
     Route::get('/matches/{id}/predictions', [AdminController::class, 'matchPredictions'])->name('match-predictions');
     Route::get('/users/{id}/points-history', [AdminController::class, 'userPointsHistory'])->name('user-points-history');
+
+    // Vérification réclamation (admin + soboa) : recherche d'un utilisateur,
+    // répartition de ses points et fiche imprimable (PDF via navigateur).
+    Route::get('/claim-verification', [AdminController::class, 'claimVerification'])->name('claim-verification');
+    Route::get('/claim-verification/search', [AdminController::class, 'claimVerificationSearch'])->name('claim-verification.search');
+    Route::get('/claim-verification/{id}', [AdminController::class, 'claimVerificationShow'])->name('claim-verification.show');
     Route::delete('/predictions/{id}', [AdminController::class, 'deletePrediction'])->name('delete-prediction');
     Route::post('/predictions/bulk-delete', [AdminController::class, 'bulkDeletePredictions'])->name('bulk-delete-predictions');
     Route::post('/predictions/reset-all', [AdminController::class, 'resetAllPredictions'])->name('reset-all-predictions');

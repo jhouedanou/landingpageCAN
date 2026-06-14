@@ -2707,6 +2707,133 @@ class AdminController extends Controller
     }
 
     /**
+     * Claim verification : page de recherche d'un utilisateur (admin + soboa).
+     */
+    public function claimVerification()
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        return view('admin.claim-verification');
+    }
+
+    /**
+     * Autocomplétion : suggère des utilisateurs par nom ou numéro de téléphone.
+     */
+    public function claimVerificationSearch(Request $request)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return response()->json(['error' => 'Accès non autorisé.'], 403);
+        }
+
+        $q = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $users = User::query()
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'phone', 'points_total']);
+
+        return response()->json(
+            $users->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'phone' => $u->phone,
+                'points_total' => (int) $u->points_total,
+            ])
+        );
+    }
+
+    /**
+     * Fiche imprimable : répartition des points d'un utilisateur, détaillée
+     * par match, avec entête SOBOA (impression / PDF via le navigateur).
+     */
+    public function claimVerificationShow($id)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $user = User::findOrFail($id);
+
+        $logs = PointLog::where('user_id', $id)
+            ->with(['match.homeTeam', 'match.awayTeam', 'bar'])
+            ->orderBy('created_at')
+            ->get();
+
+        $predictions = Prediction::where('user_id', $id)
+            ->with(['match.homeTeam', 'match.awayTeam'])
+            ->get()
+            ->keyBy('match_id');
+
+        // Détail par match : on réunit les match_id issus des logs ET des
+        // pronostics (un pronostic sur un match non terminé n'a pas encore
+        // de points mais doit apparaître).
+        $logsByMatch = $logs->whereNotNull('match_id')->groupBy('match_id');
+        $matchIds = $logsByMatch->keys()->merge($predictions->keys())->unique();
+
+        $matchRows = $matchIds->map(function ($matchId) use ($logsByMatch, $predictions) {
+            $rows = $logsByMatch->get($matchId) ?? collect();
+            $prediction = $predictions->get($matchId);
+            $match = $rows->first()->match ?? ($prediction->match ?? null);
+
+            return [
+                'match' => $match,
+                'prediction' => $prediction,
+                'participation' => (int) $rows->where('source', 'prediction_participation')->sum('points'),
+                'winner' => (int) $rows->where('source', 'prediction_winner')->sum('points'),
+                'exact' => (int) $rows->where('source', 'prediction_exact')->sum('points'),
+                'venue' => (int) $rows->where('source', 'venue_visit')->sum('points'),
+                'subtotal' => (int) $rows->sum('points'),
+            ];
+        })
+        ->filter(fn ($row) => $row['match'] !== null)
+        ->sortBy(fn ($row) => optional($row['match'])->match_date)
+        ->values();
+
+        // Points hors match (connexions quotidiennes, visites PDV sans match).
+        $otherLogs = $logs->whereNull('match_id');
+        $otherLabels = [
+            'login' => 'Connexions quotidiennes',
+            'daily_activity' => 'Activité quotidienne',
+            'bar_visit' => 'Visites point de vente',
+        ];
+        $otherRows = $otherLogs->groupBy('source')->map(fn ($rows, $source) => [
+            'label' => $otherLabels[$source] ?? $source,
+            'count' => $rows->count(),
+            'points' => (int) $rows->sum('points'),
+        ])->values();
+
+        $summary = [
+            'match_points' => (int) $matchRows->sum('subtotal'),
+            'other_points' => (int) $otherLogs->sum('points'),
+            'logs_total' => (int) $logs->sum('points'),
+            'points_total' => (int) $user->points_total,
+            'predictions_count' => $predictions->count(),
+            'winner_count' => $matchRows->where('winner', '>', 0)->count(),
+            'exact_count' => $matchRows->where('exact', '>', 0)->count(),
+        ];
+
+        $generatedBy = User::find(session('user_id'));
+
+        return view('admin.claim-verification-show', compact(
+            'user',
+            'matchRows',
+            'otherRows',
+            'summary',
+            'generatedBy'
+        ));
+    }
+
+    /**
      * Delete a prediction
      */
     public function deletePrediction($id)

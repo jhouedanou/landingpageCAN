@@ -124,7 +124,8 @@
       "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php -l routes/web.php)",
       "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php artisan *)",
       "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php -r ' *)",
-      "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php -l app/Console/Commands/SyncMatchScores.php)"
+      "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php -l app/Console/Commands/SyncMatchScores.php)",
+      "Bash(grep -n '@if\\($isAdmin\\)\\\\|@if\\($isSoboa\\)\\\\|@elseif\\\\|@else\\\\|@endif\\\\|route\\('\\\\''admin')"
     ]
   }
 }
