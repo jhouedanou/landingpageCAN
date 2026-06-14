@@ -59,9 +59,19 @@ class ProcessFinishedMatches extends Command
         $processedCount = 0;
 
         foreach ($finishedMatches as $match) {
-            $hasPointLogs = PointLog::where('match_id', $match->id)->exists();
+            // On ne peut PAS se fier à l'existence de n'importe quel PointLog :
+            // les points de participation (+1) et de visite PDV (+4) sont créés
+            // avec le match_id dès le pronostic, donc bien AVANT la fin du match.
+            // Le seul signal fiable que l'étape "résultat" a été traitée, c'est
+            // la présence d'un log vainqueur/score exact.
+            $resultProcessed = PointLog::where('match_id', $match->id)
+                ->whereIn('source', ['prediction_winner', 'prediction_exact'])
+                ->exists();
 
-            if (!$hasPointLogs) {
+            if (!$resultProcessed) {
+                // Idempotent : ProcessMatchPoints saute par source ce qui est
+                // déjà attribué. Pour un match où personne n'a le bon résultat,
+                // ce dispatch est un no-op (aucun doublon possible).
                 ProcessMatchPoints::dispatchSync($match->id);
                 $processedCount++;
 
