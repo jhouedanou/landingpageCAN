@@ -412,12 +412,10 @@ class HomeController extends Controller
         }
 
         if ($foundBar) {
-            // RÈGLE 2026 : +4 points attribués dès le check-in vérifié sur place,
-            // pour CHAQUE point de vente visité (plafond 1x/jour par PDV).
-            $pointsAwarded = $pointsService->awardBarVisitPoints($user, $foundBar->id);
-
-            // Stocker le check-in vérifié en session (mêmes clés que /api/venue/select) :
-            // le bonus venue au pronostic exige un check-in du jour pour ce point de vente.
+            // RÈGLE 2026 : le check-in NE rapporte AUCUN point. Les +4 points venue
+            // s'obtiennent uniquement en faisant un pronostic sur place (voir
+            // Web\PredictionController + PointsService::awardPredictionVenuePoints).
+            // Le check-in sert seulement à confirmer/mémoriser la présence sur place.
             session([
                 'selected_venue_id' => $foundBar->id,
                 'selected_venue_name' => $foundBar->name,
@@ -426,16 +424,10 @@ class HomeController extends Controller
                 'user_longitude' => (float) $userLng,
             ]);
 
-            $user->refresh();
-
-            $message = $pointsAwarded > 0
-                ? "Lieu confirmé : {$foundBar->name} ! +{$pointsAwarded} points 🎉 Vous pouvez maintenant faire vos pronostics."
-                : "Lieu confirmé : {$foundBar->name} ! Vous pouvez maintenant faire vos pronostics.";
-
             return response()->json([
                 'success' => true,
-                'message' => $message,
-                'points_awarded' => $pointsAwarded,
+                'message' => "Lieu confirmé : {$foundBar->name} ! Faites vos pronostics sur place pour gagner +4 points.",
+                'points_awarded' => 0,
                 'total_points' => $user->points_total,
                 'bar_name' => $foundBar->name,
                 'bar_id' => $foundBar->id

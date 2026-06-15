@@ -37,22 +37,13 @@ class CheckInController extends Controller
         }
 
         if ($foundBar) {
-            $pointsAwarded = $pointsService->awardBarVisitPoints($user, $foundBar->id);
-
-            // Refresh user to get updated points_total
-            $user->refresh();
-
-            // Update session with new points total
-            session(['user_points' => $user->points_total]);
-
-            $message = $pointsAwarded > 0
-                ? "Bienvenue à {$foundBar->name} ! +{$pointsAwarded} points gagnés 🎉"
-                : "Bienvenue à {$foundBar->name} ! (Points déjà réclamés aujourd'hui)";
-
+            // RÈGLE 2026 : le check-in NE rapporte AUCUN point. Les +4 points venue
+            // s'obtiennent uniquement via un pronostic fait sur place (voir
+            // PointsService::awardPredictionVenuePoints).
             return response()->json([
                 'success' => true,
-                'message' => $message,
-                'points_awarded' => $pointsAwarded,
+                'message' => "Bienvenue à {$foundBar->name} ! Faites vos pronostics sur place pour gagner +4 points.",
+                'points_awarded' => 0,
                 'user_points_total' => $user->points_total,
                 'bar_name' => $foundBar->name,
                 'venue_id' => $foundBar->id

@@ -448,6 +448,60 @@
         </div>
     </div>
 
+    {{-- ========== GATE GÉOLOCALISATION (obligatoire pour le bonus +4 PDV) ========== --}}
+    <div x-show="geoGate.open" x-cloak
+         x-transition:enter="transition ease-out duration-base"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="modal-backdrop-sheet"
+         role="dialog" aria-modal="true" aria-labelledby="geo-gate-title">
+        <div x-show="geoGate.open" x-cloak
+             x-transition:enter="transition ease-out duration-base"
+             x-transition:enter-start="translate-y-full sm:translate-y-0 sm:scale-90 opacity-0"
+             x-transition:enter-end="translate-y-0 sm:scale-100 opacity-100"
+             class="modal-sheet-panel">
+            <div class="bg-gradient-to-r from-soboa-orange to-soboa-orange/80 p-5 text-center relative">
+                <div class="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-2 shadow-elev-2">
+                    <i data-lucide="map-pin" class="w-8 h-8 text-soboa-orange"></i>
+                </div>
+                <h3 id="geo-gate-title" class="text-lg font-black text-white">Activez la géolocalisation</h3>
+            </div>
+            <div class="p-5 space-y-4">
+                <p class="text-sm text-soboa-text-dark text-center">
+                    La géolocalisation est nécessaire pour détecter votre point de vente et créditer
+                    <strong class="text-soboa-orange">+4 points</strong> sur vos pronostics faits sur place.
+                </p>
+
+                <template x-if="!geoGate.denied">
+                    <button type="button" @click="requestGeolocation()" :disabled="geoGate.checking"
+                            class="btn btn-primary btn-md w-full">
+                        <i data-lucide="locate-fixed" class="w-4 h-4" x-show="!geoGate.checking"></i>
+                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin" x-show="geoGate.checking" x-cloak></i>
+                        <span x-text="geoGate.checking ? 'Localisation…' : 'Activer la géolocalisation'"></span>
+                    </button>
+                </template>
+
+                <template x-if="geoGate.denied">
+                    <div class="space-y-2">
+                        <div class="bg-amber-50 ring-1 ring-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                            Géolocalisation bloquée par le navigateur. Pour l'activer :
+                            <span class="block mt-1">Touchez l'icône 🔒 / ⚙️ dans la barre d'adresse → Autorisations → Localisation → <strong>Autoriser</strong>, puis réessayez.</span>
+                        </div>
+                        <button type="button" @click="requestGeolocation()" :disabled="geoGate.checking"
+                                class="btn btn-primary btn-md w-full">
+                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin" x-show="geoGate.checking" x-cloak></i>
+                            <span x-text="geoGate.checking ? 'Localisation…' : 'Réessayer'"></span>
+                        </button>
+                    </div>
+                </template>
+
+                <button type="button" @click="geoGate.open = false" class="btn btn-ghost btn-sm w-full text-gray-400">
+                    Continuer sans bonus PDV
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -461,6 +515,7 @@
             nearbyVenue: null,
             closestVenues: [],
             pdvSheet: { open: false, venue: null, isNear: false },
+            geoGate: { open: false, denied: false, checking: false },
             userLat: null,
             userLng: null,
             modal: {
@@ -676,8 +731,32 @@
             },
 
             async detectGeolocation() {
+                if (!navigator.geolocation) {
+                    this.geoGate = { open: true, denied: true, checking: false };
+                    return;
+                }
+                // Permission déjà refusée → ouvrir le gate sans relancer un prompt inutile.
+                if (navigator.permissions?.query) {
+                    try {
+                        const status = await navigator.permissions.query({ name: 'geolocation' });
+                        if (status.state === 'denied') {
+                            this.geoGate = { open: true, denied: true, checking: false };
+                        }
+                        // Réagir si l'utilisateur autorise depuis les réglages du navigateur.
+                        status.onchange = () => {
+                            if (status.state === 'granted') { this.geoGate.open = false; this.locate(); }
+                        };
+                    } catch (e) { /* Permissions API absente : on tente quand même locate() */ }
+                }
+                this.locate();
+            },
+
+            // Récupère la position GPS puis détecte le PDV. Ouvre le gate en cas de refus.
+            locate() {
                 if (!navigator.geolocation) return;
+                this.geoGate.checking = true;
                 navigator.geolocation.getCurrentPosition(async (pos) => {
+                    this.geoGate = { open: false, denied: false, checking: false };
                     // Mémoriser la position pour la vérification serveur lors du pronostic.
                     this.userLat = pos.coords.latitude;
                     this.userLng = pos.coords.longitude;
@@ -707,7 +786,19 @@
                     } catch (e) {
                         console.warn('[SOBOA FOOT TIME] geo api', e);
                     }
-                }, () => {}, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
+                }, (err) => {
+                    // Refus ou indisponibilité : forcer l'activation via le gate.
+                    this.geoGate = {
+                        open: true,
+                        denied: !!(err && err.code === err.PERMISSION_DENIED),
+                        checking: false,
+                    };
+                }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+            },
+
+            // Bouton du gate : relance une demande de localisation.
+            requestGeolocation() {
+                this.locate();
             },
 
             // Bottom sheet "PDV le plus proche" : affiché une fois par session,

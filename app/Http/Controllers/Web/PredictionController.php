@@ -290,19 +290,30 @@ class PredictionController extends Controller
     }
 
     /**
-     * Règle des +4 points venue : l'utilisateur doit avoir fait un CHECK-IN du
-     * jour pour ce point de vente (via /check-in sur la map ou /api/venue/select,
-     * qui vérifient et stockent la position en session), PUIS soumettre un
-     * pronostic. Un venue_id envoyé seul ne suffit jamais (anti-triche).
+     * Règle des +4 points venue : présence sur place vérifiée pour CE point de
+     * vente. Un venue_id envoyé seul ne suffit jamais (anti-triche) — le serveur
+     * revérifie toujours la proximité GPS via Haversine (rayon config).
      *
-     * Conditions cumulatives :
-     *  1. Check-in du jour en session pour CE point de vente.
-     *  2. Proximité GPS revérifiée côté serveur (Haversine, rayon config) :
-     *     coordonnées envoyées avec le pronostic, sinon celles du check-in.
+     * Sources de coordonnées acceptées, par ordre de priorité :
+     *  1. Les coordonnées GPS envoyées AVEC le pronostic (flux normal : la page
+     *     matches fournit latitude/longitude détectées par le navigateur).
+     *  2. Repli : check-in du jour en session pour CE point de vente
+     *     (flux carte /check-in ou /api/venue/select), avec sa position stockée.
      */
     private function isVenueProximityVerified(Request $request, Bar $venue): bool
     {
-        // 1. Check-in du jour requis pour ce point de vente.
+        // 1. Coordonnées envoyées avec le pronostic : présence sur place vérifiée
+        //    dès que le GPS tombe dans le rayon du PDV déclaré. Pas besoin d'un
+        //    check-in préalable — la page de pronostic ne passe pas par /check-in.
+        if ($request->filled('latitude') && $request->filled('longitude')) {
+            return $this->geolocationService->isWithinRadius(
+                (float) $request->latitude,
+                (float) $request->longitude,
+                $venue
+            );
+        }
+
+        // 2. Repli : check-in du jour en session pour CE point de vente.
         if ((int) session('selected_venue_id') !== (int) $venue->id) {
             return false;
         }
@@ -310,16 +321,6 @@ class PredictionController extends Controller
         $verifiedAt = session('venue_verified_at');
         if (!$verifiedAt || !\Illuminate\Support\Carbon::parse($verifiedAt)->isToday()) {
             return false;
-        }
-
-        // 2. Proximité revérifiée serveur : coordonnées de la requête en priorité,
-        //    sinon celles enregistrées lors du check-in.
-        if ($request->filled('latitude') && $request->filled('longitude')) {
-            return $this->geolocationService->isWithinRadius(
-                (float) $request->latitude,
-                (float) $request->longitude,
-                $venue
-            );
         }
 
         $lat = session('user_latitude');
