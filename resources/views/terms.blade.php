@@ -60,6 +60,7 @@
                             <li><strong>1 point</strong> : pour chaque pronostic soumis</li>
                             <li><strong>3 points bonus</strong> : si le vainqueur ou le match nul est correctement prédit</li>
                             <li><strong>3 points bonus supplémentaires</strong> : si le score exact est correctement prédit</li>
+                            <li><strong>4 points bonus</strong> : pour un pronostic enregistré depuis un point de vente partenaire (PDV). Ce bonus est accordé <strong>uniquement si un pronostic est enregistré</strong> sur place, dans la limite d'<strong>un seul bonus par point de vente et par jour</strong>. Un simple passage (check-in) sans pronostic ne donne droit à aucun point.</li>
                         </ul>
 
                         <p><strong>3.3 Matchs avec tirs au but :</strong> Pour les matchs des phases à élimination directe 
@@ -78,6 +79,8 @@
                         </div>
                         
                         <p><strong>3.6 Modifications :</strong> Les pronostics ne peuvent plus être modifiés après le coup d'envoi du match.</p>
+
+                        <p><strong>3.7 Intégrité du classement :</strong> Le classement est protégé contre la fraude. Tout comportement abusif, notamment des <strong>check-ins répétés sans pronostic</strong> ou visant à gonfler artificiellement le score, pourra entraîner un <strong>recomptage des points</strong> et, le cas échéant, le retrait des points indûment obtenus. L'organisateur se réserve le droit de procéder à ces vérifications à tout moment.</p>
                     </div>
                 </section>
 

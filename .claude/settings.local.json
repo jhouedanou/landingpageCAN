@@ -125,7 +125,10 @@
       "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php artisan *)",
       "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php -r ' *)",
       "Bash(/Applications/MAMP/bin/php/php8.3.14/bin/php -l app/Console/Commands/SyncMatchScores.php)",
-      "Bash(grep -n '@if\\($isAdmin\\)\\\\|@if\\($isSoboa\\)\\\\|@elseif\\\\|@else\\\\|@endif\\\\|route\\('\\\\''admin')"
+      "Bash(grep -n '@if\\($isAdmin\\)\\\\|@if\\($isSoboa\\)\\\\|@elseif\\\\|@else\\\\|@endif\\\\|route\\('\\\\''admin')",
+      "Bash(php -l resources/views/components/layouts/app.blade.php)",
+      "Bash(grep -rniE \"visite.{0,15}\\(lieu|partenaire|pdv|bar\\)|\\(lieu|partenaire|pdv|bar\\).{0,15}visit|\\\\+ ?4 ?\\(pts|points\\)|check.?in.{0,20}\\(point|\\\\+4|4 ?pt\\)|4 ?\\(pts|points\\).{0,20}\\(visite|lieu|partenaire|bar|pdv\\)\" --include=\"*.blade.php\" --include=\"*.php\" --include=\"*.vue\" --include=\"*.js\" resources/ app/)",
+      "Bash(grep -rniE \"visit.{0,12}\\(lieu|partenaire|pdv\\).{0,12}\\(\\\\+?4|bonus|point\\)|\\(\\\\+?4|bonus\\).{0,12}\\(par |/\\)?visit|visite lieu|par visite\" --include=\"*.blade.php\" resources/)"
     ]
   }
 }

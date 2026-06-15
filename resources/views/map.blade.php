@@ -310,7 +310,7 @@
             <div class="relative z-10 max-w-7xl mx-auto text-center">
                 <h1 class="text-4xl md:text-5xl font-black text-white mt-2 drop-shadow-2xl">Animations SOBOA FOOT TIME</h1>
                 <p class="text-white/80 mt-4 max-w-2xl mx-auto font-medium drop-shadow-lg">
-                    Découvrez les lieux partenaires et vivez les matchs avec nous ! Gagnez 4 points bonus par visite.
+                    Découvrez les lieux partenaires et vivez les matchs avec nous ! Gagnez 4 points bonus en pronostiquant sur place.
                 </p>
             </div>
         </div>

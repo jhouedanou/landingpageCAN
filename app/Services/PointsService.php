@@ -9,6 +9,7 @@ use App\Models\PointLog;
 use App\Models\SiteSetting;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class PointsService
 {
@@ -96,19 +97,37 @@ class PointsService
         }
 
         if (!$this->hasVenueBonusToday($user, $barId)) {
-             DB::transaction(function () use ($user, $barId) {
-                $user->increment('points_total', 4);
-                PointLog::create([
-                    'user_id' => $user->id,
-                    'bar_id' => $barId,
-                    'source' => 'bar_visit',
-                    'points' => 4,
-                ]);
-            });
-            return 4;
+            try {
+                DB::transaction(function () use ($user, $barId) {
+                    $user->increment('points_total', 4);
+                    PointLog::create([
+                        'user_id' => $user->id,
+                        'bar_id' => $barId,
+                        'source' => 'bar_visit',
+                        'points' => 4,
+                    ]);
+                });
+                return 4;
+            } catch (QueryException $e) {
+                // Doublon bloqué par l'index uniq_venue_bonus_per_day (race condition).
+                // La transaction a rollback : aucun point ajouté. On dégrade en 0.
+                if ($this->isDuplicateKey($e)) {
+                    return 0;
+                }
+                throw $e;
+            }
         }
 
         return 0;
+    }
+
+    /**
+     * Détecte une violation de contrainte d'unicité (doublon) MySQL/PostgreSQL.
+     */
+    private function isDuplicateKey(QueryException $e): bool
+    {
+        // SQLSTATE 23000 (MySQL) / 23505 (PostgreSQL) = integrity constraint violation.
+        return in_array($e->getCode(), ['23000', '23505'], true);
     }
 
     /**
@@ -139,17 +158,26 @@ class PointsService
         // Plafond par (utilisateur, PDV, jour), partagé avec bar_visit :
         // pas de double +4 dans le même PDV, mais cumul possible entre PDV différents.
         if (!$this->hasVenueBonusToday($user, $barId)) {
-            DB::transaction(function () use ($user, $barId, $matchId) {
-                $user->increment('points_total', 4);
-                PointLog::create([
-                    'user_id' => $user->id,
-                    'bar_id' => $barId,
-                    'match_id' => $matchId,
-                    'source' => 'venue_visit',
-                    'points' => 4,
-                ]);
-            });
-            return 4;
+            try {
+                DB::transaction(function () use ($user, $barId, $matchId) {
+                    $user->increment('points_total', 4);
+                    PointLog::create([
+                        'user_id' => $user->id,
+                        'bar_id' => $barId,
+                        'match_id' => $matchId,
+                        'source' => 'venue_visit',
+                        'points' => 4,
+                    ]);
+                });
+                return 4;
+            } catch (QueryException $e) {
+                // Doublon bloqué par l'index uniq_venue_bonus_per_day (race condition).
+                // La transaction a rollback : aucun point ajouté. On dégrade en 0.
+                if ($this->isDuplicateKey($e)) {
+                    return 0;
+                }
+                throw $e;
+            }
         }
 
         return 0;

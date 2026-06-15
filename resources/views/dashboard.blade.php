@@ -284,7 +284,7 @@
                                 <i data-lucide="map-pin" class="w-7 h-7 text-soboa-orange"></i>
                             </div>
                             <p class="text-soboa-text-dark font-bold">Aucun lieu visité</p>
-                            <p class="text-gray-500 text-sm mt-1 mb-4">+4 pts bonus à chaque visite PDV partenaire.</p>
+                            <p class="text-gray-500 text-sm mt-1 mb-4">+4 pts bonus pour un pronostic enregistré depuis un PDV partenaire.</p>
                             <a href="/map" class="btn btn-blue btn-md btn-pill">
                                 <i data-lucide="map" class="w-4 h-4"></i>
                                 Voir la carte
@@ -378,7 +378,7 @@
                     <span class="bg-white px-2 py-1 rounded-full border border-gray-200">+1 pt/pronostic</span>
                     <span class="bg-white px-2 py-1 rounded-full border border-gray-200">+3 pts/bon vainqueur</span>
                     <span class="bg-white px-2 py-1 rounded-full border border-gray-200">+3 pts/score exact</span>
-                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">+4 pts/visite lieu</span>
+                    <span class="bg-white px-2 py-1 rounded-full border border-gray-200">+4 pts/pronostic en lieu</span>
                 </div>
             </div>
 

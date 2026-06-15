@@ -598,7 +598,7 @@
                         <li>+1 pt / pronostic</li>
                         <li>+3 pts / bon vainqueur</li>
                         <li>+3 pts / score exact</li>
-                        <li>+4 pts / visite lieu partenaire</li>
+                        <li>+4 pts / pronostic en lieu partenaire</li>
                     </ul>
                 </div>
             </div>
@@ -1249,6 +1249,64 @@
             if (document.body) startObserver();
             else document.addEventListener('DOMContentLoaded', startObserver);
         })();
+    </script>
+
+    {{-- Pop-up d'information anti-fraude : protection du classement.
+         Affiché une seule fois par appareil (mémorisé via localStorage après "Accepter").
+         Version bumpée si le message change → ré-affichage. --}}
+    <div x-data="fraudNotice()" x-show="open" x-cloak style="display:none;"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="bg-gradient-to-r from-soboa-blue to-soboa-blue-light px-6 py-5 flex items-center gap-3">
+                <div class="w-12 h-12 bg-white/15 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                </div>
+                <h3 class="text-white font-black text-lg leading-tight">Classement protégé contre la fraude</h3>
+            </div>
+            <div class="px-6 py-5 space-y-3 text-sm text-gray-700">
+                <p>Pour garantir l'équité du jeu, le classement est <strong>surveillé en permanence</strong>.</p>
+                <p>Le bonus <strong>+4 points</strong> en point de vente partenaire est accordé <strong>uniquement si un pronostic est enregistré</strong> sur place, dans la limite d'<strong>un seul bonus par point de vente et par jour</strong>.</p>
+                <div class="bg-amber-50 border-l-4 border-amber-400 rounded p-3 flex items-start gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5"></i>
+                    <p class="text-amber-800">En cas de <strong>check-ins abusifs</strong>, les points concernés pourront faire l'objet d'un <strong>recomptage</strong>.</p>
+                </div>
+            </div>
+            <div class="px-6 pb-6">
+                <button @click="accept()"
+                        class="w-full bg-soboa-orange hover:bg-soboa-orange-secondary text-white font-bold py-3 rounded-xl shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-soboa-orange/50">
+                    J'ai compris, j'accepte
+                </button>
+                <a href="{{ route('terms') }}" class="block text-center text-xs text-gray-400 hover:text-soboa-blue underline mt-3 transition-colors">
+                    Lire le règlement complet
+                </a>
+            </div>
+        </div>
+    </div>
+    <script>
+        function fraudNotice() {
+            // Bumper cette version force le ré-affichage si le message change.
+            const VERSION = '2026-fraud-v1';
+            const KEY = 'fraudNoticeAccepted';
+            return {
+                open: false,
+                init() {
+                    try {
+                        if (localStorage.getItem(KEY) !== VERSION) {
+                            this.open = true;
+                            this.$nextTick(() => window.lucide && window.lucide.createIcons());
+                        }
+                    } catch (e) { this.open = true; }
+                },
+                accept() {
+                    try { localStorage.setItem(KEY, VERSION); } catch (e) {}
+                    this.open = false;
+                }
+            };
+        }
     </script>
 
     {{-- Verrouiller l'orientation portrait (PWA standalone / navigateurs compatibles).

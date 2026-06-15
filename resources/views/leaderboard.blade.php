@@ -287,7 +287,7 @@
                     <span></span> +3 pts/score exact
                 </span>
                 <span class="bg-white px-3 py-2 rounded-lg border border-gray-200 flex items-center gap-2">
-                    <span></span> +4 pts/visite lieu
+                    <span></span> +4 pts/pronostic en lieu
                 </span>
             </div>
         </div>
