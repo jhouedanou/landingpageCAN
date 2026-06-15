@@ -116,18 +116,25 @@ class PredictionController extends Controller
             $predictedWinner = $penaltyWinner;
         }
 
+        // bar_id renseigné seulement si un PDV de proximité est détecté ;
+        // omis sinon pour ne pas écraser la provenance d'un pronostic existant.
+        $predictionValues = [
+            'predicted_winner' => $predictedWinner,
+            'score_a' => $request->score_a,
+            'score_b' => $request->score_b,
+            'predict_draw' => $predictDraw,
+            'penalty_winner' => $penaltyWinner,
+        ];
+        if ($nearbyVenue) {
+            $predictionValues['bar_id'] = $nearbyVenue->id;
+        }
+
         $prediction = Prediction::updateOrCreate(
             [
                 'user_id' => $user->id,
                 'match_id' => $request->match_id,
             ],
-            [
-                'predicted_winner' => $predictedWinner,
-                'score_a' => $request->score_a,
-                'score_b' => $request->score_b,
-                'predict_draw' => $predictDraw,
-                'penalty_winner' => $penaltyWinner,
-            ]
+            $predictionValues
         );
 
         $isNewPrediction = $prediction->wasRecentlyCreated;

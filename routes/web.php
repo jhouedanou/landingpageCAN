@@ -152,7 +152,12 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     
     // Google Analytics
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
-    
+
+    // Scénarios de classement (DRY-RUN, lecture seule) — export CSV / PDF
+    Route::get('/ranking-scenarios', [AdminController::class, 'rankingScenarios'])->name('ranking-scenarios');
+    Route::get('/ranking-scenarios/{scenario}/export', [AdminController::class, 'exportRankingScenario'])
+        ->where('scenario', 'a|b')->name('ranking-scenarios-export');
+
     // Classement hebdomadaire
     Route::get('/weekly-leaderboard', [AdminController::class, 'weeklyLeaderboard'])->name('weekly-leaderboard');
     Route::get('/weekly-leaderboard/user/{id}', [AdminController::class, 'weeklyLeaderboardUserDetails'])->name('weekly-leaderboard-user-details');

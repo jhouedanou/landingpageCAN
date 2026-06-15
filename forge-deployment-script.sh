@@ -17,6 +17,10 @@ npm ci
 npm run build
 
 echo "🔄 Migrations..."
+# migrate --force applique UNIQUEMENT les migrations en attente, une seule fois
+# (suivi dans la table `migrations`). Les nouvelles migrations 2026_06_15_*
+# (point_logs.adjustment + predictions.bar_id) s'appliquent donc au prochain
+# déploiement et ne sont jamais rejouées ensuite. Additif : ne touche pas aux données.
 $FORGE_PHP artisan migrate --force
 
 # ⚠️ NE JAMAIS mettre season:reset ou db:seed ici (wipe à chaque deploy).

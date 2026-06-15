@@ -21,3 +21,9 @@ Thumbs.db
 /storage/app/*_export_*.sql
 /storage/app/*_backup_*.sql
 nul
+can_prod.sql
+can_prod.sql.gz
+can_prod.zip
+
+# Exports de classement (contiennent des PII : noms, téléphones)
+/storage/app/rankings/

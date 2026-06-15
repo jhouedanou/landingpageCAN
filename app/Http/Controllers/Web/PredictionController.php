@@ -85,12 +85,25 @@ class PredictionController extends Controller
                 }
                 return back()->with('error', $message);
             }
-        } elseif ($requireVenue) {
-            // Venue is required but not provided
-            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json(['message' => 'Veuillez sélectionner un point de vente.'], 422);
+        } else {
+            // Repli : aucun venue_id explicite (la page de pronostic n'a pas
+            // re-détecté le GPS). Si l'utilisateur a un check-in confirmé en
+            // session (présence vérifiée le même jour, cf. HomeController/VenueController),
+            // on l'utilise pour accorder le +4 à un pronostic fait APRÈS le check-in.
+            $sessionVenueId = session('selected_venue_id');
+            if ($sessionVenueId) {
+                $venue = Bar::where('id', $sessionVenueId)->where('is_active', true)->first();
+                if ($venue) {
+                    $venueVerified = $this->isVenueProximityVerified($request, $venue);
+                }
             }
-            return redirect()->route('venues')->with('error', 'Veuillez sélectionner un point de vente pour pronostiquer.');
+
+            if ($requireVenue && !$venueVerified) {
+                if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                    return response()->json(['message' => 'Veuillez sélectionner un point de vente.'], 422);
+                }
+                return redirect()->route('venues')->with('error', 'Veuillez sélectionner un point de vente pour pronostiquer.');
+            }
         }
 
         $match = MatchGame::findOrFail($request->match_id);
@@ -163,8 +176,11 @@ class PredictionController extends Controller
             ->first();
 
         if ($existingPrediction) {
-            // Mettre à jour le pronostic existant
+            // Mettre à jour le pronostic existant.
+            // On ne renseigne bar_id que si la présence en PDV est vérifiée ;
+            // sinon on conserve la provenance d'origine (pas d'écrasement à NULL).
             $existingPrediction->update([
+                'bar_id' => ($venue && $venueVerified) ? $venue->id : $existingPrediction->bar_id,
                 'predicted_winner' => $predictedWinner,
                 'score_a' => $request->score_a,
                 'score_b' => $request->score_b,
@@ -224,10 +240,13 @@ class PredictionController extends Controller
             ]));
         }
 
-        // Créer un nouveau pronostic
+        // Créer un nouveau pronostic.
+        // bar_id = PDV d'où vient le pronostic, uniquement si la présence sur
+        // place a été vérifiée côté serveur (sinon NULL = hors PDV).
         $prediction = Prediction::create([
             'user_id' => $userId,
             'match_id' => $request->match_id,
+            'bar_id' => ($venue && $venueVerified) ? $venue->id : null,
             'predicted_winner' => $predictedWinner,
             'score_a' => $request->score_a,
             'score_b' => $request->score_b,

@@ -1160,6 +1160,57 @@ class AdminController extends Controller
     }
 
     /**
+     * Page des deux scénarios de classement (DRY-RUN, lecture seule).
+     * Affiche un aperçu des classements A et B et propose l'export CSV / PDF.
+     * Aucune écriture en base : uniquement des lectures via le service.
+     */
+    public function rankingScenarios(\App\Services\RankingScenarioService $service)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $includeStaff = request()->boolean('include_staff');
+        $a = $service->build(\App\Services\RankingScenarioService::SCENARIO_A, $includeStaff);
+        $b = $service->build(\App\Services\RankingScenarioService::SCENARIO_B, $includeStaff);
+        $fraud = $service->detectFraudPatterns();
+
+        return view('admin.ranking-scenarios', compact('a', 'b', 'includeStaff', 'fraud'));
+    }
+
+    /**
+     * Télécharge un scénario : ?format=csv (téléchargement) ou format=html
+     * (page imprimable → PDF via Ctrl+P). DRY-RUN, lecture seule.
+     */
+    public function exportRankingScenario(string $scenario, \App\Services\RankingScenarioService $service)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $key = strtoupper($scenario) === 'B'
+            ? \App\Services\RankingScenarioService::SCENARIO_B
+            : \App\Services\RankingScenarioService::SCENARIO_A;
+        $includeStaff = request()->boolean('include_staff');
+        $format = request('format', 'csv');
+        $result = $service->build($key, $includeStaff);
+        $stamp = now()->format('Ymd-His');
+
+        if ($format === 'html') {
+            // Inline (pas de téléchargement) pour permettre Ctrl+P → PDF.
+            return response($service->toHtml($result), 200, [
+                'Content-Type' => 'text/html; charset=UTF-8',
+            ]);
+        }
+
+        $filename = "classement-scenario-{$key}-{$stamp}.csv";
+        return response($service->toCsv($result), 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
      * Accepte n'importe quelle URL de rapport Looker Studio / Data Studio
      * (lien de consultation ou d'intégration) et renvoie la forme embed,
      * seule acceptée en iframe (X-Frame-Options + CSP).

@@ -154,6 +154,10 @@
                     <span class="text-3xl">📜</span>
                     <span class="font-bold text-sm text-center">Conditions générales</span>
                 </a>
+                <a href="{{ route('admin.ranking-scenarios') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">📊</span>
+                    <span class="font-bold text-sm text-center">Scénarios classement</span>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

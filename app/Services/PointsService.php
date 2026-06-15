@@ -58,19 +58,19 @@ class PointsService
     }
 
     /**
-     * Sources qui comptent toutes pour le bonus venue de +4.
-     * RÈGLE MÉTIER 2026 : le +4 est accordé UNIQUEMENT lorsqu'un pronostic est
-     * enregistré sur place dans un PDV partenaire. Un simple check-in (passage)
-     * sans pronostic ne rapporte aucun point — c'est ce qui bloque les check-ins
-     * abusifs. Le bonus se cumule entre PDV différents ; le plafond est par
-     * couple (utilisateur, PDV, jour) pour interdire un double +4 dans le même
-     * PDV le même jour. 'bar_visit' n'est conservé que pour les logs historiques.
+     * Sources qui comptent pour le bonus venue de +4.
+     * RÈGLE MÉTIER 2026 : « Le bonus de +4 points est conservé uniquement si un
+     * pronostic est effectué le même jour après le check-in, avec un plafonnement
+     * à un seul check-in par point de vente et par jour. » Un simple check-in sans
+     * pronostic ne rapporte rien ; le +4 est accordé au pronostic fait sur place,
+     * plafonné à un seul par (utilisateur, PDV, jour). 'bar_visit' n'est conservé
+     * que pour les logs historiques.
      */
     private const VENUE_BONUS_SOURCES = ['venue_visit', 'bar_visit'];
 
     /**
-     * Indique si l'utilisateur a déjà reçu son bonus venue (+4) aujourd'hui
-     * pour CE point de vente, quelle que soit la source historique.
+     * Indique si l'utilisateur a déjà reçu son bonus venue (+4) aujourd'hui pour
+     * CE point de vente — plafond d'un seul +4 par (utilisateur, PDV, jour).
      */
     private function hasVenueBonusToday(User $user, ?int $barId = null): bool
     {
@@ -92,13 +92,13 @@ class PointsService
 
     /**
      * Award points for prediction made in a venue (geofencing).
-     * Limit 1x/day PER venue. Every active venue qualifies, with or without an
-     * animation scheduled for the match (règle 2026 : tous les PDV donnent les
-     * +4 points, cumulables entre PDV différents le même jour).
+     * +4 pour un pronostic fait sur place dans un PDV actif, plafonné à un seul
+     * +4 par (utilisateur, PDV, jour). Tout PDV actif y donne droit (avec ou sans
+     * animation programmée).
      *
      * @param int $matchId The ID of the match being predicted
      * @param int|null $barId The ID of the bar where prediction was made
-     * @return int Points awarded (0 if already awarded today for this bar)
+     * @return int Points awarded (0 if already awarded today for this venue)
      */
     public function awardPredictionVenuePoints(User $user, int $matchId, ?int $barId = null): int
     {
@@ -111,12 +111,7 @@ class PointsService
             return 0;
         }
 
-        // Tous les PDV actifs donnent droit au bonus, qu'une animation soit
-        // programmée ou non pour ce match (décision marketing : ne plus exiger
-        // d'entrée dans la table animations).
-
-        // Plafond par (utilisateur, PDV, jour), partagé avec bar_visit :
-        // pas de double +4 dans le même PDV, mais cumul possible entre PDV différents.
+        // Plafond : un seul +4 par (utilisateur, PDV, jour).
         if (!$this->hasVenueBonusToday($user, $barId)) {
             try {
                 DB::transaction(function () use ($user, $barId, $matchId) {

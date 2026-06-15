@@ -12,6 +12,7 @@ class Prediction extends Model
     protected $fillable = [
         'user_id',
         'match_id',
+        'bar_id',
         'predicted_winner',
         'score_a',
         'score_b',
@@ -32,6 +33,11 @@ class Prediction extends Model
     public function match()
     {
         return $this->belongsTo(MatchGame::class, 'match_id');
+    }
+
+    public function bar()
+    {
+        return $this->belongsTo(Bar::class, 'bar_id');
     }
 
     public function likes()
