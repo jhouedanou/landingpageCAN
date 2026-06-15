@@ -361,7 +361,7 @@
                             <span class="text-3xl"></span>
                             <div>
                                 <p class="font-bold text-lg" x-text="checkInResult?.message"></p>
-                                <p class="text-sm text-green-600 mt-1">
+                                <p x-show="checkInResult?.points_awarded > 0" class="text-sm text-green-600 mt-1">
                                     +<span x-text="checkInResult?.points_awarded"></span> points • Total: <span
                                         x-text="checkInResult?.total_points"></span> pts
                                 </p>

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bar;
+use App\Models\CheckIn;
 use App\Models\PointLog;
+use App\Services\CheckInService;
 use App\Services\PointsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,11 +14,12 @@ use Carbon\Carbon;
 
 class CheckInController extends Controller
 {
-    public function store(Request $request, PointsService $pointsService)
+    public function store(Request $request, PointsService $pointsService, CheckInService $checkInService)
     {
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'accuracy' => 'nullable|numeric|min:0',
         ]);
 
         $user = Auth::user();
@@ -37,6 +40,20 @@ class CheckInController extends Controller
         }
 
         if ($foundBar) {
+            // PREUVE (A1) : persiste le check-in géolocalisé (coordonnées, précision
+            // GPS, distance au PDV, IP, user-agent) — trace horodatée opposable en
+            // cas de contestation et base des détections de fraude (vitesse, IP, GPS).
+            $checkInService->record(
+                $user,
+                $foundBar,
+                (float) $userLat,
+                (float) $userLng,
+                $request->filled('accuracy') ? (float) $request->accuracy : null,
+                CheckIn::SOURCE_CHECKIN,
+                null,
+                $request
+            );
+
             // RÈGLE 2026 : le check-in NE rapporte AUCUN point. Les +4 points venue
             // s'obtiennent uniquement via un pronostic fait sur place (voir
             // PointsService::awardPredictionVenuePoints).

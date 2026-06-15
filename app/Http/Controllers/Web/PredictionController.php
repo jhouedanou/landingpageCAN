@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bar;
+use App\Models\CheckIn;
 use App\Models\MatchComment;
 use App\Models\MatchGame;
 use App\Models\Prediction;
@@ -11,6 +12,7 @@ use App\Models\PredictionComment;
 use App\Models\PredictionLike;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Services\CheckInService;
 use App\Services\ContentModerationService;
 use App\Services\GeolocationService;
 use App\Services\WhatsAppService;
@@ -22,7 +24,8 @@ class PredictionController extends Controller
     public function __construct(
         protected WhatsAppService $whatsAppService,
         protected PointsService $pointsService,
-        protected GeolocationService $geolocationService
+        protected GeolocationService $geolocationService,
+        protected CheckInService $checkInService
     ) {
     }
 
@@ -52,6 +55,7 @@ class PredictionController extends Controller
             'venue_id' => 'nullable|exists:bars,id', // Venue is now optional
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
+            'accuracy' => 'nullable|numeric|min:0',
             'predict_draw' => 'nullable',
             'penalty_winner' => 'nullable|in:home,away',
         ]);
@@ -186,9 +190,15 @@ class PredictionController extends Controller
                 'score_b' => $request->score_b,
                 'predict_draw' => $predictDraw,
                 'penalty_winner' => $penaltyWinner,
+                // Empreinte réseau (B3) : repérage multi-comptes par IP / user-agent.
+                'ip_address' => $request->ip(),
+                'user_agent' => substr((string) $request->userAgent(), 0, 512),
             ]);
 
             $user = User::find($userId);
+
+            // PREUVE (A1) : présence sur place revérifiée → persiste le check-in géolocalisé.
+            $this->recordVenueCheckIn($request, $user, ($venue && $venueVerified) ? $venue : null, $existingPrediction->id);
 
             // RÈGLE MÉTIER : la modification d'un pronostic ne rapporte AUCUN point.
             // - Le +1 participation a déjà été accordé à la création (l'appel reste
@@ -252,9 +262,17 @@ class PredictionController extends Controller
             'score_b' => $request->score_b,
             'predict_draw' => $predictDraw,
             'penalty_winner' => $penaltyWinner,
+            // Empreinte réseau (B3) : repérage multi-comptes par IP / user-agent.
+            'ip_address' => $request->ip(),
+            'user_agent' => substr((string) $request->userAgent(), 0, 512),
         ]);
 
         $user = User::find($userId);
+
+        // PREUVE (A1) : pronostic fait sur place → persiste le check-in géolocalisé relié.
+        if ($venue && $venueVerified) {
+            $this->recordVenueCheckIn($request, $user, $venue, $prediction->id);
+        }
 
         // Award the +1 participation point immediately (idempotent per match)
         $this->pointsService->awardPredictionParticipationPoints($user, $match->id);
@@ -350,6 +368,34 @@ class PredictionController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Persiste une preuve de présence (table check_ins) quand un pronostic est fait
+     * sur place avec des coordonnées GPS explicites. Sans PDV vérifié ou sans
+     * latitude/longitude dans la requête, aucune preuve n'est écrite (les flux de
+     * repli en session n'ont pas de coordonnées exploitables).
+     */
+    private function recordVenueCheckIn(Request $request, ?User $user, ?Bar $venue, int $predictionId): void
+    {
+        if (!$user || !$venue) {
+            return;
+        }
+
+        if (!$request->filled('latitude') || !$request->filled('longitude')) {
+            return;
+        }
+
+        $this->checkInService->record(
+            $user,
+            $venue,
+            (float) $request->latitude,
+            (float) $request->longitude,
+            $request->filled('accuracy') ? (float) $request->accuracy : null,
+            CheckIn::SOURCE_PREDICTION,
+            $predictionId,
+            $request
+        );
     }
 
     /**

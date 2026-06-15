@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\CheckIn;
 use App\Models\PointLog;
+use App\Models\Prediction;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -299,6 +301,249 @@ class RankingScenarioService
         unset($o);
 
         return $out;
+    }
+
+    /**
+     * B1 — VITESSE IMPOSSIBLE. À partir des check-ins géolocalisés persistés
+     * (table check_ins), détecte deux présences trop éloignées en trop peu de
+     * temps : déplacement physiquement impossible = comptes pilotés à distance ou
+     * GPS falsifié.
+     *
+     * Pour chaque utilisateur, on parcourt ses check-ins triés par date et on
+     * mesure la vitesse entre check-ins consécutifs (Haversine / Δt). On retient
+     * le pire segment dépassant le seuil (km/h), en ignorant les micro-déplacements
+     * (< 0,5 km) qui relèvent du bruit GPS.
+     *
+     * @return array<int, array{user_id:int, name:string, phone:string, speed_kmh:int,
+     *   distance_km:float, minutes:int, from:string, to:string}>
+     */
+    public function detectImpossibleSpeed(float $maxKmh = 120.0, float $minDistanceKm = 0.5, int $limit = 40): array
+    {
+        $rows = CheckIn::query()
+            ->orderBy('user_id')
+            ->orderBy('created_at')
+            ->get(['user_id', 'bar_id', 'latitude', 'longitude', 'created_at']);
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $worst = [];
+        foreach ($rows->groupBy('user_id') as $uid => $points) {
+            $points = $points->values();
+            for ($i = 1; $i < $points->count(); $i++) {
+                $a = $points[$i - 1];
+                $b = $points[$i];
+
+                $distanceKm = $this->haversineKm(
+                    (float) $a->latitude, (float) $a->longitude,
+                    (float) $b->latitude, (float) $b->longitude
+                );
+                if ($distanceKm < $minDistanceKm) {
+                    continue; // bruit GPS / même endroit
+                }
+
+                $minutes = Carbon::parse($a->created_at)->diffInMinutes(Carbon::parse($b->created_at));
+                $hours = $minutes / 60;
+                if ($hours <= 0) {
+                    // Deux positions distantes au même instant = impossible (∞ km/h).
+                    $speed = INF;
+                } else {
+                    $speed = $distanceKm / $hours;
+                }
+
+                if ($speed <= $maxKmh) {
+                    continue;
+                }
+
+                $current = $worst[$uid]['speed_kmh'] ?? -1;
+                $speedDisplay = is_infinite($speed) ? 999999 : (int) round($speed);
+                if ($speedDisplay > $current) {
+                    $worst[(int) $uid] = [
+                        'user_id'     => (int) $uid,
+                        'speed_kmh'   => $speedDisplay,
+                        'distance_km' => round($distanceKm, 2),
+                        'minutes'     => (int) $minutes,
+                        'from'        => Carbon::parse($a->created_at)->format('d/m H:i'),
+                        'to'          => Carbon::parse($b->created_at)->format('d/m H:i'),
+                    ];
+                }
+            }
+        }
+
+        $out = array_values($worst);
+        usort($out, fn ($x, $y) => $y['speed_kmh'] <=> $x['speed_kmh']);
+        $out = array_slice($out, 0, $limit);
+
+        return $this->attachUserInfo($out);
+    }
+
+    /**
+     * B3 — MULTI-COMPTES MÊME APPAREIL / IP. Recoupe les empreintes réseau
+     * (ip_address) des pronostics ET des check-ins : une IP partagée par plusieurs
+     * comptes trahit souvent un seul appareil pilotant plusieurs comptes.
+     *
+     * NB : une IP partagée peut aussi être un réseau commun légitime (wifi de PDV,
+     * 4G opérateur) — à pondérer manuellement. Signal, pas verdict.
+     *
+     * @return array<int, array{ip:string, users_count:int, events:int, users:array<int,array{id:int,name:string,phone:string}>}>
+     */
+    public function detectSharedDevices(int $minUsers = 2, int $limit = 40): array
+    {
+        $byIp = []; // ip => [user_id => count]
+
+        $accumulate = function (iterable $records) use (&$byIp) {
+            foreach ($records as $r) {
+                $ip = $r->ip_address;
+                if (!$ip) {
+                    continue;
+                }
+                $uid = (int) $r->user_id;
+                $byIp[$ip][$uid] = ($byIp[$ip][$uid] ?? 0) + 1;
+            }
+        };
+
+        $accumulate(Prediction::query()->whereNotNull('ip_address')->get(['user_id', 'ip_address']));
+        $accumulate(CheckIn::query()->whereNotNull('ip_address')->get(['user_id', 'ip_address']));
+
+        $out = [];
+        $allUserIds = [];
+        foreach ($byIp as $ip => $users) {
+            if (count($users) < $minUsers) {
+                continue;
+            }
+            $allUserIds = array_merge($allUserIds, array_keys($users));
+            $out[] = [
+                'ip'           => $ip,
+                'users_count'  => count($users),
+                'events'       => array_sum($users),
+                '_users'       => $users, // [user_id => count], résolu plus bas
+            ];
+        }
+
+        usort($out, fn ($x, $y) => [$y['users_count'], $y['events']] <=> [$x['users_count'], $x['events']]);
+        $out = array_slice($out, 0, $limit);
+
+        $names = User::whereIn('id', array_unique($allUserIds))->get(['id', 'name', 'phone'])->keyBy('id');
+        foreach ($out as &$o) {
+            $o['users'] = [];
+            foreach ($o['_users'] as $uid => $count) {
+                $o['users'][] = [
+                    'id'    => $uid,
+                    'name'  => $names[$uid]->name ?? '—',
+                    'phone' => $names[$uid]->phone ?? '',
+                    'count' => $count,
+                ];
+            }
+            unset($o['_users']);
+        }
+        unset($o);
+
+        return $out;
+    }
+
+    /**
+     * B4 — COORDONNÉES GPS IDENTIQUES ENTRE COMPTES. Des check-ins de plusieurs
+     * comptes au MÊME point exact (à ~1 m près) signalent un même téléphone
+     * utilisé pour plusieurs comptes.
+     *
+     * Les coordonnées sont arrondies à `precision` décimales (5 ≈ 1 m) pour
+     * regrouper les positions quasi identiques.
+     *
+     * @return array<int, array{latitude:float, longitude:float, users_count:int,
+     *   checkins:int, users:array<int,array{id:int,name:string,phone:string}>}>
+     */
+    public function detectSharedCoordinates(int $precision = 5, int $minUsers = 2, int $limit = 40): array
+    {
+        $rows = CheckIn::query()->get(['user_id', 'latitude', 'longitude']);
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $byCoord = []; // "lat|lng" => ['lat'=>, 'lng'=>, 'users'=>[uid=>count]]
+        foreach ($rows as $r) {
+            $lat = round((float) $r->latitude, $precision);
+            $lng = round((float) $r->longitude, $precision);
+            $key = $lat . '|' . $lng;
+            $uid = (int) $r->user_id;
+            if (!isset($byCoord[$key])) {
+                $byCoord[$key] = ['lat' => $lat, 'lng' => $lng, 'users' => []];
+            }
+            $byCoord[$key]['users'][$uid] = ($byCoord[$key]['users'][$uid] ?? 0) + 1;
+        }
+
+        $out = [];
+        $allUserIds = [];
+        foreach ($byCoord as $data) {
+            if (count($data['users']) < $minUsers) {
+                continue;
+            }
+            $allUserIds = array_merge($allUserIds, array_keys($data['users']));
+            $out[] = [
+                'latitude'    => $data['lat'],
+                'longitude'   => $data['lng'],
+                'users_count' => count($data['users']),
+                'checkins'    => array_sum($data['users']),
+                '_users'      => $data['users'],
+            ];
+        }
+
+        usort($out, fn ($x, $y) => [$y['users_count'], $y['checkins']] <=> [$x['users_count'], $x['checkins']]);
+        $out = array_slice($out, 0, $limit);
+
+        $names = User::whereIn('id', array_unique($allUserIds))->get(['id', 'name', 'phone'])->keyBy('id');
+        foreach ($out as &$o) {
+            $o['users'] = [];
+            foreach ($o['_users'] as $uid => $count) {
+                $o['users'][] = [
+                    'id'    => $uid,
+                    'name'  => $names[$uid]->name ?? '—',
+                    'phone' => $names[$uid]->phone ?? '',
+                    'count' => $count,
+                ];
+            }
+            unset($o['_users']);
+        }
+        unset($o);
+
+        return $out;
+    }
+
+    /**
+     * Résout name + phone pour une liste de lignes possédant 'user_id'.
+     *
+     * @param array<int,array> $rows
+     * @return array<int,array>
+     */
+    private function attachUserInfo(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+        $users = User::whereIn('id', array_column($rows, 'user_id'))
+            ->get(['id', 'name', 'phone'])->keyBy('id');
+        foreach ($rows as &$r) {
+            $r['name'] = $users[$r['user_id']]->name ?? '—';
+            $r['phone'] = $users[$r['user_id']]->phone ?? '';
+        }
+        unset($r);
+
+        return $rows;
+    }
+
+    /**
+     * Distance Haversine en kilomètres (identique à GeolocationService, dupliquée
+     * ici pour éviter une dépendance au service de géoloc dans un calcul d'analyse).
+     */
+    private function haversineKm(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
+
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     /**

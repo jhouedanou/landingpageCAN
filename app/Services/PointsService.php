@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Bar;
 use App\Models\MatchGame;
 use App\Models\Prediction;
 use App\Models\PointLog;
@@ -108,6 +109,15 @@ class PointsService
         }
 
         if (!$barId) {
+            return 0;
+        }
+
+        // INVARIANT « +4 ⇔ check-in depuis un POINT DE VENTE ». Le bonus n'est
+        // accordé que si $barId désigne un PDV existant ET actif. Garde-fou central :
+        // même si un appelant transmettait un bar_id non vérifié (ou un PDV désactivé),
+        // aucun +4 ne serait attribué. La proximité GPS est, elle, vérifiée côté
+        // appelant (findNearbyVenue / isVenueProximityVerified) avant cet appel.
+        if (!Bar::where('id', $barId)->where('is_active', true)->exists()) {
             return 0;
         }
 

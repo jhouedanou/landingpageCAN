@@ -19,6 +19,8 @@ class Prediction extends Model
         'predict_draw',
         'penalty_winner',
         'points_earned',
+        'ip_address',
+        'user_agent',
     ];
 
     protected $casts = [
@@ -38,6 +40,11 @@ class Prediction extends Model
     public function bar()
     {
         return $this->belongsTo(Bar::class, 'bar_id');
+    }
+
+    public function checkIns()
+    {
+        return $this->hasMany(CheckIn::class);
     }
 
     public function likes()

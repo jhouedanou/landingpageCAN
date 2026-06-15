@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AdminAuditLog;
 use App\Models\PointLog;
 use App\Models\User;
 use App\Services\RankingScenarioService;
@@ -93,18 +94,29 @@ class ApplyRankingScenario extends Command
             return self::SUCCESS;
         }
 
+        $note = "Scénario {$key} appliqué (ranking:apply-scenario, CLI)";
         $applied = 0;
-        DB::transaction(function () use ($rows, &$applied) {
+        DB::transaction(function () use ($rows, $note, &$applied) {
             foreach ($rows as $r) {
                 PointLog::create([
                     'user_id' => $r['user_id'],
+                    'admin_id' => null, // action CLI : aucun admin en session
                     'source'  => 'adjustment',
+                    'note'    => $note,
                     'points'  => -$r['pos_removed'],
                 ]);
                 User::where('id', $r['user_id'])->update(['points_total' => $r['total_after']]);
                 $applied++;
             }
         });
+
+        // Journal d'actions admin (A4) : trace l'application du scénario.
+        AdminAuditLog::record(
+            'ranking.apply_scenario',
+            "Scénario {$key} appliqué : {$applied} utilisateurs, {$t['points_removed']} points retirés.",
+            null,
+            ['scenario' => $key, 'users' => $applied, 'points_removed' => $t['points_removed']]
+        );
 
         $this->newLine();
         $this->info("✅ Scénario {$key} appliqué : {$applied} utilisateurs, {$t['points_removed']} points retirés.");

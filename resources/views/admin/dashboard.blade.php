@@ -130,6 +130,10 @@
                     <span class="text-3xl">📍</span>
                     <span class="font-bold text-sm text-center">Check-ins</span>
                 </a>
+                <a href="{{ route('admin.checkin-predictions') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">🔗</span>
+                    <span class="font-bold text-sm text-center">Check-ins × Pronostics</span>
+                </a>
                 <a href="{{ route('admin.animations') }}" class="bg-teal-600 hover:bg-teal-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">🎬</span>
                     <span class="font-bold text-sm text-center">Animations</span>
@@ -157,6 +161,10 @@
                 <a href="{{ route('admin.ranking-scenarios') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
                     <span class="text-3xl">📊</span>
                     <span class="font-bold text-sm text-center">Scénarios classement</span>
+                </a>
+                <a href="{{ route('admin.audit-logs') }}" class="bg-stone-700 hover:bg-stone-800 text-white rounded-xl p-4 shadow-lg flex flex-col items-center gap-2 transition-all hover:scale-105">
+                    <span class="text-3xl">📒</span>
+                    <span class="font-bold text-sm text-center">Journal d'actions</span>
                 </a>
             </div>
 

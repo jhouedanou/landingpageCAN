@@ -88,6 +88,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check-ins géolocalisés (preuves de présence en PDV).
+     */
+    public function checkIns()
+    {
+        return $this->hasMany(CheckIn::class);
+    }
+
+    /**
      * Route notifications for the WhatsApp channel.
      */
     public function routeNotificationForWhatsapp(): string

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AdminAuditLog;
 use App\Models\PointLog;
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -103,7 +104,9 @@ class RevokeCheckinBonus extends Command
                 // Ligne négative d'ajustement = trace auditable du retrait.
                 PointLog::create([
                     'user_id' => $u->id,
+                    'admin_id' => null, // action CLI : aucun admin en session
                     'source'  => 'adjustment',
+                    'note'    => 'Retrait bonus check-in indu (points:revoke-checkin-bonus, CLI)',
                     'points'  => -$pts,
                 ]);
 
@@ -114,6 +117,14 @@ class RevokeCheckinBonus extends Command
                 $applied++;
             }
         });
+
+        // Journal d'actions admin (A4) : trace le retrait des bonus de check-in.
+        AdminAuditLog::record(
+            'points.revoke_checkin',
+            "Retrait des bonus check-in indus : {$applied} utilisateurs, {$totalPts} points.",
+            null,
+            ['users' => $applied, 'checkins' => $totalCheckins, 'points_removed' => $totalPts]
+        );
 
         $this->newLine();
         $this->info("✅ Retrait appliqué pour {$applied} utilisateurs ({$totalPts} points).");

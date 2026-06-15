@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MatchGame;
 use App\Models\Prediction;
+use App\Models\CheckIn;
 use App\Models\SiteSetting;
+use App\Services\CheckInService;
 use App\Services\GeolocationService;
 use App\Services\PointsService;
 use Illuminate\Http\Request;
@@ -16,11 +18,13 @@ class PredictionController extends Controller
 {
     protected GeolocationService $geolocationService;
     protected PointsService $pointsService;
+    protected CheckInService $checkInService;
 
-    public function __construct(GeolocationService $geolocationService, PointsService $pointsService)
+    public function __construct(GeolocationService $geolocationService, PointsService $pointsService, CheckInService $checkInService)
     {
         $this->geolocationService = $geolocationService;
         $this->pointsService = $pointsService;
+        $this->checkInService = $checkInService;
     }
 
     public function store(Request $request)
@@ -39,6 +43,7 @@ class PredictionController extends Controller
             'score_b' => 'required|integer|min:0|max:20',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
+            'accuracy' => 'nullable|numeric|min:0',
             'predict_draw' => 'nullable',
             'penalty_winner' => 'nullable|in:home,away',
         ]);
@@ -124,6 +129,9 @@ class PredictionController extends Controller
             'score_b' => $request->score_b,
             'predict_draw' => $predictDraw,
             'penalty_winner' => $penaltyWinner,
+            // Empreinte réseau (B3) : repérage multi-comptes par IP / user-agent.
+            'ip_address' => $request->ip(),
+            'user_agent' => substr((string) $request->userAgent(), 0, 512),
         ];
         if ($nearbyVenue) {
             $predictionValues['bar_id'] = $nearbyVenue->id;
@@ -138,6 +146,21 @@ class PredictionController extends Controller
         );
 
         $isNewPrediction = $prediction->wasRecentlyCreated;
+
+        // PREUVE (A1) : pronostic fait sur place → persiste le check-in géolocalisé
+        // relié à ce pronostic (coordonnées, précision GPS, distance, IP, user-agent).
+        if ($nearbyVenue && $request->latitude && $request->longitude) {
+            $this->checkInService->record(
+                $user,
+                $nearbyVenue,
+                (float) $request->latitude,
+                (float) $request->longitude,
+                $request->filled('accuracy') ? (float) $request->accuracy : null,
+                CheckIn::SOURCE_PREDICTION,
+                $prediction->id,
+                $request
+            );
+        }
 
         // Award the +1 participation point immediately (idempotent per match)
         $this->pointsService->awardPredictionParticipationPoints($user, $match->id);

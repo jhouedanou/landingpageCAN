@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessMatchPoints;
+use App\Models\AdminAuditLog;
 use App\Models\Bar;
+use App\Models\CheckIn;
 use App\Models\MatchGame;
 use App\Models\PointLog;
 use App\Models\Prediction;
@@ -981,7 +983,31 @@ class AdminController extends Controller
         }
 
         $checkins = $query->paginate(50)->withQueryString();
-        
+
+        // Pronostics effectués pour chaque check-in : pour chaque ligne, les
+        // pronostics du MÊME utilisateur le MÊME jour (le pronostic « sur place »
+        // d'une ligne venue_visit porte en plus le même match_id). Chargement en
+        // lot (1 requête) pour éviter le N+1 sur la page paginée.
+        $checkinPredictions = [];
+        $items = $checkins->getCollection();
+        $userIds = $items->pluck('user_id')->filter()->unique()->values()->all();
+        if (!empty($userIds)) {
+            $start = $items->min(fn ($c) => $c->created_at)->copy()->startOfDay();
+            $end = $items->max(fn ($c) => $c->created_at)->copy()->endOfDay();
+
+            $preds = Prediction::with(['match.homeTeam', 'match.awayTeam'])
+                ->whereIn('user_id', $userIds)
+                ->whereBetween('created_at', [$start, $end])
+                ->orderBy('created_at')
+                ->get()
+                ->groupBy(fn ($p) => $p->user_id . '|' . $p->created_at->toDateString());
+
+            foreach ($items as $c) {
+                $key = $c->user_id . '|' . $c->created_at->toDateString();
+                $checkinPredictions[$c->id] = $preds->get($key, collect());
+            }
+        }
+
         // Listes pour les filtres
         $users = User::orderBy('name')->get(['id', 'name', 'phone']);
         $bars = Bar::where('is_active', true)->orderBy('zone')->orderBy('name')->get();
@@ -1025,6 +1051,7 @@ class AdminController extends Controller
 
         return view('admin.checkins', compact(
             'checkins',
+            'checkinPredictions',
             'users',
             'bars',
             'zones',
@@ -1035,6 +1062,83 @@ class AdminController extends Controller
             'isAdmin',
             'isSoboa'
         ));
+    }
+
+    /**
+     * Croisement check-ins ⇄ pronostics. S'appuie sur la table check_ins (preuve
+     * GPS persistée) : chaque check-in y porte ses coordonnées réelles, sa distance
+     * au PDV, et — pour un check-in « sur place » — le pronostic exact lié
+     * (prediction_id). Indique aussi si le bonus +4 (venue_visit) a été attribué
+     * pour ce couple (utilisateur, PDV, jour) — donc uniquement quand le check-in
+     * provient bien d'un PDV.
+     */
+    public function checkinPredictions(Request $request)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $query = CheckIn::with([
+                'user',
+                'bar',
+                'prediction.match.homeTeam',
+                'prediction.match.awayTeam',
+            ])
+            ->orderByDesc('created_at');
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+        if ($request->filled('bar_id')) {
+            $query->where('bar_id', $request->bar_id);
+        }
+        if ($request->filled('source')) {
+            $query->where('source', $request->source);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        // Filtre rapide : avec / sans pronostic lié.
+        if ($request->input('link') === 'with') {
+            $query->whereNotNull('prediction_id');
+        } elseif ($request->input('link') === 'without') {
+            $query->whereNull('prediction_id');
+        }
+
+        $checkins = $query->paginate(50)->withQueryString();
+
+        // Bonus +4 (venue_visit) attribué pour (utilisateur, PDV, jour) ? Lot (1 requête).
+        $bonusMap = [];
+        $items = $checkins->getCollection();
+        if ($items->isNotEmpty()) {
+            $userIds = $items->pluck('user_id')->filter()->unique()->values()->all();
+            $start = $items->min(fn ($c) => $c->created_at)->copy()->startOfDay();
+            $end = $items->max(fn ($c) => $c->created_at)->copy()->endOfDay();
+
+            $bonuses = PointLog::where('source', 'venue_visit')
+                ->whereIn('user_id', $userIds)
+                ->whereBetween('created_at', [$start, $end])
+                ->get(['user_id', 'bar_id', 'created_at']);
+
+            foreach ($bonuses as $b) {
+                $bonusMap[$b->user_id . '|' . $b->bar_id . '|' . $b->created_at->toDateString()] = true;
+            }
+        }
+
+        $stats = [
+            'total' => CheckIn::count(),
+            'with_prediction' => CheckIn::whereNotNull('prediction_id')->count(),
+            'without_prediction' => CheckIn::whereNull('prediction_id')->count(),
+            'from_pos' => CheckIn::whereNotNull('bar_id')->count(),
+        ];
+
+        $users = User::orderBy('name')->get(['id', 'name', 'phone']);
+        $bars = Bar::orderBy('name')->get(['id', 'name', 'zone']);
+
+        return view('admin.checkin-predictions', compact('checkins', 'bonusMap', 'stats', 'users', 'bars'));
     }
 
     /**
@@ -1175,7 +1279,45 @@ class AdminController extends Controller
         $b = $service->build(\App\Services\RankingScenarioService::SCENARIO_B, $includeStaff);
         $fraud = $service->detectFraudPatterns();
 
-        return view('admin.ranking-scenarios', compact('a', 'b', 'includeStaff', 'fraud'));
+        // Détections basées sur les check-ins géolocalisés persistés (table check_ins).
+        $speedFraud = $service->detectImpossibleSpeed();   // B1 — vitesse impossible
+        $ipFraud = $service->detectSharedDevices();        // B3 — multi-comptes même IP
+        $coordFraud = $service->detectSharedCoordinates(); // B4 — coords GPS identiques
+
+        return view('admin.ranking-scenarios', compact(
+            'a', 'b', 'includeStaff', 'fraud', 'speedFraud', 'ipFraud', 'coordFraud'
+        ));
+    }
+
+    /**
+     * Journal d'actions admin (A4) : liste filtrable de toutes les actions
+     * sensibles tracées (réinitialisations, suppressions, application de scénarios…).
+     */
+    public function auditLogs(Request $request)
+    {
+        if (!$this->checkAdminOrSoboa()) {
+            return redirect('/')->with('error', 'Accès non autorisé.');
+        }
+
+        $query = AdminAuditLog::with('admin')->orderByDesc('created_at');
+
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+        if ($request->filled('admin_id')) {
+            $query->where('admin_id', $request->admin_id);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $logs = $query->paginate(50)->withQueryString();
+        $actions = AdminAuditLog::select('action')->distinct()->orderBy('action')->pluck('action');
+
+        return view('admin.audit-logs', compact('logs', 'actions'));
     }
 
     /**
@@ -1623,7 +1765,16 @@ class AdminController extends Controller
         ]);
 
         $user = User::findOrFail($id);
+        $before = $user->only(['name', 'phone', 'email', 'role', 'points_total']);
         $user->update($request->only(['name', 'phone', 'email', 'role', 'points_total']));
+
+        // Journal d'actions admin (A4) : trace l'édition utilisateur (notamment points).
+        AdminAuditLog::record(
+            'user.update',
+            "Utilisateur #{$user->id} ({$user->name}) modifié.",
+            $user,
+            ['before' => $before, 'after' => $user->only(['name', 'phone', 'email', 'role', 'points_total'])]
+        );
 
         return redirect()->route('admin.users')->with('success', 'Utilisateur mis à jour avec succès.');
     }
@@ -1643,6 +1794,14 @@ class AdminController extends Controller
         if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
             return back()->with('error', 'Impossible de supprimer le dernier administrateur.');
         }
+
+        // Journal d'actions admin (A4) : trace AVANT suppression (snapshot du compte).
+        AdminAuditLog::record(
+            'user.delete',
+            "Utilisateur #{$user->id} ({$user->name}, {$user->phone}) supprimé.",
+            $user,
+            ['name' => $user->name, 'phone' => $user->phone, 'email' => $user->email, 'points_total' => $user->points_total]
+        );
 
         // Supprimer les pronostics associés
         Prediction::where('user_id', $id)->delete();
@@ -1761,7 +1920,15 @@ class AdminController extends Controller
             // IMPORTANT: Marquer les pronostics comme "points_earned = 0"
             // pour éviter que les points soient recalculés automatiquement
             \App\Models\Prediction::where('user_id', $user->id)->update(['points_earned' => 0]);
-            
+
+            // Journal d'actions admin (A4) : trace la remise à zéro des points.
+            AdminAuditLog::record(
+                'user.reset_points',
+                "Points de l'utilisateur #{$user->id} ({$user->name}) remis à zéro.",
+                $user,
+                ['previous_points' => $previousPoints, 'logs_deleted' => $logsCount]
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => "Points réinitialisés avec succès!\n\n" .
@@ -2894,6 +3061,15 @@ class AdminController extends Controller
         }
 
         $prediction = Prediction::findOrFail($id);
+
+        // Journal d'actions admin (A4) : trace AVANT suppression.
+        AdminAuditLog::record(
+            'prediction.delete',
+            "Pronostic #{$prediction->id} (user #{$prediction->user_id}, match #{$prediction->match_id}) supprimé.",
+            $prediction,
+            ['user_id' => $prediction->user_id, 'match_id' => $prediction->match_id]
+        );
+
         $prediction->delete();
 
         return back()->with('success', 'Pronostic supprimé avec succès.');
@@ -2913,7 +3089,16 @@ class AdminController extends Controller
             'prediction_ids.*' => 'integer|exists:predictions,id',
         ]);
 
-        $count = Prediction::whereIn('id', $request->prediction_ids)->delete();
+        $ids = $request->prediction_ids;
+        $count = Prediction::whereIn('id', $ids)->delete();
+
+        // Journal d'actions admin (A4) : trace la suppression en masse.
+        AdminAuditLog::record(
+            'prediction.bulk_delete',
+            "{$count} pronostic(s) supprimé(s) en masse.",
+            null,
+            ['count' => $count, 'prediction_ids' => array_values($ids)]
+        );
 
         return back()->with('success', "{$count} pronostic(s) supprimé(s) avec succès.");
     }
@@ -2949,6 +3134,14 @@ class AdminController extends Controller
                 'points_total' => \DB::raw('(SELECT COALESCE(SUM(points), 0) FROM point_logs WHERE point_logs.user_id = users.id)'),
             ]);
         });
+
+        // Journal d'actions admin (A4) : trace la réinitialisation globale.
+        AdminAuditLog::record(
+            'prediction.reset_all',
+            "Réinitialisation globale : {$predictionsCount} pronostic(s) supprimé(s), {$logsCount} log(s) de points liés supprimé(s).",
+            null,
+            ['predictions_deleted' => $predictionsCount, 'logs_deleted' => $logsCount]
+        );
 
         return back()->with('success', "Réinitialisation effectuée : {$predictionsCount} pronostic(s) supprimé(s), {$logsCount} log(s) de points liés aux pronostics supprimé(s), points des utilisateurs recalculés.");
     }

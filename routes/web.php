@@ -145,10 +145,15 @@ Route::prefix('admin')->name('admin.')->middleware('check.admin')->group(functio
     
     // Historique des points (logs)
     Route::get('/point-logs', [AdminController::class, 'pointLogs'])->name('point-logs');
+
+    // Journal d'actions admin (audit) — qui a fait quoi, quand
+    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
     
     // Check-ins (visites des lieux)
     Route::get('/checkins', [AdminController::class, 'checkins'])->name('checkins');
     Route::get('/checkins/export', [AdminController::class, 'exportCheckins'])->name('export-checkins');
+    // Croisement check-ins ⇄ pronostics (preuve GPS + bonus +4)
+    Route::get('/checkin-predictions', [AdminController::class, 'checkinPredictions'])->name('checkin-predictions');
     
     // Google Analytics
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');

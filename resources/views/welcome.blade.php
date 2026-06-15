@@ -713,7 +713,7 @@
                         <p class="text-sm text-white/80 mt-2">Pronostic en lieu</p>
                     </div>
                 </div>
-                <p class="text-center text-white/60 text-sm mt-4">Maximum 7 points par match + 4 points bonus par pronostic en lieu partenaire + 1 point par connexion quotidienne</p>
+                <p class="text-center text-white/60 text-sm mt-4">Maximum 7 points par match + 4 points bonus par pronostic sur place en lieu partenaire (1×/PDV/jour) + 1 point par connexion quotidienne</p>
             </div>
 
             <!-- CTA -->

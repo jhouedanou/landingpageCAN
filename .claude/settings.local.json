@@ -170,7 +170,10 @@
       "PowerShell(docker compose exec -T -w /app laravel.test sh -c \"yes | php artisan ranking:apply-scenario a --apply\")",
       "PowerShell(docker compose exec -w /app laravel.test php artisan points:audit)",
       "Bash(rm -f storage/app/rankings/*.csv storage/app/rankings/*.html)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(grep -A 30 \"CREATE TABLE \\\\`archived_rankings\\\\`\" \"C:\\\\Users\\\\socialmedia\\\\Documents\\\\GitHub\\\\landingpageCAN\\\\can_prod.sql\")",
+      "Bash(php -v)",
+      "Bash(awk '/CREATE TABLE `predictions`/,/ENGINE=/' /c/Users/socialmedia/Documents/GitHub/landingpageCAN/can_prod.sql)"
     ],
     "additionalDirectories": [
       "\\tmp",

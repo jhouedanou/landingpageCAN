@@ -598,7 +598,7 @@
                         <li>+1 pt / pronostic</li>
                         <li>+3 pts / bon vainqueur</li>
                         <li>+3 pts / score exact</li>
-                        <li>+4 pts / pronostic en lieu partenaire</li>
+                        <li>+4 pts / pronostic sur place (1×/PDV/jour)</li>
                     </ul>
                 </div>
             </div>
@@ -1269,7 +1269,7 @@
             </div>
             <div class="px-6 py-5 space-y-3 text-sm text-gray-700">
                 <p>Pour garantir l'équité du jeu, le classement est <strong>surveillé en permanence</strong>.</p>
-                <p>Le bonus <strong>+4 points</strong> est accordé <strong>uniquement lorsqu'un pronostic est enregistré sur place</strong>, dans un point de vente partenaire. Il se <strong>cumule entre différents points de vente</strong>. Un simple passage sans pronostic ne rapporte aucun point.</p>
+                <p>Le bonus <strong>+4 points</strong> est conservé uniquement si un pronostic est effectué <strong>le même jour, après le check-in</strong> dans un point de vente partenaire, avec un <strong>plafonnement à un seul check-in par point de vente et par jour</strong>. Un simple passage sans pronostic ne rapporte aucun point.</p>
                 <div class="bg-amber-50 border-l-4 border-amber-400 rounded p-3 flex items-start gap-2">
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5"></i>
                     <p class="text-amber-800">En cas de <strong>check-ins abusifs</strong>, les points concernés pourront faire l'objet d'un <strong>recomptage</strong>.</p>

@@ -210,6 +210,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Adresse</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Zone</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Coordonnées GPS</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pronostics du jour</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Points</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
                             </tr>
@@ -219,9 +220,10 @@
                                 @php
                                     $bar = $checkin->bar;
                                     $hasCoords = $bar && $bar->latitude && $bar->longitude;
-                                    $mapsUrl = $hasCoords 
-                                        ? "https://www.openstreetmap.org/?mlat={$bar->latitude}&mlon={$bar->longitude}&zoom=17" 
+                                    $mapsUrl = $hasCoords
+                                        ? "https://www.openstreetmap.org/?mlat={$bar->latitude}&mlon={$bar->longitude}&zoom=17"
                                         : null;
+                                    $dayPreds = $checkinPredictions[$checkin->id] ?? collect();
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
@@ -275,6 +277,26 @@
                                             <span class="text-gray-400 text-xs">Non défini</span>
                                         @endif
                                     </td>
+                                    <td class="px-4 py-3">
+                                        @if($dayPreds->isEmpty())
+                                            <span class="text-xs text-gray-400">Aucun pronostic ce jour</span>
+                                        @else
+                                            <div class="space-y-1 max-w-xs">
+                                                @foreach($dayPreds as $p)
+                                                    @php
+                                                        $isOnSite = $checkin->match_id && (int) $p->match_id === (int) $checkin->match_id;
+                                                        $home = $p->match?->homeTeam?->name ?? '?';
+                                                        $away = $p->match?->awayTeam?->name ?? '?';
+                                                    @endphp
+                                                    <div class="text-xs flex items-center gap-1 {{ $isOnSite ? 'font-bold text-purple-700' : 'text-gray-600' }}"
+                                                         title="{{ $p->created_at->format('H:i') }}{{ $isOnSite ? ' — pronostic lié à ce check-in' : '' }}">
+                                                        @if($isOnSite)<span title="Pronostic sur place">📍</span>@endif
+                                                        <span>{{ $home }} <span class="font-mono">{{ $p->score_a }}-{{ $p->score_b }}</span> {{ $away }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-center">
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
                                             +{{ $checkin->points }}
@@ -307,7 +329,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-4 py-12 text-center">
+                                    <td colspan="9" class="px-4 py-12 text-center">
                                         <div class="text-gray-400">
                                             <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
