@@ -290,20 +290,16 @@ class PointsService
      * Corrige (recalcule) les points d'un match déjà terminé après modification
      * du score par l'admin — typiquement quand l'API s'est trompée.
      *
-     * POURQUOI cette méthode existe : ProcessMatchPoints est ADDITIF et idempotent
-     * (il n'attribue un point que si la source n'a pas déjà été journalisée). Donc
-     * si un score erroné a déjà donné lieu à une attribution, corriger le score
-     * puis relancer le job NE corrige PAS les points déjà accordés : le job voit
-     * les anciens point_logs et les conserve.
+     * Le cœur du recalcul vit dans ProcessMatchPoints, qui est AUTO-CORRECTIF
+     * (il annule les points de résultat existants puis réattribue selon le score
+     * enregistré). Cette méthode ne fait donc que l'ENROBER pour l'usage admin :
+     *   - garde-fou « points désactivés » (tournoi terminé) ;
+     *   - mesure de l'écart avant/après ;
+     *   - traçabilité (AdminAuditLog) de l'action manuelle ;
+     *   - résumé renvoyé à l'UI / la commande.
      *
-     * Stratégie « annuler puis rejouer » :
-     *   1. ANNULER les point_logs liés au résultat (participation / vainqueur /
-     *      score exact) et décrémenter points_total en conséquence.
-     *   2. REJOUER ProcessMatchPoints, qui réattribue proprement selon le score
-     *      désormais enregistré.
-     *
-     * Idempotent : ré-exécutée sans changement de score, elle reproduit exactement
-     * le même état (annule N points puis réattribue les mêmes N points).
+     * Idempotent et sûr à rejouer : appelée deux fois de suite sans changement de
+     * score, elle reproduit exactement le même état.
      *
      * @return array{
      *     skipped: bool,
@@ -321,8 +317,8 @@ class PointsService
             ->sum('points');
 
         // Si l'attribution des points est désactivée (tournoi terminé), ne rien
-        // détruire : on ne pourrait pas réattribuer derrière (ProcessMatchPoints
-        // s'arrête aussi sur ce même interrupteur), ce qui ferait perdre des points.
+        // faire : ProcessMatchPoints s'arrêterait sur ce même interrupteur sans
+        // réattribuer. On évite ainsi tout retrait de points sans contrepartie.
         if (!SiteSetting::isPointsEnabled()) {
             return [
                 'skipped'        => true,
@@ -334,30 +330,8 @@ class PointsService
             ];
         }
 
-        // 1) ANNULER — retirer les points de résultat déjà accordés pour ce match.
-        $removed = DB::transaction(function () use ($match) {
-            $logs = PointLog::where('match_id', $match->id)
-                ->whereIn('source', self::MATCH_RESULT_SOURCES)
-                ->get(['id', 'user_id', 'points']);
-
-            if ($logs->isEmpty()) {
-                return 0;
-            }
-
-            // Décrémenter chaque utilisateur de la somme de SES points de résultat.
-            foreach ($logs->groupBy('user_id') as $userId => $rows) {
-                $sum = (int) $rows->sum('points');
-                if ($sum !== 0) {
-                    User::where('id', $userId)->decrement('points_total', $sum);
-                }
-            }
-
-            PointLog::whereIn('id', $logs->pluck('id'))->delete();
-
-            return (int) $logs->sum('points');
-        });
-
-        // 2) REJOUER — réattribuer selon le score actuellement enregistré.
+        // Recalcul délégué au job auto-correctif : annule les points de résultat
+        // existants puis réattribue selon le score enregistré, en une transaction.
         if ($match->status === 'finished' && $match->score_a !== null && $match->score_b !== null) {
             \App\Jobs\ProcessMatchPoints::dispatchSync($match->id);
         }
@@ -365,6 +339,8 @@ class PointsService
         $after = (int) PointLog::where('match_id', $match->id)
             ->whereIn('source', self::MATCH_RESULT_SOURCES)
             ->sum('points');
+
+        $removed = max(0, $before - $after);
 
         $usersAffected = (int) PointLog::where('match_id', $match->id)
             ->whereIn('source', self::MATCH_RESULT_SOURCES)
