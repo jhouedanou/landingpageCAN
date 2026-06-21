@@ -173,7 +173,9 @@
       "Bash(git check-ignore *)",
       "Bash(grep -A 30 \"CREATE TABLE \\\\`archived_rankings\\\\`\" \"C:\\\\Users\\\\socialmedia\\\\Documents\\\\GitHub\\\\landingpageCAN\\\\can_prod.sql\")",
       "Bash(php -v)",
-      "Bash(awk '/CREATE TABLE `predictions`/,/ENGINE=/' /c/Users/socialmedia/Documents/GitHub/landingpageCAN/can_prod.sql)"
+      "Bash(awk '/CREATE TABLE `predictions`/,/ENGINE=/' /c/Users/socialmedia/Documents/GitHub/landingpageCAN/can_prod.sql)",
+      "Bash(command -v php8.2 php8.3 php8.4)",
+      "Bash(command -v docker)"
     ],
     "additionalDirectories": [
       "\\tmp",

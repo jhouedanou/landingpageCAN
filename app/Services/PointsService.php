@@ -8,7 +8,9 @@ use App\Models\MatchGame;
 use App\Models\Prediction;
 use App\Models\PointLog;
 use App\Models\SiteSetting;
+use App\Models\AdminAuditLog;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 
@@ -269,5 +271,130 @@ class PointsService
 
         // Calcul immédiat et garanti (sans dépendre d'un worker de queue)
         \App\Jobs\ProcessMatchPoints::dispatchSync($match->id);
+    }
+
+    /**
+     * Sources de points qui dépendent du RÉSULTAT d'un match.
+     * Ce sont les SEULES annulées lors d'une correction de score. Les bonus de
+     * check-in (venue_visit / bar_visit) et les points de connexion (login /
+     * daily_activity) ne dépendent pas du score et ne doivent JAMAIS être retirés
+     * ici.
+     */
+    private const MATCH_RESULT_SOURCES = [
+        'prediction_participation',
+        'prediction_winner',
+        'prediction_exact',
+    ];
+
+    /**
+     * Corrige (recalcule) les points d'un match déjà terminé après modification
+     * du score par l'admin — typiquement quand l'API s'est trompée.
+     *
+     * POURQUOI cette méthode existe : ProcessMatchPoints est ADDITIF et idempotent
+     * (il n'attribue un point que si la source n'a pas déjà été journalisée). Donc
+     * si un score erroné a déjà donné lieu à une attribution, corriger le score
+     * puis relancer le job NE corrige PAS les points déjà accordés : le job voit
+     * les anciens point_logs et les conserve.
+     *
+     * Stratégie « annuler puis rejouer » :
+     *   1. ANNULER les point_logs liés au résultat (participation / vainqueur /
+     *      score exact) et décrémenter points_total en conséquence.
+     *   2. REJOUER ProcessMatchPoints, qui réattribue proprement selon le score
+     *      désormais enregistré.
+     *
+     * Idempotent : ré-exécutée sans changement de score, elle reproduit exactement
+     * le même état (annule N points puis réattribue les mêmes N points).
+     *
+     * @return array{
+     *     skipped: bool,
+     *     reason?: string,
+     *     users_affected: int,
+     *     points_before: int,
+     *     points_after: int,
+     *     points_removed: int
+     * }
+     */
+    public function recalculateMatchPoints(MatchGame $match): array
+    {
+        $before = (int) PointLog::where('match_id', $match->id)
+            ->whereIn('source', self::MATCH_RESULT_SOURCES)
+            ->sum('points');
+
+        // Si l'attribution des points est désactivée (tournoi terminé), ne rien
+        // détruire : on ne pourrait pas réattribuer derrière (ProcessMatchPoints
+        // s'arrête aussi sur ce même interrupteur), ce qui ferait perdre des points.
+        if (!SiteSetting::isPointsEnabled()) {
+            return [
+                'skipped'        => true,
+                'reason'         => 'points_disabled',
+                'users_affected' => 0,
+                'points_before'  => $before,
+                'points_after'   => $before,
+                'points_removed' => 0,
+            ];
+        }
+
+        // 1) ANNULER — retirer les points de résultat déjà accordés pour ce match.
+        $removed = DB::transaction(function () use ($match) {
+            $logs = PointLog::where('match_id', $match->id)
+                ->whereIn('source', self::MATCH_RESULT_SOURCES)
+                ->get(['id', 'user_id', 'points']);
+
+            if ($logs->isEmpty()) {
+                return 0;
+            }
+
+            // Décrémenter chaque utilisateur de la somme de SES points de résultat.
+            foreach ($logs->groupBy('user_id') as $userId => $rows) {
+                $sum = (int) $rows->sum('points');
+                if ($sum !== 0) {
+                    User::where('id', $userId)->decrement('points_total', $sum);
+                }
+            }
+
+            PointLog::whereIn('id', $logs->pluck('id'))->delete();
+
+            return (int) $logs->sum('points');
+        });
+
+        // 2) REJOUER — réattribuer selon le score actuellement enregistré.
+        if ($match->status === 'finished' && $match->score_a !== null && $match->score_b !== null) {
+            \App\Jobs\ProcessMatchPoints::dispatchSync($match->id);
+        }
+
+        $after = (int) PointLog::where('match_id', $match->id)
+            ->whereIn('source', self::MATCH_RESULT_SOURCES)
+            ->sum('points');
+
+        $usersAffected = (int) PointLog::where('match_id', $match->id)
+            ->whereIn('source', self::MATCH_RESULT_SOURCES)
+            ->distinct()
+            ->count('user_id');
+
+        // Traçabilité : qui a recalculé, quand, et l'écart de points.
+        AdminAuditLog::record(
+            'match.recalculate_points',
+            "Recalcul des points — match #{$match->id} : {$match->team_a} {$match->score_a}-{$match->score_b} {$match->team_b}",
+            $match,
+            [
+                'score_a'        => $match->score_a,
+                'score_b'        => $match->score_b,
+                'winner'         => $match->winner,
+                'points_before'  => $before,
+                'points_after'   => $after,
+                'points_removed' => $removed,
+            ]
+        );
+
+        // Le classement a potentiellement changé.
+        Cache::forget('leaderboard_top_5');
+
+        return [
+            'skipped'        => false,
+            'users_affected' => $usersAffected,
+            'points_before'  => $before,
+            'points_after'   => $after,
+            'points_removed' => $removed,
+        ];
     }
 }
