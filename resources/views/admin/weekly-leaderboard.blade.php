@@ -154,14 +154,23 @@
             @endif
 
             <!-- Actions -->
-            <div class="flex justify-end mb-4">
-                <a href="{{ route('admin.export-weekly-leaderboard') }}?period={{ $selectedWeek }}" 
+            <div class="flex flex-wrap justify-end gap-2 mb-4">
+                <a href="{{ route('admin.export-weekly-leaderboard') }}?period=global"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Export Classement Global
+                </a>
+                @unless($isGlobal)
+                <a href="{{ route('admin.export-weekly-leaderboard') }}?period={{ $selectedWeek }}"
                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
-                    Exporter CSV
+                    Export Semaine sélectionnée
                 </a>
+                @endunless
             </div>
 
             <!-- Tableau complet -->
